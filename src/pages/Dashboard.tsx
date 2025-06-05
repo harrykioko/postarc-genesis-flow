@@ -8,6 +8,7 @@ import { RecentPosts } from "@/components/dashboard/RecentPosts";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ProfileSetupWizard } from "@/components/ProfileSetupWizard";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { supabase } from "@/integrations/supabase/client"; // ← Add this import
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -46,21 +47,14 @@ const Dashboard = () => {
     return <ProfileSetupWizard onComplete={refreshProfile} />;
   }
 
-  const samplePost = `🚀 The future of professional content creation is here.
-
-After years of struggling to maintain a consistent LinkedIn presence while running my consultancy, I discovered something game-changing: AI-powered content generation that actually understands professional context.
-
-Here's what I learned:
-
-✅ Authenticity doesn't mean doing everything manually
-✅ Consistency beats perfection every time  
-✅ The right tools amplify your expertise, they don't replace it
-
-The professionals who embrace AI as a creative partner will build stronger personal brands while reclaiming their time.
-
-What's your take on AI in professional content creation?
-
-#ThoughtLeadership #AI #ProfessionalGrowth`;
+  // Template mapping: frontend IDs to backend IDs
+  const templateMapping: { [key: string]: string } = {
+    "consultant": "Consultant",
+    "founder": "Founder", 
+    "vc": "VC",
+    "sales": "Sales",
+    "hr": "HR"
+  };
 
   const handleGenerate = async () => {
     if (!input.trim()) return;
@@ -68,38 +62,107 @@ What's your take on AI in professional content creation?
     setIsGenerating(true);
     setShowSpark(true);
     
-    // Simulate AI generation
-    setTimeout(() => {
-      setGeneratedPost(samplePost);
-      setIsGenerating(false);
+    try {
+      // Determine if input is a URL or topic
+      const isUrl = input.trim().startsWith('http://') || input.trim().startsWith('https://');
+      
+      // Prepare payload for the Edge Function
+      const payload = {
+        topic: isUrl ? undefined : input.trim(),
+        url: isUrl ? input.trim() : undefined,
+        template: templateMapping[selectedTemplate] || "Consultant",
+        hasEmojis: useEmojis,
+        hasHashtags: useHashtags
+      };
+
+      console.log("Calling generatePost with payload:", payload);
+
+      // Call the Edge Function
+      const { data, error } = await supabase.functions.invoke('generatePost', {
+        body: payload
+      });
+
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw error;
+      }
+
+      if (data.error) {
+        console.error("API error:", data.error);
+        throw new Error(data.error);
+      }
+
+      console.log("Generated post data:", data);
+
+      // Success! Update the UI
+      setGeneratedPost(data.post);
       setQuota(prev => ({ ...prev, used: prev.used + 1 }));
       setShowPulse(true);
       
       // Add new post to recent list
       const newPost = {
         id: Date.now(),
-        preview: input.substring(0, 50) + "...",
+        preview: data.post.substring(0, 50) + "...",
         date: "Just now"
       };
       setRecentPosts(prev => [newPost, ...prev.slice(0, 2)]);
       
+      // Clear input after successful generation
+      setInput("");
+      
+      // Show success toast
+      toast({
+        title: "Post Generated! 🎉",
+        description: "Your LinkedIn post is ready to share",
+      });
+      
       setTimeout(() => setShowPulse(false), 1000);
-    }, 2000);
-    
-    setTimeout(() => setShowSpark(false), 800);
+
+    } catch (error: any) {
+      console.error("Generation failed:", error);
+      
+      // Handle specific error cases
+      let errorMessage = "Failed to generate post. Please try again.";
+      
+      if (error.message?.includes("quota exceeded")) {
+        errorMessage = "You've reached your monthly limit. Upgrade to Pro for unlimited posts!";
+      } else if (error.message?.includes("Invalid URL")) {
+        errorMessage = "Please check your URL and try again.";
+      } else if (error.message?.includes("Could not fetch")) {
+        errorMessage = "Couldn't access that webpage. Try a different URL or enter a topic instead.";
+      }
+      
+      toast({
+        title: "Generation Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+      setTimeout(() => setShowSpark(false), 800);
+    }
   };
 
   const handleCopy = async (text: string) => {
-    await navigator.clipboard.writeText(text);
-    toast({
-      title: "Copied!",
-      description: "Content copied to clipboard",
-    });
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied! 📋",
+        description: "Content copied to clipboard",
+      });
+    } catch (error) {
+      console.error("Copy failed:", error);
+      toast({
+        title: "Copy Failed",
+        description: "Please select and copy the text manually",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleShare = () => {
-    const linkedinUrl = `https://www.linkedin.com/shareArticle?mini=true&text=${encodeURIComponent(generatedPost)}`;
-    window.open(linkedinUrl, '_blank');
+    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin)}&title=${encodeURIComponent('Check out this post I created with PostArc.ai')}&summary=${encodeURIComponent(generatedPost)}`;
+    window.open(linkedinUrl, '_blank', 'width=600,height=400');
   };
 
   return (
