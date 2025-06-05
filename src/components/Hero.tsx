@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDown, Edit, Share } from "lucide-react";
@@ -22,9 +21,7 @@ export const Hero = () => {
           </h1>
           
           <p className="text-xl md:text-2xl text-slate mb-8 leading-relaxed max-w-3xl mx-auto">
-            Transform your expertise into compelling LinkedIn thought-leadership posts 
-            with AI-powered content generation. Build influence, generate leads, 
-            and establish your professional brand.
+            Generate expert-level posts in seconds with AI. Share confidently, grow your influence.
           </p>
           
           <div className="flex justify-center items-center mb-12">
