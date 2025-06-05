@@ -10,10 +10,11 @@ export const Header = () => {
     <header className="w-full bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-midnight to-neon rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">P</span>
-          </div>
-          <span className="text-2xl font-heading font-bold text-midnight">PostArc</span>
+          <img 
+            src="/lovable-uploads/517dc996-4525-45d7-8223-232c5844a386.png" 
+            alt="PostArc Logo" 
+            className="h-8 w-auto"
+          />
         </div>
         
         <nav className="hidden md:flex items-center space-x-8">
