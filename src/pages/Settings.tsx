@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, User, Settings, Shield, CreditCard } from "lucide-react";
+import { ArrowLeft, User, Settings as SettingsIcon, Shield, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -107,7 +107,7 @@ const Settings = () => {
                 <span>Profile</span>
               </TabsTrigger>
               <TabsTrigger value="preferences" className="flex items-center space-x-2">
-                <Settings className="w-4 h-4" />
+                <SettingsIcon className="w-4 h-4" />
                 <span>Content</span>
               </TabsTrigger>
               <TabsTrigger value="account" className="flex items-center space-x-2">
