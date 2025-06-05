@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,21 +8,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, User, Settings as SettingsIcon, Shield, CreditCard, Linkedin, ExternalLink, CheckCircle, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const { toast } = useToast();
-  const [profile, setProfile] = useState({
-    name: "John Doe",
-    title: "Senior Consultant",
-    company: "Tech Solutions Inc.",
-    headline: "Helping businesses transform through technology",
-    brandVoice: "Professional yet approachable, data-driven insights with actionable takeaways",
-    linkedinUrl: ""
+  const { user } = useAuth();
+  const { profile, loading: profileLoading, refreshProfile } = useUserProfile();
+  
+  // Profile form state
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    job_title: "",
+    linkedin_head: "",
+    brand_voice: ""
   });
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
 
+  // Other settings state
   const [preferences, setPreferences] = useState({
     defaultTemplate: "consultant",
     useEmojis: true,
@@ -46,6 +53,25 @@ const Settings = () => {
     connectedAt: ""
   });
 
+  // Load profile data when it becomes available
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        name: profile.name || "",
+        job_title: profile.job_title || "",
+        linkedin_head: profile.linkedin_head || "",
+        brand_voice: profile.brand_voice || ""
+      });
+    }
+  }, [profile]);
+
+  const brandVoiceOptions = [
+    { value: "professional", label: "Professional" },
+    { value: "casual", label: "Casual" },
+    { value: "thought_leader", label: "Thought Leader" },
+    { value: "industry_expert", label: "Industry Expert" }
+  ];
+
   const templates = [
     { id: "consultant", name: "Consultant", description: "Professional and authoritative tone", color: "bg-blue-500" },
     { id: "founder", name: "Founder", description: "Entrepreneurial and visionary", color: "bg-purple-500" },
@@ -54,11 +80,41 @@ const Settings = () => {
     { id: "hr", name: "HR", description: "People and culture focused", color: "bg-pink-500" },
   ];
 
-  const handleProfileSave = () => {
-    toast({
-      title: "Profile updated",
-      description: "Your profile settings have been saved successfully.",
-    });
+  const handleProfileSave = async () => {
+    if (!user) return;
+
+    setIsProfileSaving(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({
+          name: profileForm.name,
+          job_title: profileForm.job_title,
+          linkedin_head: profileForm.linkedin_head,
+          brand_voice: profileForm.brand_voice,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile updated",
+        description: "Your profile settings have been saved successfully.",
+      });
+      
+      // Refresh the profile data
+      refreshProfile();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProfileSaving(false);
+    }
   };
 
   const handlePreferencesSave = () => {
@@ -103,6 +159,17 @@ const Settings = () => {
       description: "Your LinkedIn account has been disconnected.",
     });
   };
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#F5FAFF] via-[#ECF6FF] to-[#FFFFFF] animate-[bgMove_15s_linear_infinite] bg-[length:100%_200%] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-neon/30 border-t-neon rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-midnight">Loading your settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F5FAFF] via-[#ECF6FF] to-[#FFFFFF] animate-[bgMove_15s_linear_infinite] bg-[length:100%_200%]">
@@ -169,68 +236,80 @@ const Settings = () => {
                       <Label htmlFor="name">Full Name</Label>
                       <Input
                         id="name"
-                        value={profile.name}
-                        onChange={(e) => setProfile({...profile, name: e.target.value})}
+                        value={profileForm.name}
+                        onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
                         className="mt-2 border-slate/20 focus:ring-neon/40"
+                        placeholder="Enter your full name"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="title">Professional Title</Label>
+                      <Label htmlFor="email">Email Address</Label>
                       <Input
-                        id="title"
-                        value={profile.title}
-                        onChange={(e) => setProfile({...profile, title: e.target.value})}
-                        className="mt-2 border-slate/20 focus:ring-neon/40"
+                        id="email"
+                        value={user?.email || ""}
+                        readOnly
+                        className="mt-2 border-slate/20 bg-gray-50 text-gray-600"
+                        placeholder="Your email address"
                       />
+                      <p className="text-xs text-slate mt-1">Email cannot be changed here</p>
                     </div>
                   </div>
                   
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="company">Company</Label>
+                      <Label htmlFor="job_title">Professional Title</Label>
                       <Input
-                        id="company"
-                        value={profile.company}
-                        onChange={(e) => setProfile({...profile, company: e.target.value})}
+                        id="job_title"
+                        value={profileForm.job_title}
+                        onChange={(e) => setProfileForm({...profileForm, job_title: e.target.value})}
                         className="mt-2 border-slate/20 focus:ring-neon/40"
+                        placeholder="e.g., Marketing Director, Software Engineer"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="linkedin">LinkedIn URL (Optional)</Label>
-                      <Input
-                        id="linkedin"
-                        placeholder="https://linkedin.com/in/yourprofile"
-                        value={profile.linkedinUrl}
-                        onChange={(e) => setProfile({...profile, linkedinUrl: e.target.value})}
-                        className="mt-2 border-slate/20 focus:ring-neon/40"
-                      />
+                      <Label htmlFor="brand_voice">Brand Voice</Label>
+                      <Select 
+                        value={profileForm.brand_voice} 
+                        onValueChange={(value) => setProfileForm({...profileForm, brand_voice: value})}
+                      >
+                        <SelectTrigger className="mt-2 border-slate/20 focus:ring-neon/40">
+                          <SelectValue placeholder="Select your preferred tone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {brandVoiceOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="headline">Professional Headline</Label>
+                    <Label htmlFor="linkedin_head">LinkedIn Headline</Label>
                     <Input
-                      id="headline"
-                      placeholder="Brief description of what you do"
-                      value={profile.headline}
-                      onChange={(e) => setProfile({...profile, headline: e.target.value})}
+                      id="linkedin_head"
+                      placeholder="e.g., Helping companies scale through digital transformation"
+                      value={profileForm.linkedin_head}
+                      onChange={(e) => setProfileForm({...profileForm, linkedin_head: e.target.value})}
                       className="mt-2 border-slate/20 focus:ring-neon/40"
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="brandVoice">Brand Voice & Style</Label>
-                    <Textarea
-                      id="brandVoice"
-                      placeholder="Describe your preferred writing style, tone, and voice for generated content..."
-                      value={profile.brandVoice}
-                      onChange={(e) => setProfile({...profile, brandVoice: e.target.value})}
-                      className="mt-2 min-h-[100px] border-slate/20 focus:ring-neon/40"
-                    />
-                  </div>
-
-                  <Button onClick={handleProfileSave} className="bg-neon text-midnight hover:bg-neon/90 font-semibold transition-all duration-200">
-                    Save Profile
+                  <Button 
+                    onClick={handleProfileSave} 
+                    disabled={isProfileSaving}
+                    className="bg-neon text-midnight hover:bg-neon/90 font-semibold transition-all duration-200"
+                  >
+                    {isProfileSaving ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin" />
+                        <span>Saving...</span>
+                      </div>
+                    ) : (
+                      'Save Profile'
+                    )}
                   </Button>
                 </CardContent>
               </Card>
