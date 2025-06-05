@@ -99,10 +99,11 @@ What's your take on AI in professional content creation?
       <header className="bg-white/90 backdrop-blur-sm border-b border-slate/10">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-midnight to-neon rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">P</span>
-            </div>
-            <span className="text-2xl font-heading font-bold text-midnight">PostArc</span>
+            <img 
+              src="/lovable-uploads/4c54b1f5-c3f4-4d70-9a61-eca611f2e011.png" 
+              alt="PostArc Logo" 
+              className="h-8 w-auto object-contain"
+            />
           </div>
           
           <div className="flex items-center space-x-4">

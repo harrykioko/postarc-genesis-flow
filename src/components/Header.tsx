@@ -8,12 +8,12 @@ export const Header = () => {
 
   return (
     <header className="w-full bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-50">
-      <div className="container mx-auto px-6 py-3 flex items-center justify-between">
+      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <img 
-            src="/lovable-uploads/517dc996-4525-45d7-8223-232c5844a386.png" 
+            src="/lovable-uploads/4c54b1f5-c3f4-4d70-9a61-eca611f2e011.png" 
             alt="PostArc Logo" 
-            className="h-24 w-auto md:h-28"
+            className="h-8 w-auto object-contain"
           />
         </div>
         
