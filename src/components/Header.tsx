@@ -13,7 +13,7 @@ export const Header = () => {
           <img 
             src="/lovable-uploads/517dc996-4525-45d7-8223-232c5844a386.png" 
             alt="PostArc Logo" 
-            className="h-8 w-auto"
+            className="h-12 w-auto md:h-16"
           />
         </div>
         
