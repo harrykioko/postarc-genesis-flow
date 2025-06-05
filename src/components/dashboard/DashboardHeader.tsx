@@ -1,7 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User } from "lucide-react";
+import { User, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardHeaderProps {
   quota: { used: number; total: number };
@@ -9,6 +10,14 @@ interface DashboardHeaderProps {
 }
 
 export const DashboardHeader = ({ quota, showPulse }: DashboardHeaderProps) => {
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  const displayName = user?.email?.split('@')[0] || 'User';
+
   return (
     <header className="bg-white/90 backdrop-blur-sm border-b border-slate/10">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -29,10 +38,15 @@ export const DashboardHeader = ({ quota, showPulse }: DashboardHeaderProps) => {
               <div className="absolute inset-0 rounded-full border-2 border-neon animate-pulse-ring pointer-events-none" />
             )}
           </div>
-          <Button variant="ghost" size="sm">
-            <User className="w-4 h-4 mr-2" />
-            John Doe
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="sm">
+              <User className="w-4 h-4 mr-2" />
+              {displayName}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </header>
