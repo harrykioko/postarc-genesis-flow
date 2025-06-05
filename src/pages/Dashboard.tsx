@@ -123,10 +123,10 @@ What's your take on AI in professional content creation?
                       <div
                         key={template.id}
                         onClick={() => setSelectedTemplate(template.id)}
-                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 ${
                           selectedTemplate === template.id
-                            ? 'border-neon bg-neon/10'
-                            : 'border-gray-200 hover:border-neon/50'
+                            ? 'border-neon bg-gradient-to-br from-neon/10 to-neon/5 shadow-[0_0_20px_rgba(0,255,194,0.3)]'
+                            : 'border-gray-200 hover:border-neon/50 hover:shadow-md'
                         }`}
                       >
                         <div className={`w-3 h-3 rounded-full ${template.color} mb-2`} />
@@ -137,8 +137,8 @@ What's your take on AI in professional content creation?
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-6">
+                <div className="flex items-center justify-between pt-4">
+                  <div className="flex items-center space-x-8">
                     <div className="flex items-center space-x-2">
                       <Switch
                         id="emojis"
@@ -223,10 +223,10 @@ What's your take on AI in professional content creation?
                   <div className="text-2xl font-bold text-midnight mb-2">
                     {quota.total - quota.used} / {quota.total}
                   </div>
-                  <div className="text-slate mb-4">Posts remaining this month</div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                  <div className="text-slate mb-4 font-medium">{quota.used} / {quota.total} posts used this month</div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
                     <div 
-                      className="bg-neon h-2 rounded-full transition-all"
+                      className="bg-neon h-3 rounded-full transition-all duration-700 ease-out"
                       style={{ width: `${((quota.total - quota.used) / quota.total) * 100}%` }}
                     />
                   </div>
@@ -249,7 +249,10 @@ What's your take on AI in professional content creation?
               </CardHeader>
               <CardContent className="space-y-3">
                 {recentPosts.map((post) => (
-                  <div key={post.id} className="p-3 bg-white/50 rounded-lg">
+                  <div 
+                    key={post.id} 
+                    className="p-3 bg-white/50 rounded-lg transition-all duration-200 hover:bg-white/70 hover:shadow-md cursor-pointer"
+                  >
                     <div className="text-sm text-midnight mb-1">{post.preview}</div>
                     <div className="text-xs text-slate">{post.date}</div>
                   </div>
@@ -265,15 +268,29 @@ What's your take on AI in professional content creation?
               <CardHeader>
                 <CardTitle className="font-heading text-midnight">Quick Actions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Account Settings
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <User className="w-4 h-4 mr-2" />
-                  Profile Setup
-                </Button>
+              <CardContent className="space-y-4">
+                <div className="bg-white/50 rounded-lg p-4 transition-all duration-200 hover:bg-white/70 hover:shadow-md cursor-pointer">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-neon/20 rounded-lg flex items-center justify-center">
+                      <Settings className="w-5 h-5 text-neon" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-midnight">Account Settings</div>
+                      <div className="text-xs text-slate">Manage your preferences</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white/50 rounded-lg p-4 transition-all duration-200 hover:bg-white/70 hover:shadow-md cursor-pointer">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-neon/20 rounded-lg flex items-center justify-center">
+                      <User className="w-5 h-5 text-neon" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-midnight">Profile Setup</div>
+                      <div className="text-xs text-slate">Complete your profile</div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
