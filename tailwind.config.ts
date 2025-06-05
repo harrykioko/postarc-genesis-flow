@@ -66,6 +66,7 @@ export default {
 				// PostArc brand colors
 				midnight: '#0B1C34',
 				neon: '#00FFC2',
+				mint: '#00FFC2',
 				slate: '#65758C',
 				glass: 'rgba(255, 255, 255, 0.1)',
 			},
@@ -76,6 +77,7 @@ export default {
 			backgroundImage: {
 				'gradient-brand': 'linear-gradient(135deg, #F5FAFF 0%, #E8F4FF 100%)',
 				'gradient-glass': 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%)',
+				'gradient-animated': 'linear-gradient(0deg, #F5FAFF 0%, #ECF6FF 50%, #FFFFFF 100%)',
 			},
 			backdropBlur: {
 				'glass': '20px',
@@ -109,13 +111,34 @@ export default {
 				'slide-up': {
 					'0%': { opacity: '0', transform: 'translateY(20px)' },
 					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'bgMove': {
+					'0%': { backgroundPosition: '0% 0%' },
+					'100%': { backgroundPosition: '0% 100%' }
+				},
+				'spark-float': {
+					'0%': { opacity: '0', transform: 'translateY(0px)' },
+					'50%': { opacity: '1', transform: 'translateY(-12px)' },
+					'100%': { opacity: '0', transform: 'translateY(-24px)' }
+				},
+				'pulse-ring': {
+					'0%': { transform: 'scale(1)', opacity: '1' },
+					'100%': { transform: 'scale(1.4)', opacity: '0' }
+				},
+				'slide-in-item': {
+					'0%': { opacity: '0', transform: 'translateY(-10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out',
-				'slide-up': 'slide-up 0.6s ease-out'
+				'slide-up': 'slide-up 0.6s ease-out',
+				'bgMove': 'bgMove 15s linear infinite',
+				'spark-float': 'spark-float 0.8s ease-out',
+				'pulse-ring': 'pulse-ring 1s ease-out',
+				'slide-in-item': 'slide-in-item 0.3s ease-out'
 			}
 		}
 	},

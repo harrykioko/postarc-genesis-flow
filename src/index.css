@@ -97,6 +97,18 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
   }
+
+  /* Respect reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 @layer utilities {
@@ -118,5 +130,17 @@
   
   .btn-primary {
     @apply bg-midnight text-white hover:bg-midnight/90 font-semibold transition-all duration-200;
+  }
+
+  /* Enhanced focus states for accessibility */
+  .focus-enhanced:focus-visible {
+    @apply ring-2 ring-mint/40 ring-offset-2 outline-none;
+  }
+
+  /* Responsive grid adjustments */
+  @media (max-width: 768px) {
+    .sidebar-mobile {
+      @apply order-last animate-slide-up;
+    }
   }
 }
