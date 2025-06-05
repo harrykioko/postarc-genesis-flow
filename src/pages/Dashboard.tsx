@@ -75,10 +75,10 @@ const Dashboard = () => {
         hasHashtags: useHashtags
       };
 
-      console.log("Calling generatePost with payload:", payload);
+      console.log("Calling generate-post with payload:", payload);
 
       // Call the Edge Function
-      const { data, error } = await supabase.functions.invoke('generatePost', {
+      const { data, error } = await supabase.functions.invoke('generate-post', {
         body: payload
       });
 
