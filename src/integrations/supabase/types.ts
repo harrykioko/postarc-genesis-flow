@@ -129,6 +129,7 @@ export type Database = {
           job_title: string | null
           linkedin_head: string | null
           name: string | null
+          profile_complete: boolean | null
           role: string
           updated_at: string | null
         }
@@ -140,6 +141,7 @@ export type Database = {
           job_title?: string | null
           linkedin_head?: string | null
           name?: string | null
+          profile_complete?: boolean | null
           role?: string
           updated_at?: string | null
         }
@@ -151,6 +153,7 @@ export type Database = {
           job_title?: string | null
           linkedin_head?: string | null
           name?: string | null
+          profile_complete?: boolean | null
           role?: string
           updated_at?: string | null
         }
@@ -161,7 +164,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_profile_complete: {
+        Args: { user_row: Database["public"]["Tables"]["users"]["Row"] }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

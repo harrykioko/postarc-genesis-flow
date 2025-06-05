@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -7,9 +6,13 @@ import { GeneratedPost } from "@/components/dashboard/GeneratedPost";
 import { QuotaCard } from "@/components/dashboard/QuotaCard";
 import { RecentPosts } from "@/components/dashboard/RecentPosts";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { ProfileSetupWizard } from "@/components/ProfileSetupWizard";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const Dashboard = () => {
   const { toast } = useToast();
+  const { profile, loading: profileLoading, refreshProfile } = useUserProfile();
+  
   const [input, setInput] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("consultant");
   const [useEmojis, setUseEmojis] = useState(true);
@@ -25,6 +28,23 @@ const Dashboard = () => {
     { id: 2, preview: "5 lessons I learned from failing fast in startups...", date: "1 day ago" },
     { id: 3, preview: "Why authentic leadership matters more than ever...", date: "3 days ago" },
   ]);
+
+  // Show loading while checking profile
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-brand flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-neon/30 border-t-neon rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-midnight">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show profile setup wizard if profile is incomplete
+  if (profile && !profile.profile_complete) {
+    return <ProfileSetupWizard onComplete={refreshProfile} />;
+  }
 
   const samplePost = `🚀 The future of professional content creation is here.
 
