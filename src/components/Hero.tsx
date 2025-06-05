@@ -27,18 +27,12 @@ export const Hero = () => {
             and establish your professional brand.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+          <div className="flex justify-center items-center mb-12">
             <Button
               onClick={() => setShowDemo(true)}
               className="btn-neon px-8 py-3 text-lg rounded-lg"
             >
               Try it now - Free
-            </Button>
-            <Button
-              variant="outline"
-              className="px-8 py-3 text-lg border-2 border-midnight text-midnight hover:bg-midnight hover:text-white"
-            >
-              Watch Demo
             </Button>
           </div>
           
