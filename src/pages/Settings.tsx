@@ -67,9 +67,9 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-brand">
+    <div className="min-h-screen bg-gradient-to-b from-[#F5FAFF] via-[#ECF6FF] to-[#FFFFFF] animate-[bgMove_15s_linear_infinite] bg-[length:100%_200%]">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-white/20">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-slate/10">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link to="/dashboard" className="flex items-center space-x-2 text-slate hover:text-midnight transition-colors">
@@ -101,27 +101,27 @@ const Settings = () => {
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="profile" className="flex items-center space-x-2">
+            <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm">
+              <TabsTrigger value="profile" className="flex items-center space-x-2 data-[state=active]:bg-neon/10 data-[state=active]:text-midnight">
                 <User className="w-4 h-4" />
                 <span>Profile</span>
               </TabsTrigger>
-              <TabsTrigger value="preferences" className="flex items-center space-x-2">
+              <TabsTrigger value="preferences" className="flex items-center space-x-2 data-[state=active]:bg-neon/10 data-[state=active]:text-midnight">
                 <SettingsIcon className="w-4 h-4" />
                 <span>Content</span>
               </TabsTrigger>
-              <TabsTrigger value="account" className="flex items-center space-x-2">
+              <TabsTrigger value="account" className="flex items-center space-x-2 data-[state=active]:bg-neon/10 data-[state=active]:text-midnight">
                 <CreditCard className="w-4 h-4" />
                 <span>Account</span>
               </TabsTrigger>
-              <TabsTrigger value="privacy" className="flex items-center space-x-2">
+              <TabsTrigger value="privacy" className="flex items-center space-x-2 data-[state=active]:bg-neon/10 data-[state=active]:text-midnight">
                 <Shield className="w-4 h-4" />
                 <span>Privacy</span>
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile">
-              <Card className="glass-card border-0">
+              <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-neon/10 transition-all duration-200">
                 <CardHeader>
                   <CardTitle className="font-heading text-midnight">Profile Information</CardTitle>
                 </CardHeader>
@@ -133,7 +133,7 @@ const Settings = () => {
                         id="name"
                         value={profile.name}
                         onChange={(e) => setProfile({...profile, name: e.target.value})}
-                        className="mt-2"
+                        className="mt-2 border-slate/20 focus:ring-neon/40"
                       />
                     </div>
                     <div>
@@ -142,7 +142,7 @@ const Settings = () => {
                         id="title"
                         value={profile.title}
                         onChange={(e) => setProfile({...profile, title: e.target.value})}
-                        className="mt-2"
+                        className="mt-2 border-slate/20 focus:ring-neon/40"
                       />
                     </div>
                   </div>
@@ -154,7 +154,7 @@ const Settings = () => {
                         id="company"
                         value={profile.company}
                         onChange={(e) => setProfile({...profile, company: e.target.value})}
-                        className="mt-2"
+                        className="mt-2 border-slate/20 focus:ring-neon/40"
                       />
                     </div>
                     <div>
@@ -164,7 +164,7 @@ const Settings = () => {
                         placeholder="https://linkedin.com/in/yourprofile"
                         value={profile.linkedinUrl}
                         onChange={(e) => setProfile({...profile, linkedinUrl: e.target.value})}
-                        className="mt-2"
+                        className="mt-2 border-slate/20 focus:ring-neon/40"
                       />
                     </div>
                   </div>
@@ -176,7 +176,7 @@ const Settings = () => {
                       placeholder="Brief description of what you do"
                       value={profile.headline}
                       onChange={(e) => setProfile({...profile, headline: e.target.value})}
-                      className="mt-2"
+                      className="mt-2 border-slate/20 focus:ring-neon/40"
                     />
                   </div>
 
@@ -187,11 +187,11 @@ const Settings = () => {
                       placeholder="Describe your preferred writing style, tone, and voice for generated content..."
                       value={profile.brandVoice}
                       onChange={(e) => setProfile({...profile, brandVoice: e.target.value})}
-                      className="mt-2 min-h-[100px]"
+                      className="mt-2 min-h-[100px] border-slate/20 focus:ring-neon/40"
                     />
                   </div>
 
-                  <Button onClick={handleProfileSave} className="btn-neon">
+                  <Button onClick={handleProfileSave} className="bg-neon text-midnight hover:bg-neon/90 font-semibold transition-all duration-200">
                     Save Profile
                   </Button>
                 </CardContent>
@@ -199,7 +199,7 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="preferences">
-              <Card className="glass-card border-0">
+              <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-neon/10 transition-all duration-200">
                 <CardHeader>
                   <CardTitle className="font-heading text-midnight">Content Preferences</CardTitle>
                 </CardHeader>
@@ -211,10 +211,10 @@ const Settings = () => {
                         <div
                           key={template.id}
                           onClick={() => setPreferences({...preferences, defaultTemplate: template.id})}
-                          className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 ${
+                          className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
                             preferences.defaultTemplate === template.id
-                              ? 'border-neon bg-gradient-to-br from-neon/10 to-neon/5 shadow-[0_0_20px_rgba(0,255,194,0.3)]'
-                              : 'border-gray-200 hover:border-neon/50 hover:shadow-md'
+                              ? 'border-neon bg-neon/5 shadow-lg border-l-4'
+                              : 'border-slate/20 hover:border-neon/50'
                           }`}
                         >
                           <div className={`w-3 h-3 rounded-full ${template.color} mb-2`} />
@@ -238,6 +238,7 @@ const Settings = () => {
                         id="default-emojis"
                         checked={preferences.useEmojis}
                         onCheckedChange={(checked) => setPreferences({...preferences, useEmojis: checked})}
+                        className="data-[state=checked]:bg-neon"
                       />
                     </div>
                     <div className="flex items-center justify-between">
@@ -249,11 +250,12 @@ const Settings = () => {
                         id="default-hashtags"
                         checked={preferences.useHashtags}
                         onCheckedChange={(checked) => setPreferences({...preferences, useHashtags: checked})}
+                        className="data-[state=checked]:bg-neon"
                       />
                     </div>
                   </div>
 
-                  <Button onClick={handlePreferencesSave} className="btn-neon">
+                  <Button onClick={handlePreferencesSave} className="bg-neon text-midnight hover:bg-neon/90 font-semibold transition-all duration-200">
                     Save Preferences
                   </Button>
                 </CardContent>
@@ -262,7 +264,7 @@ const Settings = () => {
 
             <TabsContent value="account">
               <div className="space-y-6">
-                <Card className="glass-card border-0">
+                <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-neon/10 transition-all duration-200">
                   <CardHeader>
                     <CardTitle className="font-heading text-midnight">Current Plan</CardTitle>
                   </CardHeader>
@@ -272,12 +274,14 @@ const Settings = () => {
                         <h3 className="font-semibold text-midnight">Free Plan</h3>
                         <p className="text-slate">5 posts per month</p>
                       </div>
-                      <Button className="btn-neon">Upgrade to Pro</Button>
+                      <Button variant="outline" className="border-midnight text-midnight hover:bg-neon hover:text-midnight hover:border-neon">
+                        Upgrade to Pro
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="glass-card border-0">
+                <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-neon/10 transition-all duration-200">
                   <CardHeader>
                     <CardTitle className="font-heading text-midnight">Email Preferences</CardTitle>
                   </CardHeader>
@@ -291,6 +295,7 @@ const Settings = () => {
                         id="email-notifications"
                         checked={accountSettings.emailNotifications}
                         onCheckedChange={(checked) => setAccountSettings({...accountSettings, emailNotifications: checked})}
+                        className="data-[state=checked]:bg-neon"
                       />
                     </div>
                     <div className="flex items-center justify-between">
@@ -302,6 +307,7 @@ const Settings = () => {
                         id="marketing-emails"
                         checked={accountSettings.marketingEmails}
                         onCheckedChange={(checked) => setAccountSettings({...accountSettings, marketingEmails: checked})}
+                        className="data-[state=checked]:bg-neon"
                       />
                     </div>
                     <div className="flex items-center justify-between">
@@ -313,10 +319,11 @@ const Settings = () => {
                         id="weekly-digest"
                         checked={accountSettings.weeklyDigest}
                         onCheckedChange={(checked) => setAccountSettings({...accountSettings, weeklyDigest: checked})}
+                        className="data-[state=checked]:bg-neon"
                       />
                     </div>
 
-                    <Button onClick={handleAccountSave} className="btn-neon">
+                    <Button onClick={handleAccountSave} className="bg-neon text-midnight hover:bg-neon/90 font-semibold transition-all duration-200">
                       Save Account Settings
                     </Button>
                   </CardContent>
@@ -325,7 +332,7 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="privacy">
-              <Card className="glass-card border-0">
+              <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-neon/10 transition-all duration-200">
                 <CardHeader>
                   <CardTitle className="font-heading text-midnight">Privacy & Data</CardTitle>
                 </CardHeader>
@@ -334,7 +341,9 @@ const Settings = () => {
                     <div>
                       <h3 className="font-semibold text-midnight mb-2">Export Your Data</h3>
                       <p className="text-slate text-sm mb-4">Download a copy of all your data including posts, settings, and usage history.</p>
-                      <Button variant="outline">Export My Data</Button>
+                      <Button variant="outline" className="border-midnight text-midnight hover:bg-neon hover:text-midnight hover:border-neon">
+                        Export My Data
+                      </Button>
                     </div>
 
                     <Separator />
