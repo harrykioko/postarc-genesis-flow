@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { AuthModal } from "./AuthModal";
@@ -13,7 +12,7 @@ export const Header = () => {
           <img 
             src="/lovable-uploads/517dc996-4525-45d7-8223-232c5844a386.png" 
             alt="PostArc Logo" 
-            className="h-12 w-auto md:h-16"
+            className="h-16 w-auto md:h-20"
           />
         </div>
         
