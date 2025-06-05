@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // ← Add useEffect import
 import { useToast } from "@/hooks/use-toast";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { PostGenerator } from "@/components/dashboard/PostGenerator";
@@ -8,7 +8,7 @@ import { RecentPosts } from "@/components/dashboard/RecentPosts";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ProfileSetupWizard } from "@/components/ProfileSetupWizard";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { supabase } from "@/integrations/supabase/client"; // ← Add this import
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -24,11 +24,70 @@ const Dashboard = () => {
   const [showSpark, setShowSpark] = useState(false);
   const [showPulse, setShowPulse] = useState(false);
 
-  const [recentPosts, setRecentPosts] = useState([
-    { id: 1, preview: "The future of remote work is here. After 3 years of...", date: "2 hours ago" },
-    { id: 2, preview: "5 lessons I learned from failing fast in startups...", date: "1 day ago" },
-    { id: 3, preview: "Why authentic leadership matters more than ever...", date: "3 days ago" },
-  ]);
+  // Real recent posts state - replace mock data
+  const [recentPosts, setRecentPosts] = useState<any[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+
+  // Helper function to format relative time
+  const formatRelativeTime = (date: Date) => {
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
+    
+    return date.toLocaleDateString();
+  };
+
+  // Fetch recent posts from database
+  const fetchRecentPosts = async () => {
+    try {
+      setLoadingPosts(true);
+      
+      const { data, error } = await supabase
+        .from('posts')
+        .select('id, prompt_topic, content, created_at, template_used')
+        .order('created_at', { ascending: false })
+        .limit(5); // Get last 5 posts
+
+      if (error) {
+        console.error('Error fetching posts:', error);
+        return;
+      }
+
+      // Transform the data for the UI
+      const transformedPosts = data.map(post => ({
+        id: post.id,
+        preview: post.content.substring(0, 60) + "...",
+        date: formatRelativeTime(new Date(post.created_at)),
+        fullText: post.content // Store full text for copy functionality
+      }));
+
+      setRecentPosts(transformedPosts);
+    } catch (error) {
+      console.error('Failed to fetch recent posts:', error);
+      toast({
+        title: "Failed to load history",
+        description: "Could not load your recent posts",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
+  // Fetch posts when component mounts and profile is ready
+  useEffect(() => {
+    if (profile && profile.profile_complete) {
+      fetchRecentPosts();
+    }
+  }, [profile]);
 
   // Show loading while checking profile
   if (profileLoading) {
@@ -99,13 +158,8 @@ const Dashboard = () => {
       setQuota(prev => ({ ...prev, used: prev.used + 1 }));
       setShowPulse(true);
       
-      // Add new post to recent list
-      const newPost = {
-        id: Date.now(),
-        preview: data.post.substring(0, 50) + "...",
-        date: "Just now"
-      };
-      setRecentPosts(prev => [newPost, ...prev.slice(0, 2)]);
+      // Refresh recent posts from database after successful generation
+      await fetchRecentPosts();
       
       // Clear input after successful generation
       setInput("");
@@ -198,7 +252,11 @@ const Dashboard = () => {
           {/* Sidebar */}
           <div className="space-y-6 md:order-last order-first">
             <QuotaCard quota={quota} />
-            <RecentPosts recentPosts={recentPosts} onCopy={handleCopy} />
+            <RecentPosts 
+              recentPosts={recentPosts} 
+              onCopy={(text) => handleCopy(text)}
+              loading={loadingPosts}
+            />
             <QuickActions />
           </div>
         </div>
