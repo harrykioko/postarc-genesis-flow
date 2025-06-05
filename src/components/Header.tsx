@@ -31,7 +31,6 @@ export const Header = () => {
         <nav className="hidden md:flex items-center space-x-8">
           <a href="#features" className="text-slate hover:text-midnight transition-colors">Features</a>
           <a href="#pricing" className="text-slate hover:text-midnight transition-colors">Pricing</a>
-          <a href="#demo" className="text-slate hover:text-midnight transition-colors">Demo</a>
         </nav>
         
         <div className="flex items-center space-x-4">
