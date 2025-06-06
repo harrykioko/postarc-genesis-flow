@@ -8,7 +8,7 @@ interface Post {
   id: string;
   preview: string;
   date: string;
-  fullText: string;
+  fullText?: string;
   template?: string;
 }
 
@@ -22,12 +22,15 @@ interface PostPreviewModalProps {
 export const PostPreviewModal = ({ post, isOpen, onClose, onCopy }: PostPreviewModalProps) => {
   if (!post) return null;
 
+  // Use fullText if available, otherwise fall back to preview
+  const contentToDisplay = post.fullText || post.preview;
+
   const handleCopy = () => {
-    onCopy(post.fullText);
+    onCopy(contentToDisplay);
   };
 
   const handleLinkedInOpen = () => {
-    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin)}&summary=${encodeURIComponent(post.fullText)}`;
+    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin)}&summary=${encodeURIComponent(contentToDisplay)}`;
     window.open(linkedinUrl, '_blank', 'width=600,height=400');
   };
 
@@ -54,7 +57,7 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onCopy }: PostPreviewM
           {/* Post Content */}
           <div className="bg-slate/5 rounded-lg p-4 border border-slate/10">
             <p className="text-sm text-midnight leading-relaxed whitespace-pre-wrap">
-              {post.fullText}
+              {contentToDisplay}
             </p>
           </div>
 
