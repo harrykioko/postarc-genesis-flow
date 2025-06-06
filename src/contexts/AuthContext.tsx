@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -38,12 +37,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Handle redirect after successful authentication
         if (event === 'SIGNED_IN' && session?.user) {
-          // Check if we're on the auth page and need to redirect
           const currentPath = window.location.pathname;
           const searchParams = new URLSearchParams(window.location.search);
           const intent = searchParams.get('intent');
           
-          if (currentPath === '/auth') {
+          // Only redirect if we're on the auth page or landing page
+          // This prevents disrupting users who are already on protected pages
+          if (currentPath === '/auth' || currentPath === '/') {
             setTimeout(() => {
               if (intent === 'upgrade') {
                 window.location.href = '/dashboard?upgrade=true';
