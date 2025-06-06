@@ -6,9 +6,11 @@ export const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-neon to-white rounded-lg flex items-center justify-center">
-                <span className="text-midnight font-bold text-lg">P</span>
-              </div>
+              <img 
+                src="/lovable-uploads/4c54b1f5-c3f4-4d70-9a61-eca611f2e011.png" 
+                alt="PostArc Logo" 
+                className="h-8 w-auto object-contain"
+              />
               <span className="text-2xl font-heading font-bold">PostArc</span>
             </div>
             <p className="text-gray-300 mb-4 max-w-md">

@@ -36,9 +36,11 @@ const Settings = () => {
             </Link>
             <Separator orientation="vertical" className="h-6" />
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-midnight to-neon rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">P</span>
-              </div>
+              <img 
+                src="/lovable-uploads/4c54b1f5-c3f4-4d70-9a61-eca611f2e011.png" 
+                alt="PostArc Logo" 
+                className="h-8 w-auto object-contain"
+              />
               <span className="text-2xl font-heading font-bold text-midnight">PostArc</span>
             </div>
           </div>
