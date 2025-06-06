@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -156,13 +155,20 @@ const Dashboard = () => {
 
       if (error) {
         console.error("Supabase function error:", error);
+        console.log("Full error object:", JSON.stringify(error, null, 2));
         
-        // Check for 403 status and try to parse quota data from error
-        if (error.status === 403) {
-          console.log("Got 403 error, checking for quota data");
-          console.log("Full error object:", JSON.stringify(error, null, 2));
+        // Check for quota exceeded - Supabase function errors can have different structures
+        const isQuotaError = (
+          error.context?.res?.status === 403 ||
+          error.message?.includes("quota exceeded") ||
+          error.message?.includes("monthly limit") ||
+          (data && data.quotaExceeded)
+        );
+        
+        if (isQuotaError) {
+          console.log("Detected quota exceeded error, checking for quota data");
           
-          // Try to parse quota data from the error message or context
+          // Try to parse quota data from various possible locations
           let quotaData = null;
           
           // First, check if data contains the quota info even in error case
@@ -173,36 +179,35 @@ const Dashboard = () => {
               resetDate: data.resetDate || resetDate
             };
           }
-          // If not in data, try to parse from error message
-          else if (error.message) {
+          // Try to extract from error context
+          else if (error.context?.res?.body) {
             try {
-              // Sometimes the error message contains JSON
-              const parsed = JSON.parse(error.message);
-              if (parsed.quotaExceeded) {
+              const errorBody = typeof error.context.res.body === 'string' 
+                ? JSON.parse(error.context.res.body) 
+                : error.context.res.body;
+              
+              if (errorBody.quotaExceeded) {
                 quotaData = {
-                  currentUsage: parsed.currentUsage || currentUsage,
-                  limit: parsed.limit || totalQuota,
-                  resetDate: parsed.resetDate || resetDate
+                  currentUsage: errorBody.currentUsage || currentUsage,
+                  limit: errorBody.limit || totalQuota,
+                  resetDate: errorBody.resetDate || resetDate
                 };
               }
             } catch (e) {
-              // If parsing fails, check if message contains quota info
-              if (error.message.includes("quota exceeded") || error.message.includes("monthly limit")) {
-                quotaData = {
-                  currentUsage: currentUsage,
-                  limit: totalQuota,
-                  resetDate: resetDate
-                };
-              }
+              console.log("Failed to parse error body:", e);
             }
           }
-          
-          // Set quota data and show modal
-          if (quotaData) {
-            console.log("Found quota data in error:", quotaData);
-            setQuotaErrorData(quotaData);
+          // Fallback to current quota state if we can't parse from error
+          else {
+            quotaData = {
+              currentUsage: currentUsage,
+              limit: totalQuota,
+              resetDate: resetDate
+            };
           }
           
+          console.log("Using quota data for modal:", quotaData);
+          setQuotaErrorData(quotaData);
           setShowUpsellModal(true);
           return;
         }
