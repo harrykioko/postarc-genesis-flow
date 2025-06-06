@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Copy, Edit3, Save, X, ExternalLink } from "lucide-react";
+import { Copy, Edit3, Save, X, ExternalLink, Check } from "lucide-react";
 
 interface GeneratedPostModalProps {
   isOpen: boolean;
@@ -86,66 +86,66 @@ export const GeneratedPostModal = ({
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent 
-          className="max-w-2xl max-h-[90vh] bg-white/80 backdrop-blur-md border border-white/30 rounded-xl shadow-xl overflow-hidden"
+          className="max-w-2xl max-h-[90vh] bg-white/80 backdrop-blur-md border border-white/30 rounded-xl shadow-xl overflow-hidden transition-all duration-300"
           onKeyDown={handleKeyDown}
         >
-          <DialogHeader>
+          <DialogHeader className="pb-4">
             <DialogTitle className="font-heading text-xl text-midnight pr-8">
               {isEditMode ? "Edit Your Post" : "Generated Post"}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4 overflow-y-auto">
-            {/* Content Area */}
-            <div className="space-y-3">
+          <div className="flex flex-col h-[500px]">
+            {/* Content Area - Fixed Height */}
+            <div className="flex-1 mb-6">
               {isEditMode ? (
                 <Textarea
                   value={editedContent}
                   onChange={(e) => setEditedContent(e.target.value)}
-                  className="min-h-[200px] bg-white/80 backdrop-blur-sm border border-white/30 rounded-lg resize-none focus:ring-2 focus:ring-[#00FFC2] focus:border-transparent"
+                  className="h-full min-h-[300px] bg-white/80 backdrop-blur-sm border border-white/30 rounded-lg resize-none focus:ring-2 focus:ring-[#00FFC2] focus:border-transparent transition-all duration-200 text-sm leading-relaxed"
                   placeholder="Edit your post content..."
                   autoFocus
                 />
               ) : (
-                <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <div className="h-full bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-white/20 overflow-y-auto">
                   <p className="text-sm text-midnight leading-relaxed whitespace-pre-wrap">
                     {currentContent}
                   </p>
                 </div>
               )}
+            </div>
 
-              {/* Character Count & Edited Indicator */}
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2">
-                  <span className="text-slate">
-                    {characterCount} characters
-                  </span>
-                  {hasChanges && !isEditMode && (
-                    <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                      Edited
-                    </Badge>
-                  )}
-                </div>
+            {/* Character Count & Status */}
+            <div className="flex items-center justify-between mb-6 text-xs">
+              <div className="flex items-center gap-3">
+                <span className="text-slate font-medium">
+                  {characterCount} characters
+                </span>
+                {hasChanges && !isEditMode && (
+                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs px-2 py-1">
+                    Edited
+                  </Badge>
+                )}
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end space-x-3 pt-4 border-t border-white/20">
+            <div className="flex flex-wrap items-center justify-end gap-3">
               {isEditMode ? (
                 <>
                   <Button
                     variant="outline"
                     onClick={handleCancel}
-                    className="border-midnight hover:bg-mint hover:text-midnight"
+                    className="h-11 px-4 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2"
                   >
+                    <X className="w-4 h-4" />
                     Cancel
                   </Button>
                   <Button
-                    variant="outline"
                     onClick={handleSave}
-                    className="border-midnight hover:bg-mint hover:text-midnight"
+                    className="h-11 px-4 bg-[#00FFC2] hover:bg-[#00FFC2]/90 text-[#0B1C34] font-medium rounded-lg transition-all duration-200 flex items-center gap-2"
                   >
-                    <Save className="w-4 h-4 mr-2" />
+                    <Check className="w-4 h-4" />
                     Save
                   </Button>
                 </>
@@ -153,9 +153,9 @@ export const GeneratedPostModal = ({
                 <Button
                   variant="outline"
                   onClick={handleEdit}
-                  className="border-midnight hover:bg-mint hover:text-midnight"
+                  className="h-11 px-4 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2"
                 >
-                  <Edit3 className="w-4 h-4 mr-2" />
+                  <Edit3 className="w-4 h-4" />
                   Edit
                 </Button>
               )}
@@ -163,17 +163,17 @@ export const GeneratedPostModal = ({
               <Button
                 variant="outline"
                 onClick={handleCopy}
-                className="border-midnight hover:bg-mint hover:text-midnight"
+                className="h-11 px-4 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2"
               >
-                <Copy className="w-4 h-4 mr-2" />
+                <Copy className="w-4 h-4" />
                 Copy
               </Button>
               
               <Button
                 onClick={handleShare}
-                className="bg-[#0A66C2] text-white hover:bg-[#0A66C2]/90"
+                className="h-11 px-4 bg-[#0077B5] hover:bg-[#0077B5]/90 text-white font-medium rounded-lg transition-all duration-200 flex items-center gap-2"
               >
-                <ExternalLink className="w-4 h-4 mr-2" />
+                <ExternalLink className="w-4 h-4" />
                 Share
               </Button>
             </div>
@@ -193,12 +193,12 @@ export const GeneratedPostModal = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-midnight hover:bg-mint hover:text-midnight">
+            <AlertDialogCancel className="h-11 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded-lg">
               Keep Editing
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmCancel}
-              className="bg-midnight text-white hover:bg-midnight/90"
+              className="h-11 bg-midnight text-white hover:bg-midnight/90 rounded-lg"
             >
               Discard Changes
             </AlertDialogAction>
