@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      demo_usage: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          last_used_at: string | null
+          session_id: string
+          usage_count: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          last_used_at?: string | null
+          session_id: string
+          usage_count?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          last_used_at?: string | null
+          session_id?: string
+          usage_count?: number | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           content: string

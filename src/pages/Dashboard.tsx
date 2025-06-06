@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react"; // ← Add useEffect import
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { PostGenerator } from "@/components/dashboard/PostGenerator";
 import { GeneratedPost } from "@/components/dashboard/GeneratedPost";
-import { QuotaCard } from "@/components/dashboard/QuotaCard";
-import { RecentPosts } from "@/components/dashboard/RecentPosts";
-import { QuickActions } from "@/components/dashboard/QuickActions";
+import { SummaryMetrics } from "@/components/dashboard/SummaryMetrics";
+import { PostHistory } from "@/components/dashboard/PostHistory";
 import { ProfileSetupWizard } from "@/components/ProfileSetupWizard";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -247,17 +246,21 @@ const Dashboard = () => {
               onCopy={handleCopy}
               onShare={handleShare}
             />
-          </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6 md:order-last order-first">
-            <QuotaCard quota={quota} />
-            <RecentPosts 
-              recentPosts={recentPosts} 
-              onCopy={(text) => handleCopy(text)}
+            {/* New Post History Section - Full Width */}
+            <PostHistory
+              recentPosts={recentPosts.map(post => ({
+                ...post,
+                template: post.fullText ? 'VC' : undefined // Add template info if available
+              }))}
+              onCopy={handleCopy}
               loading={loadingPosts}
             />
-            <QuickActions />
+          </div>
+
+          {/* Right Sidebar - Summary Metrics Only */}
+          <div className="space-y-6 md:order-last order-first">
+            <SummaryMetrics quota={quota} />
           </div>
         </div>
       </div>

@@ -1,8 +1,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardHeaderProps {
   quota: { used: number; total: number };
@@ -11,9 +12,14 @@ interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ quota, showPulse }: DashboardHeaderProps) => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
   };
 
   const displayName = user?.email?.split('@')[0] || 'User';
@@ -42,6 +48,14 @@ export const DashboardHeader = ({ quota, showPulse }: DashboardHeaderProps) => {
             <Button variant="ghost" size="sm">
               <User className="w-4 h-4 mr-2" />
               {displayName}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleSettingsClick}
+              aria-label="Account Settings"
+            >
+              <Settings className="w-4 h-4" />
             </Button>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="w-4 h-4" />
