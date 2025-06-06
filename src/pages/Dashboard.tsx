@@ -128,11 +128,7 @@ const Dashboard = () => {
   const handleGenerate = async () => {
     if (!input.trim()) return;
     
-    // Check quota before generating
-    if (!canGenerate) {
-      setShowUpsellModal(true);
-      return;
-    }
+    // Remove the pre-flight quota check - let the API handle quota enforcement
     
     setIsGenerating(true);
     setShowSpark(true);
