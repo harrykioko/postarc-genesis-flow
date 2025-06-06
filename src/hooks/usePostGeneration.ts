@@ -49,86 +49,58 @@ export const usePostGeneration = () => {
         hasHashtags: options.useHashtags
       };
 
-      console.log("Calling generate-post with payload:", payload);
+      console.log("🚀 Calling generate-post with payload:", payload);
 
-      const { data, error } = await supabase.functions.invoke('generate-post', {
-        body: payload
+      // Get session for auth
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Please sign in to generate posts");
+      }
+
+      // Use direct fetch instead of supabase.functions.invoke
+      const response = await fetch(`https://obmrbvozmozvvxirrils.supabase.co/functions/v1/generate-post`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
-      if (error) {
-        console.error("Supabase function error:", error);
-        console.log("Full error object:", JSON.stringify(error, null, 2));
-        
-        const isQuotaError = (
-          error.context?.res?.status === 403 ||
-          error.message?.includes("quota exceeded") ||
-          error.message?.includes("monthly limit") ||
-          (data && data.quotaExceeded)
-        );
-        
-        if (isQuotaError) {
-          console.log("Detected quota exceeded error, checking for quota data");
+      // ALWAYS parse the response as JSON
+      const data = await response.json();
+      
+      console.log("📊 Direct fetch response:", {
+        status: response.status,
+        ok: response.ok,
+        data: data
+      });
+
+      if (!response.ok) {
+        // Check specifically for quota exceeded (403 status with quotaExceeded flag)
+        if (response.status === 403 && data.quotaExceeded) {
+          console.log("🎯 QUOTA EXCEEDED DETECTED!", data);
           
-          let quotaData = null;
+          // Set quota data and show upsell modal
+          const quotaData = {
+            currentUsage: data.currentUsage || currentUsage,
+            limit: data.limit || totalQuota,
+            resetDate: data.resetDate || resetDate
+          };
           
-          if (data && data.quotaExceeded) {
-            quotaData = {
-              currentUsage: data.currentUsage || currentUsage,
-              limit: data.limit || totalQuota,
-              resetDate: data.resetDate || resetDate
-            };
-          } else if (error.context?.res?.body) {
-            try {
-              const errorBody = typeof error.context.res.body === 'string' 
-                ? JSON.parse(error.context.res.body) 
-                : error.context.res.body;
-              
-              if (errorBody.quotaExceeded) {
-                quotaData = {
-                  currentUsage: errorBody.currentUsage || currentUsage,
-                  limit: errorBody.limit || totalQuota,
-                  resetDate: errorBody.resetDate || resetDate
-                };
-              }
-            } catch (e) {
-              console.log("Failed to parse error body:", e);
-            }
-          } else {
-            quotaData = {
-              currentUsage: currentUsage,
-              limit: totalQuota,
-              resetDate: resetDate
-            };
-          }
-          
-          console.log("Using quota data for modal:", quotaData);
+          console.log("🚀 Showing upsell modal with data:", quotaData);
           setQuotaErrorData(quotaData);
           setShowUpsellModal(true);
           return;
         }
         
-        throw error;
+        // For other errors, show generic error
+        throw new Error(data.error || data.message || 'Failed to generate post');
       }
 
-      if (data.error) {
-        console.error("API error:", data.error);
-        
-        if (data.quotaExceeded) {
-          setQuotaErrorData({
-            currentUsage: data.currentUsage || currentUsage,
-            limit: data.limit || totalQuota,
-            resetDate: data.resetDate || resetDate
-          });
-          setShowUpsellModal(true);
-          return;
-        }
-        
-        throw new Error(data.error);
-      }
-
-      console.log("Generated post data:", data);
-
-      setGeneratedPost(data.post);
+      // Success case
+      console.log("✅ Generation successful!");
+      setGeneratedPost(data.post || data.content);
       setShowPulse(true);
       
       if (onSuccess) {
@@ -143,7 +115,7 @@ export const usePostGeneration = () => {
       setTimeout(() => setShowPulse(false), 1000);
 
     } catch (error: any) {
-      console.error("Generation failed:", error);
+      console.error("🚨 Generation error:", error);
       
       let errorMessage = "Failed to generate post. Please try again.";
       
