@@ -47,7 +47,7 @@ export const Header = () => {
   return (
     <>
       <header className="w-full bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-6 py-4 relative flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <img 
               src="/lovable-uploads/4c54b1f5-c3f4-4d70-9a61-eca611f2e011.png" 
@@ -56,7 +56,8 @@ export const Header = () => {
             />
           </div>
           
-          <nav className="flex items-center space-x-8">
+          {/* Absolutely positioned centered navigation */}
+          <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center space-x-8">
             <button 
               onClick={handleDemoClick}
               className="text-slate hover:text-midnight transition-colors font-medium"
