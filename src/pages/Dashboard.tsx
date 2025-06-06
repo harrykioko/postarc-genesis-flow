@@ -156,16 +156,51 @@ const Dashboard = () => {
       if (error) {
         console.error("Supabase function error:", error);
         
-        // Check for 403 status and quota exceeded in error response
-        if (error.status === 403 || (error.message && error.message.includes("quota exceeded"))) {
-          // Try to extract quota data from error response if available
+        // Check for 403 status and try to parse quota data from error
+        if (error.status === 403) {
+          console.log("Got 403 error, checking for quota data");
+          
+          // Try to parse quota data from the error message or context
+          let quotaData = null;
+          
+          // First, check if data contains the quota info even in error case
           if (data && data.quotaExceeded) {
-            setQuotaErrorData({
+            quotaData = {
               currentUsage: data.currentUsage || currentUsage,
               limit: data.limit || totalQuota,
               resetDate: data.resetDate || resetDate
-            });
+            };
           }
+          // If not in data, try to parse from error message
+          else if (error.message) {
+            try {
+              // Sometimes the error message contains JSON
+              const parsed = JSON.parse(error.message);
+              if (parsed.quotaExceeded) {
+                quotaData = {
+                  currentUsage: parsed.currentUsage || currentUsage,
+                  limit: parsed.limit || totalQuota,
+                  resetDate: parsed.resetDate || resetDate
+                };
+              }
+            } catch (e) {
+              // If parsing fails, check if message contains quota info
+              if (error.message.includes("quota exceeded") || error.message.includes("monthly limit")) {
+                quotaData = {
+                  currentUsage: currentUsage,
+                  limit: totalQuota,
+                  resetDate: resetDate
+                };
+              }
+            }
+          }
+          
+          // Set quota data and show modal
+          if (quotaData) {
+            console.log("Found quota data in error:", quotaData);
+            setQuotaErrorData(quotaData);
+          }
+          
           setShowUpsellModal(true);
           return;
         }
