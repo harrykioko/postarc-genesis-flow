@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Check, Crown, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -271,10 +270,8 @@ export const PricingModal = ({
                     <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin"></div>
                     Processing...
                   </div>
-                ) : user ? (
-                  'Upgrade to Pro - $25/month'
                 ) : (
-                  'Sign Up for Pro - $25/month'
+                  'Sign Up for Pro'
                 )}
               </button>
             </div>
