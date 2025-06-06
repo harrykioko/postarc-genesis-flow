@@ -121,27 +121,8 @@ export const PostHistory = ({
                     tabIndex={0}
                     aria-label={`View post: ${truncateText(post.preview, 50)}`}
                   >
-                    {/* Post Content */}
-                    <div className="mb-4">
-                      <p className="text-sm text-midnight leading-relaxed mb-3 min-h-[60px]">
-                        {truncateText(post.preview)}
-                      </p>
-                      
-                      {/* Post Meta */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          {post.template && (
-                            <Badge variant="outline" className={`text-xs ${getTemplateColor(post.template)}`}>
-                              {post.template}
-                            </Badge>
-                          )}
-                        </div>
-                        <span className="text-xs text-slate">{post.date}</span>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="absolute bottom-3 right-3 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    {/* Action Buttons - Moved to top-right */}
+                    <div className="absolute top-3 right-3 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <Button
                         size="sm"
                         variant="ghost"
@@ -160,6 +141,25 @@ export const PostHistory = ({
                       >
                         <ExternalLink className="w-3.5 h-3.5 text-slate hover:text-midnight" />
                       </Button>
+                    </div>
+
+                    {/* Post Content */}
+                    <div className="mb-4">
+                      <p className="text-sm text-midnight leading-relaxed mb-3 min-h-[60px]">
+                        {truncateText(post.preview)}
+                      </p>
+                      
+                      {/* Post Meta */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          {post.template && (
+                            <Badge variant="outline" className={`text-xs ${getTemplateColor(post.template)}`}>
+                              {post.template}
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-slate">{post.date}</span>
+                      </div>
                     </div>
                   </div>
                 ))}
