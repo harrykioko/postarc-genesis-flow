@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, ClipboardCopy, ExternalLink, Loader2, ChevronUp, ChevronDown } from "lucide-react";
+import { FileText, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { PostPreviewModal } from "./PostPreviewModal";
 
 interface Post {
@@ -58,19 +58,6 @@ export const PostHistory = ({
     setSelectedPost(null);
   };
 
-  const handlePostCopy = (e: React.MouseEvent, post: Post) => {
-    e.stopPropagation();
-    const textToCopy = post.fullText || post.preview;
-    onCopy(textToCopy);
-  };
-
-  const handleLinkedInOpen = (e: React.MouseEvent, post: Post) => {
-    e.stopPropagation();
-    const textToShare = post.fullText || post.preview;
-    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin)}&summary=${encodeURIComponent(textToShare)}`;
-    window.open(linkedinUrl, '_blank', 'width=600,height=400');
-  };
-
   const handleViewAllClick = () => {
     if (!showAllPosts && allPosts.length === 0) {
       onFetchAllPosts();
@@ -121,28 +108,6 @@ export const PostHistory = ({
                     tabIndex={0}
                     aria-label={`View post: ${truncateText(post.preview, 50)}`}
                   >
-                    {/* Action Buttons - Moved to top-right */}
-                    <div className="absolute top-3 right-3 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => handlePostCopy(e, post)}
-                        className="h-8 w-8 p-0 hover:bg-mint/20 rounded-full"
-                        aria-label="Copy post content"
-                      >
-                        <ClipboardCopy className="w-3.5 h-3.5 text-slate hover:text-midnight" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => handleLinkedInOpen(e, post)}
-                        className="h-8 w-8 p-0 hover:bg-mint/20 rounded-full"
-                        aria-label="Open in LinkedIn"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5 text-slate hover:text-midnight" />
-                      </Button>
-                    </div>
-
                     {/* Post Content */}
                     <div className="mb-4">
                       <p className="text-sm text-midnight leading-relaxed mb-3 min-h-[60px]">
