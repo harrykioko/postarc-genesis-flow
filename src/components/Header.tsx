@@ -2,11 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { AuthModal } from "./AuthModal";
+import { DemoModal } from "./DemoModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export const Header = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -22,6 +24,26 @@ export const Header = () => {
     }
   };
 
+  const handleDemoClick = () => {
+    setShowDemo(true);
+  };
+
+  const handlePricingClick = () => {
+    const pricingSection = document.getElementById('pricing');
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleSignUpFromDemo = () => {
+    setShowAuthModal(true);
+  };
+
+  const handlePricingFromDemo = () => {
+    setShowDemo(false);
+    handlePricingClick();
+  };
+
   return (
     <>
       <header className="w-full bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-50">
@@ -34,9 +56,19 @@ export const Header = () => {
             />
           </div>
           
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-slate hover:text-midnight transition-colors">Features</a>
-            <a href="#pricing" className="text-slate hover:text-midnight transition-colors">Pricing</a>
+          <nav className="flex items-center space-x-8">
+            <button 
+              onClick={handleDemoClick}
+              className="text-slate hover:text-midnight transition-colors font-medium"
+            >
+              Demo
+            </button>
+            <button 
+              onClick={handlePricingClick}
+              className="text-slate hover:text-midnight transition-colors font-medium"
+            >
+              Pricing
+            </button>
           </nav>
           
           <div className="flex items-center space-x-4">
@@ -61,6 +93,12 @@ export const Header = () => {
         </div>
         
         <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
+        <DemoModal 
+          open={showDemo} 
+          onOpenChange={setShowDemo}
+          onSignUpClick={handleSignUpFromDemo}
+          onPricingClick={handlePricingFromDemo}
+        />
       </header>
     </>
   );
