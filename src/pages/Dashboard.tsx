@@ -4,15 +4,18 @@ import { useToast } from "@/hooks/use-toast";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { PostGenerator } from "@/components/dashboard/PostGenerator";
 import { GeneratedPost } from "@/components/dashboard/GeneratedPost";
-import { SummaryMetrics } from "@/components/dashboard/SummaryMetrics";
+import { PlanActivitySection } from "@/components/dashboard/PlanActivitySection";
 import { PostHistory } from "@/components/dashboard/PostHistory";
 import { ProfileSetupWizard } from "@/components/ProfileSetupWizard";
+import { UpsellModal } from "@/components/UpsellModal";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useQuota } from "@/hooks/useQuota";
 import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { toast } = useToast();
   const { profile, loading: profileLoading, refreshProfile } = useUserProfile();
+  const { canGenerate, remainingQuota, totalQuota, plan, currentUsage, resetDate, refreshQuota } = useQuota();
   
   const [input, setInput] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("consultant");
@@ -20,9 +23,9 @@ const Dashboard = () => {
   const [useHashtags, setUseHashtags] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPost, setGeneratedPost] = useState("");
-  const [quota, setQuota] = useState({ used: 2, total: 5 });
   const [showSpark, setShowSpark] = useState(false);
   const [showPulse, setShowPulse] = useState(false);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
 
   // Real recent posts state - replace mock data
   const [recentPosts, setRecentPosts] = useState<any[]>([]);
@@ -54,19 +57,18 @@ const Dashboard = () => {
         .from('posts')
         .select('id, prompt_topic, content, created_at, template_used')
         .order('created_at', { ascending: false })
-        .limit(5); // Get last 5 posts
+        .limit(5);
 
       if (error) {
         console.error('Error fetching posts:', error);
         return;
       }
 
-      // Transform the data for the UI
       const transformedPosts = data.map(post => ({
         id: post.id,
         preview: post.content.substring(0, 60) + "...",
         date: formatRelativeTime(new Date(post.created_at)),
-        fullText: post.content // Store full text for copy functionality
+        fullText: post.content
       }));
 
       setRecentPosts(transformedPosts);
@@ -118,6 +120,12 @@ const Dashboard = () => {
   const handleGenerate = async () => {
     if (!input.trim()) return;
     
+    // Check quota before generating
+    if (!canGenerate) {
+      setShowUpsellModal(true);
+      return;
+    }
+    
     setIsGenerating(true);
     setShowSpark(true);
     
@@ -155,10 +163,10 @@ const Dashboard = () => {
 
       // Success! Update the UI
       setGeneratedPost(data.post);
-      setQuota(prev => ({ ...prev, used: prev.used + 1 }));
       setShowPulse(true);
       
-      // Refresh recent posts from database after successful generation
+      // Refresh quota and recent posts after successful generation
+      refreshQuota();
       await fetchRecentPosts();
       
       // Clear input after successful generation
@@ -180,6 +188,7 @@ const Dashboard = () => {
       
       if (error.message?.includes("quota exceeded")) {
         errorMessage = "You've reached your monthly limit. Upgrade to Pro for unlimited posts!";
+        setShowUpsellModal(true);
       } else if (error.message?.includes("Invalid URL")) {
         errorMessage = "Please check your URL and try again.";
       } else if (error.message?.includes("Could not fetch")) {
@@ -219,9 +228,19 @@ const Dashboard = () => {
     window.open(linkedinUrl, '_blank', 'width=600,height=400');
   };
 
+  const handleUpgrade = () => {
+    // Placeholder for upgrade logic - integrate with Stripe/payment system
+    console.log("Upgrade to Pro clicked");
+    toast({
+      title: "Upgrade Coming Soon",
+      description: "Pro plan upgrade will be available soon!",
+    });
+    setShowUpsellModal(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-animated bg-[length:100%_200%] animate-bgMove motion-reduce:animate-none motion-reduce:bg-gradient-brand">
-      <DashboardHeader quota={quota} showPulse={showPulse} />
+      <DashboardHeader quota={{ used: currentUsage, total: totalQuota }} showPulse={showPulse} />
 
       <div className="container mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
@@ -237,7 +256,7 @@ const Dashboard = () => {
               useHashtags={useHashtags}
               setUseHashtags={setUseHashtags}
               isGenerating={isGenerating}
-              quota={quota}
+              quota={{ used: currentUsage, total: totalQuota }}
               showSpark={showSpark}
               onGenerate={handleGenerate}
             />
@@ -248,23 +267,32 @@ const Dashboard = () => {
               onShare={handleShare}
             />
 
-            {/* New Post History Section - Full Width */}
             <PostHistory
               recentPosts={recentPosts.map(post => ({
                 ...post,
-                template: post.fullText ? 'VC' : undefined // Add template info if available
+                template: post.fullText ? 'VC' : undefined
               }))}
               onCopy={handleCopy}
               loading={loadingPosts}
             />
           </div>
 
-          {/* Right Sidebar - Summary Metrics Only */}
+          {/* Right Sidebar - Plan Activity Section */}
           <div className="space-y-6 md:order-last order-first">
-            <SummaryMetrics quota={quota} />
+            <PlanActivitySection onUpgrade={() => setShowUpsellModal(true)} />
           </div>
         </div>
       </div>
+
+      {/* Upsell Modal */}
+      <UpsellModal
+        isOpen={showUpsellModal}
+        onClose={() => setShowUpsellModal(false)}
+        onUpgrade={handleUpgrade}
+        currentUsage={currentUsage}
+        limit={totalQuota}
+        resetDate={resetDate}
+      />
     </div>
   );
 };
