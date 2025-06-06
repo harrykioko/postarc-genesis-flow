@@ -17,6 +17,7 @@ interface DemoModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSignUpClick?: () => void;
+  onPricingClick?: () => void;
 }
 
 // Generate or get demo session ID
@@ -58,7 +59,7 @@ function saveDemoUsage(usage) {
   }
 }
 
-export const DemoModal = ({ open, onOpenChange, onSignUpClick }: DemoModalProps) => {
+export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }: DemoModalProps) => {
   const [input, setInput] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("Consultant");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -291,16 +292,20 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick }: DemoModalProps)
               <div className="glass-card p-4 rounded-lg text-center">
                 <h4 className="font-semibold text-midnight mb-2">🎉 Impressed with the results?</h4>
                 <p className="text-sm text-slate mb-3">
-                  Sign up to get 5 free posts per month, or upgrade to Pro for unlimited generation.
+                  Compare our Free and Pro plans to find the perfect fit for your needs.
                 </p>
                 <Button 
                   className="btn-neon w-full" 
                   onClick={() => {
                     onOpenChange(false);
-                    onSignUpClick?.();
+                    if (onPricingClick) {
+                      onPricingClick();
+                    } else {
+                      onSignUpClick?.();
+                    }
                   }}
                 >
-                  Get Started Free - No Credit Card Required
+                  {onPricingClick ? "See Pricing Options" : "Get Started Free - No Credit Card Required"}
                 </Button>
               </div>
             )}

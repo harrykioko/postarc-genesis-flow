@@ -4,13 +4,20 @@ import { ArrowDown, Edit, Share } from "lucide-react";
 import { useState } from "react";
 import { DemoModal } from "./DemoModal";
 import { AuthModal } from "./AuthModal";
+import { PricingModal } from "./PricingModal";
 
 export const Hero = () => {
   const [showDemo, setShowDemo] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
 
   const handleSignUpFromDemo = () => {
     setShowAuth(true);
+  };
+
+  const handlePricingFromDemo = () => {
+    setShowDemo(false);
+    setShowPricing(true);
   };
 
   return (
@@ -71,8 +78,16 @@ export const Hero = () => {
         open={showDemo} 
         onOpenChange={setShowDemo}
         onSignUpClick={handleSignUpFromDemo}
+        onPricingClick={handlePricingFromDemo}
       />
       <AuthModal open={showAuth} onOpenChange={setShowAuth} />
+      <PricingModal
+        isOpen={showPricing}
+        onClose={() => setShowPricing(false)}
+        currentUsage={3}
+        limit={3}
+        resetDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()}
+      />
     </section>
   );
 };
