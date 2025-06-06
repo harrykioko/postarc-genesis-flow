@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Copy, Edit3, Save, X, ExternalLink, Check } from "lucide-react";
 
@@ -86,37 +87,39 @@ export const GeneratedPostModal = ({
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent 
-          className="max-w-2xl max-h-[90vh] bg-white/80 backdrop-blur-md border border-white/30 rounded-xl shadow-xl overflow-hidden transition-all duration-300"
+          className="max-w-2xl max-h-[80vh] md:max-h-[80vh] sm:max-h-[85vh] bg-white/80 backdrop-blur-md border border-white/30 rounded-xl shadow-xl overflow-hidden transition-all duration-300"
           onKeyDown={handleKeyDown}
         >
-          <DialogHeader className="pb-4">
+          <DialogHeader className="pb-4 flex-shrink-0">
             <DialogTitle className="font-heading text-xl text-midnight pr-8">
               {isEditMode ? "Edit Your Post" : "Generated Post"}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="flex flex-col h-[500px]">
-            {/* Content Area - Fixed Height */}
-            <div className="flex-1 mb-6">
+          <div className="flex flex-col min-h-0 flex-1">
+            {/* Content Area - Flexible Height with Scrolling */}
+            <div className="flex-1 mb-6 min-h-0">
               {isEditMode ? (
                 <Textarea
                   value={editedContent}
                   onChange={(e) => setEditedContent(e.target.value)}
-                  className="h-full min-h-[300px] bg-white/80 backdrop-blur-sm border border-white/30 rounded-lg resize-none focus:ring-2 focus:ring-[#00FFC2] focus:border-transparent transition-all duration-200 text-sm leading-relaxed"
+                  className="h-full min-h-[300px] max-h-[50vh] bg-white/80 backdrop-blur-sm border border-white/30 rounded-lg resize-none focus:ring-2 focus:ring-[#00FFC2] focus:border-transparent transition-all duration-200 text-sm leading-relaxed overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400"
                   placeholder="Edit your post content..."
                   autoFocus
                 />
               ) : (
-                <div className="h-full bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-white/20 overflow-y-auto">
-                  <p className="text-sm text-midnight leading-relaxed whitespace-pre-wrap">
-                    {currentContent}
-                  </p>
+                <div className="h-full min-h-[200px] max-h-[50vh] bg-white/60 backdrop-blur-sm rounded-lg border border-white/20 overflow-hidden">
+                  <ScrollArea className="h-full w-full p-6">
+                    <p className="text-sm text-midnight leading-relaxed whitespace-pre-wrap">
+                      {currentContent}
+                    </p>
+                  </ScrollArea>
                 </div>
               )}
             </div>
 
-            {/* Character Count & Status */}
-            <div className="flex items-center justify-between mb-6 text-xs">
+            {/* Character Count & Status - Fixed at Bottom */}
+            <div className="flex items-center justify-between mb-6 text-xs flex-shrink-0">
               <div className="flex items-center gap-3">
                 <span className="text-slate font-medium">
                   {characterCount} characters
@@ -129,14 +132,14 @@ export const GeneratedPostModal = ({
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center justify-end gap-3">
+            {/* Action Buttons - Fixed at Bottom */}
+            <div className="flex flex-wrap items-center justify-end gap-3 flex-shrink-0">
               {isEditMode ? (
                 <>
                   <Button
                     variant="outline"
                     onClick={handleCancel}
-                    className="h-11 px-4 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2"
+                    className="h-11 px-4 border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 text-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2"
                   >
                     <X className="w-4 h-4" />
                     Cancel
@@ -153,7 +156,7 @@ export const GeneratedPostModal = ({
                 <Button
                   variant="outline"
                   onClick={handleEdit}
-                  className="h-11 px-4 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2"
+                  className="h-11 px-4 border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 text-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2"
                 >
                   <Edit3 className="w-4 h-4" />
                   Edit
