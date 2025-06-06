@@ -1,4 +1,3 @@
-
 export const Footer = () => {
   return (
     <footer className="bg-midnight text-white py-12">
@@ -6,11 +5,6 @@ export const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <img 
-                src="/lovable-uploads/4c54b1f5-c3f4-4d70-9a61-eca611f2e011.png" 
-                alt="PostArc Logo" 
-                className="h-8 w-auto object-contain"
-              />
               <span className="text-2xl font-heading font-bold">PostArc</span>
             </div>
             <p className="text-gray-300 mb-4 max-w-md">
