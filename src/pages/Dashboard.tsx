@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { PostGenerator } from "@/components/dashboard/PostGenerator";
 import { GeneratedPost } from "@/components/dashboard/GeneratedPost";
@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { profile, loading: profileLoading, refreshProfile } = useUserProfile();
   const { canGenerate, remainingQuota, totalQuota, plan, currentUsage, resetDate, refreshQuota } = useQuota();
   
@@ -30,6 +31,13 @@ const Dashboard = () => {
   // Real recent posts state - replace mock data
   const [recentPosts, setRecentPosts] = useState<any[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
+
+  // State for quota data from error response
+  const [quotaErrorData, setQuotaErrorData] = useState<{
+    currentUsage: number;
+    limit: number;
+    resetDate: string;
+  } | null>(null);
 
   // Helper function to format relative time
   const formatRelativeTime = (date: Date) => {
@@ -151,11 +159,38 @@ const Dashboard = () => {
 
       if (error) {
         console.error("Supabase function error:", error);
+        
+        // Check for 403 status and quota exceeded in error response
+        if (error.status === 403 || (error.message && error.message.includes("quota exceeded"))) {
+          // Try to extract quota data from error response if available
+          if (data && data.quotaExceeded) {
+            setQuotaErrorData({
+              currentUsage: data.currentUsage || currentUsage,
+              limit: data.limit || totalQuota,
+              resetDate: data.resetDate || resetDate
+            });
+          }
+          setShowUpsellModal(true);
+          return;
+        }
+        
         throw error;
       }
 
       if (data.error) {
         console.error("API error:", data.error);
+        
+        // Check if it's a quota exceeded error in the data response
+        if (data.quotaExceeded) {
+          setQuotaErrorData({
+            currentUsage: data.currentUsage || currentUsage,
+            limit: data.limit || totalQuota,
+            resetDate: data.resetDate || resetDate
+          });
+          setShowUpsellModal(true);
+          return;
+        }
+        
         throw new Error(data.error);
       }
 
@@ -183,13 +218,10 @@ const Dashboard = () => {
     } catch (error: any) {
       console.error("Generation failed:", error);
       
-      // Handle specific error cases
+      // Handle specific error cases for non-quota errors
       let errorMessage = "Failed to generate post. Please try again.";
       
-      if (error.message?.includes("quota exceeded")) {
-        errorMessage = "You've reached your monthly limit. Upgrade to Pro for unlimited posts!";
-        setShowUpsellModal(true);
-      } else if (error.message?.includes("Invalid URL")) {
+      if (error.message?.includes("Invalid URL")) {
         errorMessage = "Please check your URL and try again.";
       } else if (error.message?.includes("Could not fetch")) {
         errorMessage = "Couldn't access that webpage. Try a different URL or enter a topic instead.";
@@ -229,13 +261,22 @@ const Dashboard = () => {
   };
 
   const handleUpgrade = () => {
-    // Placeholder for upgrade logic - integrate with Stripe/payment system
-    console.log("Upgrade to Pro clicked");
-    toast({
-      title: "Upgrade Coming Soon",
-      description: "Pro plan upgrade will be available soon!",
-    });
+    // Navigate to pricing page and close modal
     setShowUpsellModal(false);
+    setQuotaErrorData(null);
+    navigate('/pricing');
+  };
+
+  const handleUpsellModalClose = () => {
+    setShowUpsellModal(false);
+    setQuotaErrorData(null);
+  };
+
+  // Determine which quota data to use for the modal
+  const modalQuotaData = quotaErrorData || {
+    currentUsage,
+    limit: totalQuota,
+    resetDate
   };
 
   return (
@@ -287,11 +328,11 @@ const Dashboard = () => {
       {/* Upsell Modal */}
       <UpsellModal
         isOpen={showUpsellModal}
-        onClose={() => setShowUpsellModal(false)}
+        onClose={handleUpsellModalClose}
         onUpgrade={handleUpgrade}
-        currentUsage={currentUsage}
-        limit={totalQuota}
-        resetDate={resetDate}
+        currentUsage={modalQuotaData.currentUsage}
+        limit={modalQuotaData.limit}
+        resetDate={modalQuotaData.resetDate}
       />
     </div>
   );
