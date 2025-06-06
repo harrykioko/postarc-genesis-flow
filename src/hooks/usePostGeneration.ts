@@ -24,6 +24,7 @@ export const usePostGeneration = () => {
   const [showPulse, setShowPulse] = useState(false);
   const [quotaErrorData, setQuotaErrorData] = useState<QuotaErrorData | null>(null);
   const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
 
   const generatePost = async (
     input: string,
@@ -102,6 +103,7 @@ export const usePostGeneration = () => {
       console.log("✅ Generation successful!");
       setGeneratedPost(data.post || data.content);
       setShowPulse(true);
+      setShowPostModal(true);
       
       if (onSuccess) {
         onSuccess();
@@ -143,8 +145,10 @@ export const usePostGeneration = () => {
     showPulse,
     quotaErrorData,
     showUpsellModal,
+    showPostModal,
     setShowUpsellModal,
     setQuotaErrorData,
+    setShowPostModal,
     generatePost
   };
 };

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { PostGenerator } from "@/components/dashboard/PostGenerator";
-import { GeneratedPost } from "@/components/dashboard/GeneratedPost";
+import { GeneratedPostModal } from "@/components/dashboard/GeneratedPostModal";
 import { PlanActivitySection } from "@/components/dashboard/PlanActivitySection";
 import { PostHistory } from "@/components/dashboard/PostHistory";
 import { ProfileSetupWizard } from "@/components/ProfileSetupWizard";
@@ -40,8 +40,10 @@ const Dashboard = () => {
     showPulse,
     quotaErrorData,
     showUpsellModal,
+    showPostModal,
     setShowUpsellModal,
     setQuotaErrorData,
+    setShowPostModal,
     generatePost
   } = usePostGeneration();
 
@@ -102,13 +104,13 @@ const Dashboard = () => {
     );
   };
 
-  const handleShareGenerated = () => {
-    handleShare(generatedPost);
-  };
-
   const handlePricingModalClose = () => {
     setShowUpsellModal(false);
     setQuotaErrorData(null);
+  };
+
+  const handlePostModalClose = () => {
+    setShowPostModal(false);
   };
 
   // Determine which quota data to use for the modal
@@ -140,12 +142,6 @@ const Dashboard = () => {
               showSpark={showSpark}
               onGenerate={handleGenerate}
             />
-
-            <GeneratedPost
-              generatedPost={generatedPost}
-              onCopy={handleCopy}
-              onShare={handleShareGenerated}
-            />
           </div>
 
           {/* Right Sidebar - Plan Activity Section */}
@@ -166,6 +162,14 @@ const Dashboard = () => {
           />
         </div>
       </div>
+
+      {/* Generated Post Modal */}
+      <GeneratedPostModal
+        isOpen={showPostModal}
+        onClose={handlePostModalClose}
+        originalContent={generatedPost}
+        onCopy={handleCopy}
+      />
 
       {/* Pricing Modal */}
       <PricingModal
