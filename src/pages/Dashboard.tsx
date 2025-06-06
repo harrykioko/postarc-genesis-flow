@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -159,6 +160,7 @@ const Dashboard = () => {
         // Check for 403 status and try to parse quota data from error
         if (error.status === 403) {
           console.log("Got 403 error, checking for quota data");
+          console.log("Full error object:", JSON.stringify(error, null, 2));
           
           // Try to parse quota data from the error message or context
           let quotaData = null;
