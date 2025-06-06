@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 interface PricingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAuthClick?: () => void;
   currentUsage: number;
   limit: number;
   resetDate: string;
@@ -15,6 +16,7 @@ interface PricingModalProps {
 export const PricingModal = ({ 
   isOpen, 
   onClose, 
+  onAuthClick,
   currentUsage, 
   limit, 
   resetDate 
@@ -51,6 +53,13 @@ export const PricingModal = ({
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFreeSignup = () => {
+    onClose();
+    if (onAuthClick) {
+      onAuthClick();
     }
   };
 
@@ -151,10 +160,10 @@ export const PricingModal = ({
               </ul>
 
               <button 
-                onClick={onClose}
+                onClick={handleFreeSignup}
                 className="w-full py-3 px-4 bg-slate/10 text-midnight rounded-lg font-medium hover:bg-slate/20 transition-colors focus-enhanced"
               >
-                Continue with Free
+                Get Started Free
               </button>
             </div>
 

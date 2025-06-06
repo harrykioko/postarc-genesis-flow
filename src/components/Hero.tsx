@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDown, Edit, Share } from "lucide-react";
@@ -18,6 +19,10 @@ export const Hero = () => {
   const handlePricingFromDemo = () => {
     setShowDemo(false);
     setShowPricing(true);
+  };
+
+  const handleAuthFromPricing = () => {
+    setShowAuth(true);
   };
 
   return (
@@ -84,6 +89,7 @@ export const Hero = () => {
       <PricingModal
         isOpen={showPricing}
         onClose={() => setShowPricing(false)}
+        onAuthClick={handleAuthFromPricing}
         currentUsage={3}
         limit={3}
         resetDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()}

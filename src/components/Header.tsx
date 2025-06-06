@@ -17,6 +17,10 @@ export const Header = () => {
     }
   }, [user, navigate]);
 
+  const handleAuthClick = () => {
+    setShowAuthModal(true);
+  };
+
   return (
     <header className="w-full bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -38,13 +42,13 @@ export const Header = () => {
             <>
               <Button
                 variant="ghost"
-                onClick={() => setShowAuthModal(true)}
+                onClick={handleAuthClick}
                 className="text-slate hover:text-midnight"
               >
                 Sign In
               </Button>
               <Button
-                onClick={() => setShowAuthModal(true)}
+                onClick={handleAuthClick}
                 className="btn-neon px-6 py-2 rounded-lg"
               >
                 Get Started
