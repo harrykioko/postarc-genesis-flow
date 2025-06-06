@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -28,14 +29,20 @@ function getDemoSessionId() {
   return sessionId;
 }
 
-// Get demo usage from localStorage
+// Get demo usage from localStorage with better error handling
 function getDemoUsage() {
-  const usage = localStorage.getItem('postarc_demo_usage');
-  if (!usage || usage === 'undefined' || usage === 'null') {
-    return { used: 0, limit: 3, remaining: 3 };
-  }
   try {
-    return JSON.parse(usage);
+    const usage = localStorage.getItem('postarc_demo_usage');
+    if (!usage || usage === 'undefined' || usage === 'null') {
+      return { used: 0, limit: 3, remaining: 3 };
+    }
+    const parsed = JSON.parse(usage);
+    // Ensure the parsed object has all required properties
+    if (typeof parsed.remaining !== 'number' || typeof parsed.used !== 'number' || typeof parsed.limit !== 'number') {
+      console.log('Invalid demo usage format, resetting');
+      return { used: 0, limit: 3, remaining: 3 };
+    }
+    return parsed;
   } catch (error) {
     console.log('Error parsing demo usage, resetting:', error);
     return { used: 0, limit: 3, remaining: 3 };
@@ -56,12 +63,14 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
   const [selectedTemplate, setSelectedTemplate] = useState("Consultant");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPost, setGeneratedPost] = useState("");
-  const [demoUsage, setDemoUsage] = useState(getDemoUsage());
+  const [demoUsage, setDemoUsage] = useState(() => getDemoUsage());
 
   // Load demo usage when modal opens
   useEffect(() => {
     if (open) {
-      setDemoUsage(getDemoUsage());
+      const usage = getDemoUsage();
+      console.log('Loading demo usage:', usage);
+      setDemoUsage(usage);
     }
   }, [open]);
 
@@ -86,6 +95,7 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
     setIsGenerating(true);
     
     try {
+      console.log('Making API call to demoGenerate...');
       const response = await fetch('https://obmrbvozmozvvxirrils.supabase.co/functions/v1/demoGenerate', {
         method: 'POST',
         headers: {
@@ -99,6 +109,7 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
       });
 
       const data = await response.json();
+      console.log('API response:', data);
 
       if (data.error === 'demo_limit_exceeded') {
         // Handle limit exceeded
@@ -126,8 +137,21 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
       // Success!
       setGeneratedPost(data.post);
       
-      // Update usage tracking
-      const newUsage = data.demo_usage;
+      // Update usage tracking - ensure we have valid demo_usage data
+      let newUsage;
+      if (data.demo_usage && typeof data.demo_usage.remaining === 'number') {
+        newUsage = data.demo_usage;
+      } else {
+        // Fallback: manually calculate usage
+        const currentUsage = demoUsage || { used: 0, limit: 3, remaining: 3 };
+        newUsage = {
+          used: currentUsage.used + 1,
+          limit: 3,
+          remaining: Math.max(0, currentUsage.remaining - 1)
+        };
+      }
+      
+      console.log('Updating demo usage to:', newUsage);
       setDemoUsage(newUsage);
       saveDemoUsage(newUsage);
 
@@ -183,8 +207,10 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
     });
   };
 
-  const canGenerate = demoUsage.remaining > 0;
-  const isAtLimit = demoUsage.remaining === 0;
+  // Add defensive checks to prevent undefined errors
+  const safeUsage = demoUsage || { used: 0, limit: 3, remaining: 3 };
+  const canGenerate = safeUsage.remaining > 0;
+  const isAtLimit = safeUsage.remaining === 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -193,7 +219,7 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-heading">Try PostArc Demo</DialogTitle>
             <Badge variant="secondary" className="bg-neon/20 text-midnight">
-              {demoUsage.remaining} tries remaining
+              {safeUsage.remaining} tries remaining
             </Badge>
           </div>
         </DialogHeader>
@@ -256,7 +282,7 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
               ) : (
                 <div className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4" />
-                  <span>Generate Post ({demoUsage.remaining} left)</span>
+                  <span>Generate Post ({safeUsage.remaining} left)</span>
                 </div>
               )}
             </Button>
@@ -321,10 +347,10 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
                 <h4 className="font-semibold text-midnight mb-2">Your generated post will appear here</h4>
                 <p className="text-slate text-sm">Enter a topic or URL and click generate to see the magic happen</p>
                 
-                {demoUsage.used > 0 && (
+                {safeUsage.used > 0 && (
                   <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-700">
-                      You've generated {demoUsage.used} demo post{demoUsage.used === 1 ? '' : 's'}!
+                      You've generated {safeUsage.used} demo post{safeUsage.used === 1 ? '' : 's'}!
                     </p>
                   </div>
                 )}
