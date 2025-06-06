@@ -1,17 +1,13 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Copy, Linkedin, Sparkles, AlertCircle } from "lucide-react";
 
-// Fallback toast function if not available
-const toast = (params) => {
-  console.log('Toast:', params.title, params.description);
-  // You can replace this with alert() if needed for testing
-  // alert(`${params.title}: ${params.description}`);
-};
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { useDemoState } from "@/hooks/useDemoState";
+import { DemoInputSection } from "./demo/DemoInputSection";
+import { DemoTemplateSelection } from "./demo/DemoTemplateSelection";
+import { DemoGenerateButton } from "./demo/DemoGenerateButton";
+import { DemoGeneratedPost } from "./demo/DemoGeneratedPost";
+import { DemoLimitReached } from "./demo/DemoLimitReached";
+import { handleDemoGeneration } from "./demo/DemoGenerationLogic";
 
 interface DemoModalProps {
   open: boolean;
@@ -20,192 +16,31 @@ interface DemoModalProps {
   onPricingClick?: () => void;
 }
 
-// Generate or get demo session ID
-function getDemoSessionId() {
-  let sessionId = localStorage.getItem('postarc_demo_session');
-  if (!sessionId) {
-    sessionId = 'demo_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-    localStorage.setItem('postarc_demo_session', sessionId);
-  }
-  return sessionId;
-}
-
-// Get demo usage from localStorage with better error handling
-function getDemoUsage() {
-  try {
-    const usage = localStorage.getItem('postarc_demo_usage');
-    if (!usage || usage === 'undefined' || usage === 'null') {
-      return { used: 0, limit: 3, remaining: 3 };
-    }
-    const parsed = JSON.parse(usage);
-    // Ensure the parsed object has all required properties
-    if (typeof parsed.remaining !== 'number' || typeof parsed.used !== 'number' || typeof parsed.limit !== 'number') {
-      console.log('Invalid demo usage format, resetting');
-      return { used: 0, limit: 3, remaining: 3 };
-    }
-    return parsed;
-  } catch (error) {
-    console.log('Error parsing demo usage, resetting:', error);
-    return { used: 0, limit: 3, remaining: 3 };
-  }
-}
-
-// Save demo usage to localStorage
-function saveDemoUsage(usage) {
-  try {
-    localStorage.setItem('postarc_demo_usage', JSON.stringify(usage));
-  } catch (error) {
-    console.log('Error saving demo usage:', error);
-  }
-}
-
 export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }: DemoModalProps) => {
-  const [input, setInput] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState("Consultant");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPost, setGeneratedPost] = useState("");
-  const [demoUsage, setDemoUsage] = useState(() => getDemoUsage());
+  const {
+    input,
+    setInput,
+    selectedTemplate,
+    setSelectedTemplate,
+    isGenerating,
+    setIsGenerating,
+    generatedPost,
+    setGeneratedPost,
+    demoUsage,
+    updateDemoUsage,
+    getDemoSessionId,
+  } = useDemoState(open);
 
-  // Load demo usage when modal opens
-  useEffect(() => {
-    if (open) {
-      const usage = getDemoUsage();
-      console.log('Loading demo usage:', usage);
-      setDemoUsage(usage);
-    }
-  }, [open]);
-
-  const templates = [
-    { id: "Consultant", name: "Consultant", description: "Professional and authoritative tone" },
-    { id: "Founder", name: "Founder", description: "Entrepreneurial and visionary" },
-    { id: "Sales", name: "Sales", description: "Engaging and relationship-focused" },
-    { id: "VC", name: "VC", description: "Analytical and forward-thinking" },
-    { id: "HR", name: "HR", description: "Empathetic and people-focused" },
-  ];
-
-  const handleGenerate = async () => {
-    if (!input.trim()) {
-      toast({
-        title: "Input required",
-        description: "Please enter a topic or paste a URL",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-    
-    try {
-      console.log('Making API call to demoGenerate...');
-      const response = await fetch('https://obmrbvozmozvvxirrils.supabase.co/functions/v1/demoGenerate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-demo-session': getDemoSessionId()
-        },
-        body: JSON.stringify({
-          input: input.trim(),
-          template: selectedTemplate
-        })
-      });
-
-      const data = await response.json();
-      console.log('API response:', data);
-
-      if (data.error === 'demo_limit_exceeded') {
-        // Handle limit exceeded
-        toast({
-          title: "Demo limit reached! 🎉",
-          description: data.message,
-        });
-        
-        // Update local usage to reflect limit
-        const newUsage = { used: 3, limit: 3, remaining: 0 };
-        setDemoUsage(newUsage);
-        saveDemoUsage(newUsage);
-        return;
-      }
-
-      if (data.error) {
-        toast({
-          title: "Generation failed",
-          description: data.message || "Please try again",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Success!
-      setGeneratedPost(data.post);
-      
-      // Update usage tracking - ensure we have valid demo_usage data
-      let newUsage;
-      if (data.demo_usage && typeof data.demo_usage.remaining === 'number') {
-        newUsage = data.demo_usage;
-      } else {
-        // Fallback: manually calculate usage
-        const currentUsage = demoUsage || { used: 0, limit: 3, remaining: 3 };
-        newUsage = {
-          used: currentUsage.used + 1,
-          limit: 3,
-          remaining: Math.max(0, currentUsage.remaining - 1)
-        };
-      }
-      
-      console.log('Updating demo usage to:', newUsage);
-      setDemoUsage(newUsage);
-      saveDemoUsage(newUsage);
-
-      // Show success message
-      if (newUsage.remaining > 0) {
-        toast({
-          title: "Post generated! ✨",
-          description: `${newUsage.remaining} free ${newUsage.remaining === 1 ? 'try' : 'tries'} remaining`,
-        });
-      } else {
-        toast({
-          title: "Amazing! That was your last free try",
-          description: "Sign up now for 5 more posts every month!",
-        });
-      }
-
-    } catch (error) {
-      console.error('Generation error:', error);
-      toast({
-        title: "Network error",
-        description: "Please check your connection and try again",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(generatedPost);
-      toast({
-        title: "Copied!",
-        description: "Post copied to clipboard"
-      });
-    } catch (error) {
-      toast({
-        title: "Copy failed",
-        description: "Please select and copy manually",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleShare = () => {
-    const linkedinUrl = `https://www.linkedin.com/shareArticle?mini=true&text=${encodeURIComponent(generatedPost)}`;
-    window.open(linkedinUrl, '_blank');
-    
-    // Track share action
-    toast({
-      title: "Opening LinkedIn",
-      description: "Your post is ready to share!"
-    });
+  const handleGenerate = () => {
+    handleDemoGeneration(
+      input,
+      selectedTemplate,
+      getDemoSessionId,
+      demoUsage,
+      setIsGenerating,
+      setGeneratedPost,
+      updateDemoUsage
+    );
   };
 
   // Add defensive checks to prevent undefined errors
@@ -227,146 +62,38 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
         
         <div className="grid md:grid-cols-2 gap-6 mt-6">
           <div className="space-y-6">
-            <div>
-              <Label htmlFor="demo-input" className="text-base font-semibold">
-                Enter a topic or paste a URL
-              </Label>
-              <Input
-                id="demo-input"
-                placeholder="e.g., 'AI in professional services' or paste an article URL"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                className="mt-2"
-              />
-              {input.startsWith('http') && (
-                <p className="text-xs text-slate mt-1">
-                  🔗 We'll analyze this article and create a LinkedIn post about it
-                </p>
-              )}
-            </div>
+            <DemoInputSection 
+              input={input}
+              onInputChange={setInput}
+            />
             
-            <div>
-              <Label className="text-base font-semibold mb-3 block">Choose your style</Label>
-              <div className="grid gap-2">
-                {templates.map((template) => (
-                  <div
-                    key={template.id}
-                    onClick={() => setSelectedTemplate(template.id)}
-                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      selectedTemplate === template.id
-                        ? 'border-neon bg-neon/10'
-                        : 'border-gray-200 hover:border-neon/50'
-                    }`}
-                  >
-                    <div className="font-semibold text-midnight">{template.name}</div>
-                    <div className="text-sm text-slate">{template.description}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <DemoTemplateSelection
+              selectedTemplate={selectedTemplate}
+              onTemplateSelect={setSelectedTemplate}
+            />
             
-            <Button
-              onClick={handleGenerate}
-              disabled={!input.trim() || isGenerating || !canGenerate}
-              className="w-full btn-neon py-3"
-            >
-              {isGenerating ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin" />
-                  <span>Generating post...</span>
-                </div>
-              ) : !canGenerate ? (
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>Sign up for more</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Generate Post ({safeUsage.remaining} left)</span>
-                </div>
-              )}
-            </Button>
+            <DemoGenerateButton
+              input={input}
+              isGenerating={isGenerating}
+              canGenerate={canGenerate}
+              remaining={safeUsage.remaining}
+              onGenerate={handleGenerate}
+            />
             
             {isAtLimit && (
-              <div className="glass-card p-4 rounded-lg text-center">
-                <h4 className="font-semibold text-midnight mb-2">🎉 Impressed with the results?</h4>
-                <p className="text-sm text-slate mb-3">
-                  Compare our Free and Pro plans to find the perfect fit for your needs.
-                </p>
-                <Button 
-                  className="btn-neon w-full" 
-                  onClick={() => {
-                    onOpenChange(false);
-                    if (onPricingClick) {
-                      onPricingClick();
-                    } else {
-                      onSignUpClick?.();
-                    }
-                  }}
-                >
-                  {onPricingClick ? "See Pricing Options" : "Get Started Free - No Credit Card Required"}
-                </Button>
-              </div>
+              <DemoLimitReached
+                onClose={() => onOpenChange(false)}
+                onPricingClick={onPricingClick}
+                onSignUpClick={onSignUpClick}
+              />
             )}
           </div>
           
           <div className="space-y-4">
-            {generatedPost ? (
-              <div className="glass-card-strong p-6 rounded-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-semibold text-midnight">Generated Post</h4>
-                  <div className="flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleCopy}
-                      className="flex items-center space-x-1"
-                    >
-                      <Copy className="w-3 h-3" />
-                      <span>Copy</span>
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleShare}
-                      className="bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white flex items-center space-x-1"
-                    >
-                      <Linkedin className="w-3 h-3" />
-                      <span>Share</span>
-                    </Button>
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg p-4 text-sm leading-relaxed whitespace-pre-line">
-                  {generatedPost}
-                </div>
-                
-                {/* Encouraging message after generation */}
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-sm text-green-700 font-medium">
-                      This post is ready to share on LinkedIn!
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="glass-card p-8 rounded-xl text-center">
-                <div className="w-16 h-16 bg-neon/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="w-8 h-8 text-neon" />
-                </div>
-                <h4 className="font-semibold text-midnight mb-2">Your generated post will appear here</h4>
-                <p className="text-slate text-sm">Enter a topic or URL and click generate to see the magic happen</p>
-                
-                {safeUsage.used > 0 && (
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-700">
-                      You've generated {safeUsage.used} demo post{safeUsage.used === 1 ? '' : 's'}!
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+            <DemoGeneratedPost
+              generatedPost={generatedPost}
+              demoUsageUsed={safeUsage.used}
+            />
           </div>
         </div>
       </DialogContent>
