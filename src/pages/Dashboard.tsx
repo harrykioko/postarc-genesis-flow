@@ -1,5 +1,6 @@
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { PostGenerator } from "@/components/dashboard/PostGenerator";
 import { GeneratedPost } from "@/components/dashboard/GeneratedPost";
@@ -16,6 +17,7 @@ import { useDashboardActions } from "@/utils/dashboardActions";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { profile, loading: profileLoading, refreshProfile } = useUserProfile();
   const { canGenerate, remainingQuota, totalQuota, plan, currentUsage, resetDate, refreshQuota } = useQuota();
   
@@ -48,6 +50,18 @@ const Dashboard = () => {
   );
 
   const { handleCopy, handleShare } = useDashboardActions();
+
+  // Check for upgrade parameter and open pricing modal
+  useEffect(() => {
+    const shouldUpgrade = searchParams.get('upgrade');
+    if (shouldUpgrade === 'true' && profile?.profile_complete) {
+      setShowUpsellModal(true);
+      // Clean up the URL parameter
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('upgrade');
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, profile?.profile_complete, setShowUpsellModal]);
 
   // Show loading while checking profile
   if (profileLoading) {

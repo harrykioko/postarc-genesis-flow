@@ -4,46 +4,27 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles, Crown } from "lucide-react";
 import { useState } from "react";
 import { AuthModal } from "./AuthModal";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export const Pricing = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleFreeSignup = () => {
-    setShowAuthModal(true);
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/auth');
+    }
   };
 
-  const handleUpgradeToPro = async () => {
-    setLoading(true);
-    try {
-      console.log("🚀 Starting Stripe checkout process...");
-      
-      const { data, error } = await supabase.functions.invoke('create-checkout-session');
-      
-      if (error) {
-        console.error("❌ Checkout error:", error);
-        throw error;
-      }
-
-      if (data?.url) {
-        console.log("✅ Checkout session created, opening Stripe...");
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
-      } else {
-        throw new Error('No checkout URL received');
-      }
-    } catch (error: any) {
-      console.error('🚨 Upgrade error:', error);
-      toast({
-        title: "Upgrade Failed",
-        description: error.message || "Failed to start checkout process. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+  const handleUpgradeToPro = () => {
+    if (user) {
+      navigate('/dashboard?upgrade=true');
+    } else {
+      navigate('/auth?intent=upgrade');
     }
   };
 
@@ -142,17 +123,9 @@ export const Pricing = () => {
             
             <Button 
               onClick={handleUpgradeToPro}
-              disabled={loading}
               className="w-full btn-neon py-3"
             >
-              {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin"></div>
-                  Processing...
-                </div>
-              ) : (
-                'Upgrade to Pro'
-              )}
+              Upgrade to Pro
             </Button>
           </div>
         </div>

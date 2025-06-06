@@ -1,35 +1,25 @@
 
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AuthModal } from "./AuthModal";
-import { PricingModal } from "./PricingModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export const Header = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showPricingModal, setShowPricingModal] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  // Redirect authenticated users to dashboard
-  useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
 
   const handleAuthClick = () => {
     setShowAuthModal(true);
   };
 
   const handleGetStartedClick = () => {
-    setShowPricingModal(true);
-  };
-
-  const handleAuthFromPricing = () => {
-    setShowPricingModal(false);
-    setShowAuthModal(true);
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/auth?intent=upgrade');
+    }
   };
 
   return (
@@ -72,15 +62,6 @@ export const Header = () => {
         
         <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
       </header>
-      
-      <PricingModal
-        isOpen={showPricingModal}
-        onClose={() => setShowPricingModal(false)}
-        onAuthClick={handleAuthFromPricing}
-        currentUsage={0}
-        limit={5}
-        resetDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()}
-      />
     </>
   );
 };

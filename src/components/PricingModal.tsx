@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { X, Check, Crown, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -23,8 +25,17 @@ export const PricingModal = ({
 }: PricingModalProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleUpgrade = async () => {
+    // If user is not authenticated, redirect to auth with upgrade intent
+    if (!user) {
+      navigate('/auth?intent=upgrade');
+      onClose();
+      return;
+    }
+
     setLoading(true);
     try {
       console.log("🚀 Starting Stripe checkout process...");
@@ -57,6 +68,14 @@ export const PricingModal = ({
   };
 
   const handleFreeSignup = () => {
+    // If user is not authenticated, redirect to auth
+    if (!user) {
+      navigate('/auth');
+      onClose();
+      return;
+    }
+
+    // If user is already authenticated, just close modal
     onClose();
     if (onAuthClick) {
       onAuthClick();
@@ -173,7 +192,7 @@ export const PricingModal = ({
                 onClick={handleFreeSignup}
                 className="w-full py-3 px-4 bg-slate/10 text-midnight rounded-lg font-medium hover:bg-slate/20 transition-colors focus-enhanced"
               >
-                Get Started Free
+                {user ? 'Current Plan' : 'Get Started Free'}
               </button>
             </div>
 
@@ -252,8 +271,10 @@ export const PricingModal = ({
                     <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin"></div>
                     Processing...
                   </div>
-                ) : (
+                ) : user ? (
                   'Upgrade to Pro - $25/month'
+                ) : (
+                  'Sign Up for Pro - $25/month'
                 )}
               </button>
             </div>
