@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +18,19 @@ interface PostHistoryProps {
   onCopy: (text: string) => void;
   loading?: boolean;
 }
+
+// Template color mapping to match PostGenerator
+const getTemplateColor = (template: string) => {
+  const colorMap: Record<string, string> = {
+    consultant: "bg-blue-500 text-white border-blue-500",
+    founder: "bg-purple-500 text-white border-purple-500",
+    vc: "bg-green-500 text-white border-green-500",
+    sales: "bg-orange-500 text-white border-orange-500",
+    hr: "bg-pink-500 text-white border-pink-500",
+  };
+  
+  return colorMap[template.toLowerCase()] || "bg-neon/10 text-neon border-neon/30";
+};
 
 export const PostHistory = ({ recentPosts, onCopy, loading = false }: PostHistoryProps) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -97,7 +109,7 @@ export const PostHistory = ({ recentPosts, onCopy, loading = false }: PostHistor
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
                           {post.template && (
-                            <Badge variant="outline" className="text-xs border-neon/30 text-neon bg-neon/5">
+                            <Badge variant="outline" className={`text-xs ${getTemplateColor(post.template)}`}>
                               {post.template}
                             </Badge>
                           )}
