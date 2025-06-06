@@ -3,9 +3,15 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowDown, Edit, Share } from "lucide-react";
 import { useState } from "react";
 import { DemoModal } from "./DemoModal";
+import { AuthModal } from "./AuthModal";
 
 export const Hero = () => {
   const [showDemo, setShowDemo] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+
+  const handleSignUpFromDemo = () => {
+    setShowAuth(true);
+  };
 
   return (
     <section className="relative py-20 overflow-hidden">
@@ -61,7 +67,12 @@ export const Hero = () => {
         </div>
       </div>
       
-      <DemoModal open={showDemo} onOpenChange={setShowDemo} />
+      <DemoModal 
+        open={showDemo} 
+        onOpenChange={setShowDemo}
+        onSignUpClick={handleSignUpFromDemo}
+      />
+      <AuthModal open={showAuth} onOpenChange={setShowAuth} />
     </section>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ const toast = (params) => {
 interface DemoModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSignUpClick?: () => void;
 }
 
 // Generate or get demo session ID
@@ -58,7 +58,7 @@ function saveDemoUsage(usage) {
   }
 }
 
-export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
+export const DemoModal = ({ open, onOpenChange, onSignUpClick }: DemoModalProps) => {
   const [input, setInput] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("Consultant");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -293,7 +293,13 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
                 <p className="text-sm text-slate mb-3">
                   Sign up to get 5 free posts per month, or upgrade to Pro for unlimited generation.
                 </p>
-                <Button className="btn-neon w-full" onClick={() => onOpenChange(false)}>
+                <Button 
+                  className="btn-neon w-full" 
+                  onClick={() => {
+                    onOpenChange(false);
+                    onSignUpClick?.();
+                  }}
+                >
                   Get Started Free - No Credit Card Required
                 </Button>
               </div>
