@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+
 import { useNavigate } from "react-router-dom";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { PostGenerator } from "@/components/dashboard/PostGenerator";
@@ -10,94 +9,45 @@ import { ProfileSetupWizard } from "@/components/ProfileSetupWizard";
 import { UpsellModal } from "@/components/UpsellModal";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuota } from "@/hooks/useQuota";
-import { supabase } from "@/integrations/supabase/client";
+import { useDashboardState } from "@/hooks/useDashboardState";
+import { usePostGeneration } from "@/hooks/usePostGeneration";
+import { useRecentPosts } from "@/hooks/useRecentPosts";
+import { useDashboardActions } from "@/utils/dashboardActions";
 
 const Dashboard = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const { profile, loading: profileLoading, refreshProfile } = useUserProfile();
   const { canGenerate, remainingQuota, totalQuota, plan, currentUsage, resetDate, refreshQuota } = useQuota();
   
-  const [input, setInput] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState("consultant");
-  const [useEmojis, setUseEmojis] = useState(true);
-  const [useHashtags, setUseHashtags] = useState(true);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPost, setGeneratedPost] = useState("");
-  const [showSpark, setShowSpark] = useState(false);
-  const [showPulse, setShowPulse] = useState(false);
-  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const {
+    input,
+    setInput,
+    selectedTemplate,
+    setSelectedTemplate,
+    useEmojis,
+    setUseEmojis,
+    useHashtags,
+    setUseHashtags,
+    clearInput
+  } = useDashboardState();
 
-  // Real recent posts state - replace mock data
-  const [recentPosts, setRecentPosts] = useState<any[]>([]);
-  const [loadingPosts, setLoadingPosts] = useState(true);
+  const {
+    isGenerating,
+    generatedPost,
+    showSpark,
+    showPulse,
+    quotaErrorData,
+    showUpsellModal,
+    setShowUpsellModal,
+    setQuotaErrorData,
+    generatePost
+  } = usePostGeneration();
 
-  // State for quota data from error response
-  const [quotaErrorData, setQuotaErrorData] = useState<{
-    currentUsage: number;
-    limit: number;
-    resetDate: string;
-  } | null>(null);
+  const { recentPosts, loading: loadingPosts, refreshPosts } = useRecentPosts(
+    profile?.profile_complete || false
+  );
 
-  // Helper function to format relative time
-  const formatRelativeTime = (date: Date) => {
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
-    
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
-    
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
-    
-    return date.toLocaleDateString();
-  };
-
-  // Fetch recent posts from database
-  const fetchRecentPosts = async () => {
-    try {
-      setLoadingPosts(true);
-      
-      const { data, error } = await supabase
-        .from('posts')
-        .select('id, prompt_topic, content, created_at, template_used')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) {
-        console.error('Error fetching posts:', error);
-        return;
-      }
-
-      const transformedPosts = data.map(post => ({
-        id: post.id,
-        preview: post.content.substring(0, 60) + "...",
-        date: formatRelativeTime(new Date(post.created_at)),
-        fullText: post.content
-      }));
-
-      setRecentPosts(transformedPosts);
-    } catch (error) {
-      console.error('Failed to fetch recent posts:', error);
-      toast({
-        title: "Failed to load history",
-        description: "Could not load your recent posts",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingPosts(false);
-    }
-  };
-
-  // Fetch posts when component mounts and profile is ready
-  useEffect(() => {
-    if (profile && profile.profile_complete) {
-      fetchRecentPosts();
-    }
-  }, [profile]);
+  const { handleCopy, handleShare } = useDashboardActions();
 
   // Show loading while checking profile
   if (profileLoading) {
@@ -116,190 +66,26 @@ const Dashboard = () => {
     return <ProfileSetupWizard onComplete={refreshProfile} />;
   }
 
-  // Template mapping: frontend IDs to backend IDs
-  const templateMapping: { [key: string]: string } = {
-    "consultant": "Consultant",
-    "founder": "Founder", 
-    "vc": "VC",
-    "sales": "Sales",
-    "hr": "HR"
-  };
-
   const handleGenerate = async () => {
-    if (!input.trim()) return;
-    
-    // Remove the pre-flight quota check - let the API handle quota enforcement
-    
-    setIsGenerating(true);
-    setShowSpark(true);
-    
-    try {
-      // Determine if input is a URL or topic
-      const isUrl = input.trim().startsWith('http://') || input.trim().startsWith('https://');
-      
-      // Prepare payload for the Edge Function
-      const payload = {
-        topic: isUrl ? undefined : input.trim(),
-        url: isUrl ? input.trim() : undefined,
-        template: templateMapping[selectedTemplate] || "Consultant",
-        hasEmojis: useEmojis,
-        hasHashtags: useHashtags
-      };
-
-      console.log("Calling generate-post with payload:", payload);
-
-      // Call the Edge Function
-      const { data, error } = await supabase.functions.invoke('generate-post', {
-        body: payload
-      });
-
-      if (error) {
-        console.error("Supabase function error:", error);
-        console.log("Full error object:", JSON.stringify(error, null, 2));
-        
-        // Check for quota exceeded - Supabase function errors can have different structures
-        const isQuotaError = (
-          error.context?.res?.status === 403 ||
-          error.message?.includes("quota exceeded") ||
-          error.message?.includes("monthly limit") ||
-          (data && data.quotaExceeded)
-        );
-        
-        if (isQuotaError) {
-          console.log("Detected quota exceeded error, checking for quota data");
-          
-          // Try to parse quota data from various possible locations
-          let quotaData = null;
-          
-          // First, check if data contains the quota info even in error case
-          if (data && data.quotaExceeded) {
-            quotaData = {
-              currentUsage: data.currentUsage || currentUsage,
-              limit: data.limit || totalQuota,
-              resetDate: data.resetDate || resetDate
-            };
-          }
-          // Try to extract from error context
-          else if (error.context?.res?.body) {
-            try {
-              const errorBody = typeof error.context.res.body === 'string' 
-                ? JSON.parse(error.context.res.body) 
-                : error.context.res.body;
-              
-              if (errorBody.quotaExceeded) {
-                quotaData = {
-                  currentUsage: errorBody.currentUsage || currentUsage,
-                  limit: errorBody.limit || totalQuota,
-                  resetDate: errorBody.resetDate || resetDate
-                };
-              }
-            } catch (e) {
-              console.log("Failed to parse error body:", e);
-            }
-          }
-          // Fallback to current quota state if we can't parse from error
-          else {
-            quotaData = {
-              currentUsage: currentUsage,
-              limit: totalQuota,
-              resetDate: resetDate
-            };
-          }
-          
-          console.log("Using quota data for modal:", quotaData);
-          setQuotaErrorData(quotaData);
-          setShowUpsellModal(true);
-          return;
-        }
-        
-        throw error;
+    await generatePost(
+      input,
+      { selectedTemplate, useEmojis, useHashtags },
+      currentUsage,
+      totalQuota,
+      resetDate,
+      () => {
+        refreshQuota();
+        refreshPosts();
+        clearInput();
       }
-
-      if (data.error) {
-        console.error("API error:", data.error);
-        
-        // Check if it's a quota exceeded error in the data response
-        if (data.quotaExceeded) {
-          setQuotaErrorData({
-            currentUsage: data.currentUsage || currentUsage,
-            limit: data.limit || totalQuota,
-            resetDate: data.resetDate || resetDate
-          });
-          setShowUpsellModal(true);
-          return;
-        }
-        
-        throw new Error(data.error);
-      }
-
-      console.log("Generated post data:", data);
-
-      // Success! Update the UI
-      setGeneratedPost(data.post);
-      setShowPulse(true);
-      
-      // Refresh quota and recent posts after successful generation
-      refreshQuota();
-      await fetchRecentPosts();
-      
-      // Clear input after successful generation
-      setInput("");
-      
-      // Show success toast
-      toast({
-        title: "Post Generated! 🎉",
-        description: "Your LinkedIn post is ready to share",
-      });
-      
-      setTimeout(() => setShowPulse(false), 1000);
-
-    } catch (error: any) {
-      console.error("Generation failed:", error);
-      
-      // Handle specific error cases for non-quota errors
-      let errorMessage = "Failed to generate post. Please try again.";
-      
-      if (error.message?.includes("Invalid URL")) {
-        errorMessage = "Please check your URL and try again.";
-      } else if (error.message?.includes("Could not fetch")) {
-        errorMessage = "Couldn't access that webpage. Try a different URL or enter a topic instead.";
-      }
-      
-      toast({
-        title: "Generation Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
-      setTimeout(() => setShowSpark(false), 800);
-    }
+    );
   };
 
-  const handleCopy = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast({
-        title: "Copied! 📋",
-        description: "Content copied to clipboard",
-      });
-    } catch (error) {
-      console.error("Copy failed:", error);
-      toast({
-        title: "Copy Failed",
-        description: "Please select and copy the text manually",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleShare = () => {
-    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin)}&title=${encodeURIComponent('Check out this post I created with PostArc.ai')}&summary=${encodeURIComponent(generatedPost)}`;
-    window.open(linkedinUrl, '_blank', 'width=600,height=400');
+  const handleShareGenerated = () => {
+    handleShare(generatedPost);
   };
 
   const handleUpgrade = () => {
-    // Navigate to pricing page and close modal
     setShowUpsellModal(false);
     setQuotaErrorData(null);
     navigate('/pricing');
@@ -343,14 +129,11 @@ const Dashboard = () => {
             <GeneratedPost
               generatedPost={generatedPost}
               onCopy={handleCopy}
-              onShare={handleShare}
+              onShare={handleShareGenerated}
             />
 
             <PostHistory
-              recentPosts={recentPosts.map(post => ({
-                ...post,
-                template: post.fullText ? 'VC' : undefined
-              }))}
+              recentPosts={recentPosts}
               onCopy={handleCopy}
               loading={loadingPosts}
             />
