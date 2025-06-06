@@ -2,8 +2,51 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles, Crown } from "lucide-react";
+import { useState } from "react";
+import { AuthModal } from "./AuthModal";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const Pricing = () => {
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleFreeSignup = () => {
+    setShowAuthModal(true);
+  };
+
+  const handleUpgradeToPro = async () => {
+    setLoading(true);
+    try {
+      console.log("🚀 Starting Stripe checkout process...");
+      
+      const { data, error } = await supabase.functions.invoke('create-checkout-session');
+      
+      if (error) {
+        console.error("❌ Checkout error:", error);
+        throw error;
+      }
+
+      if (data?.url) {
+        console.log("✅ Checkout session created, opening Stripe...");
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error: any) {
+      console.error('🚨 Upgrade error:', error);
+      toast({
+        title: "Upgrade Failed",
+        description: error.message || "Failed to start checkout process. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section id="pricing" className="py-20 bg-white/50">
       <div className="container mx-auto px-6">
@@ -47,7 +90,10 @@ export const Pricing = () => {
               </li>
             </ul>
             
-            <Button className="w-full btn-primary py-3">
+            <Button 
+              onClick={handleFreeSignup}
+              className="w-full btn-primary py-3"
+            >
               Get Started Free
             </Button>
           </div>
@@ -94,8 +140,19 @@ export const Pricing = () => {
               </li>
             </ul>
             
-            <Button className="w-full btn-neon py-3">
-              Upgrade to Pro
+            <Button 
+              onClick={handleUpgradeToPro}
+              disabled={loading}
+              className="w-full btn-neon py-3"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin"></div>
+                  Processing...
+                </div>
+              ) : (
+                'Upgrade to Pro'
+              )}
             </Button>
           </div>
         </div>
@@ -103,10 +160,12 @@ export const Pricing = () => {
         <div className="text-center mt-12">
           <p className="text-slate">
             All plans include our 30-day money-back guarantee. 
-            <a href="#" className="text-midnight hover:underline ml-1">Questions?</a>
+            <a href="mailto:support@postarc.ai" className="text-midnight hover:underline ml-1">Questions?</a>
           </p>
         </div>
       </div>
+      
+      <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
     </section>
   );
 };

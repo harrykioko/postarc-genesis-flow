@@ -2,11 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { AuthModal } from "./AuthModal";
+import { PricingModal } from "./PricingModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export const Header = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -18,6 +20,15 @@ export const Header = () => {
   }, [user, navigate]);
 
   const handleAuthClick = () => {
+    setShowAuthModal(true);
+  };
+
+  const handleGetStartedClick = () => {
+    setShowPricingModal(true);
+  };
+
+  const handleAuthFromPricing = () => {
+    setShowPricingModal(false);
     setShowAuthModal(true);
   };
 
@@ -48,7 +59,7 @@ export const Header = () => {
                 Sign In
               </Button>
               <Button
-                onClick={handleAuthClick}
+                onClick={handleGetStartedClick}
                 className="btn-neon px-6 py-2 rounded-lg"
               >
                 Get Started
@@ -59,6 +70,14 @@ export const Header = () => {
       </div>
       
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
+      <PricingModal
+        isOpen={showPricingModal}
+        onClose={() => setShowPricingModal(false)}
+        onAuthClick={handleAuthFromPricing}
+        currentUsage={0}
+        limit={5}
+        resetDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()}
+      />
     </header>
   );
 };
