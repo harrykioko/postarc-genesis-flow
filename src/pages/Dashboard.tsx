@@ -139,18 +139,21 @@ const Dashboard = () => {
               onCopy={handleCopy}
               onShare={handleShareGenerated}
             />
-
-            <PostHistory
-              recentPosts={recentPosts}
-              onCopy={handleCopy}
-              loading={loadingPosts}
-            />
           </div>
 
           {/* Right Sidebar - Plan Activity Section */}
           <div className="space-y-6 md:order-last order-first">
             <PlanActivitySection onUpgrade={() => setShowUpsellModal(true)} />
           </div>
+        </div>
+
+        {/* Full-width Your Posts Section */}
+        <div className="mt-8">
+          <PostHistory
+            recentPosts={recentPosts}
+            onCopy={handleCopy}
+            loading={loadingPosts}
+          />
         </div>
       </div>
 

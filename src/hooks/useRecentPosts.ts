@@ -25,7 +25,7 @@ export const useRecentPosts = (profileComplete: boolean) => {
         .from('posts')
         .select('id, prompt_topic, content, created_at, template_used')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(6);
 
       if (error) {
         console.error('Error fetching posts:', error);
@@ -34,7 +34,7 @@ export const useRecentPosts = (profileComplete: boolean) => {
 
       const transformedPosts = data.map(post => ({
         id: post.id,
-        preview: post.content.substring(0, 60) + "...",
+        preview: post.content.substring(0, 200) + "...",
         date: formatRelativeTime(new Date(post.created_at)),
         fullText: post.content,
         template: post.template_used
