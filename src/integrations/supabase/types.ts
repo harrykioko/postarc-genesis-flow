@@ -194,6 +194,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_monthly_usage: {
+        Args: { user_uuid: string }
+        Returns: number
+      }
       is_profile_complete: {
         Args: { user_row: Database["public"]["Tables"]["users"]["Row"] }
         Returns: boolean
