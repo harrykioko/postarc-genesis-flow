@@ -6,7 +6,7 @@ import { GeneratedPost } from "@/components/dashboard/GeneratedPost";
 import { PlanActivitySection } from "@/components/dashboard/PlanActivitySection";
 import { PostHistory } from "@/components/dashboard/PostHistory";
 import { ProfileSetupWizard } from "@/components/ProfileSetupWizard";
-import { UpsellModal } from "@/components/UpsellModal";
+import { PricingModal } from "@/components/PricingModal";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuota } from "@/hooks/useQuota";
 import { useDashboardState } from "@/hooks/useDashboardState";
@@ -85,13 +85,7 @@ const Dashboard = () => {
     handleShare(generatedPost);
   };
 
-  const handleUpgrade = () => {
-    setShowUpsellModal(false);
-    setQuotaErrorData(null);
-    navigate('/pricing');
-  };
-
-  const handleUpsellModalClose = () => {
+  const handlePricingModalClose = () => {
     setShowUpsellModal(false);
     setQuotaErrorData(null);
   };
@@ -146,11 +140,10 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Upsell Modal */}
-      <UpsellModal
+      {/* Pricing Modal */}
+      <PricingModal
         isOpen={showUpsellModal}
-        onClose={handleUpsellModalClose}
-        onUpgrade={handleUpgrade}
+        onClose={handlePricingModalClose}
         currentUsage={modalQuotaData.currentUsage}
         limit={modalQuotaData.limit}
         resetDate={modalQuotaData.resetDate}
