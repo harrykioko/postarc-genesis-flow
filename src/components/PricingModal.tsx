@@ -99,17 +99,27 @@ export const PricingModal = ({
           </div>
         </div>
 
-        {/* Usage Alert */}
-        <div className="p-6 bg-gradient-to-r from-neon/5 to-mint/5 border-b border-slate/10">
-          <div className="text-center">
-            <p className="text-midnight font-medium">
-              You've used all <strong>{currentUsage}</strong> of your <strong>{limit}</strong> free posts this month.
-            </p>
-            <p className="text-slate text-sm mt-1">
-              Your quota resets on {formatResetDate(resetDate)}
-            </p>
+        {/* Usage Alert - Only show when there's actual usage */}
+        {currentUsage > 0 && (
+          <div className="p-6 bg-gradient-to-r from-neon/5 to-mint/5 border-b border-slate/10">
+            <div className="text-center">
+              {currentUsage === limit ? (
+                <p className="text-midnight font-medium">
+                  You've used all <strong>{currentUsage}</strong> of your <strong>{limit}</strong> demo posts. Create an account to keep posting!
+                </p>
+              ) : (
+                <>
+                  <p className="text-midnight font-medium">
+                    You've used <strong>{currentUsage}</strong> of your <strong>{limit}</strong> free posts this month.
+                  </p>
+                  <p className="text-slate text-sm mt-1">
+                    Your quota resets on {formatResetDate(resetDate)}
+                  </p>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Pricing Cards */}
         <div className="p-8">
