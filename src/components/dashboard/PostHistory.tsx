@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, ClipboardCopy, ExternalLink, Loader2 } from "lucide-react";
+import { FileText, ClipboardCopy, ExternalLink, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { PostPreviewModal } from "./PostPreviewModal";
 
 interface Post {
@@ -15,8 +16,11 @@ interface Post {
 
 interface PostHistoryProps {
   recentPosts: Post[];
+  allPosts: Post[];
   onCopy: (text: string) => void;
   loading?: boolean;
+  loadingAll?: boolean;
+  onFetchAllPosts: () => void;
 }
 
 // Template color mapping to match PostGenerator
@@ -32,9 +36,17 @@ const getTemplateColor = (template: string) => {
   return colorMap[template.toLowerCase()] || "bg-neon/10 text-neon border-neon/30";
 };
 
-export const PostHistory = ({ recentPosts, onCopy, loading = false }: PostHistoryProps) => {
+export const PostHistory = ({ 
+  recentPosts, 
+  allPosts, 
+  onCopy, 
+  loading = false, 
+  loadingAll = false,
+  onFetchAllPosts 
+}: PostHistoryProps) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showAllPosts, setShowAllPosts] = useState(false);
 
   const handlePostClick = (post: Post) => {
     setSelectedPost(post);
@@ -59,10 +71,20 @@ export const PostHistory = ({ recentPosts, onCopy, loading = false }: PostHistor
     window.open(linkedinUrl, '_blank', 'width=600,height=400');
   };
 
+  const handleViewAllClick = () => {
+    if (!showAllPosts && allPosts.length === 0) {
+      onFetchAllPosts();
+    }
+    setShowAllPosts(!showAllPosts);
+  };
+
   const truncateText = (text: string, maxLength = 200) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + "...";
   };
+
+  const postsToShow = showAllPosts ? allPosts : recentPosts;
+  const isLoadingPosts = loading || (showAllPosts && loadingAll);
 
   return (
     <>
@@ -74,12 +96,12 @@ export const PostHistory = ({ recentPosts, onCopy, loading = false }: PostHistor
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {isLoadingPosts ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-6 h-6 animate-spin text-neon mr-2" />
               <span className="text-slate">Loading your posts...</span>
             </div>
-          ) : recentPosts.length === 0 ? (
+          ) : postsToShow.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-slate mb-2">No posts yet</div>
               <div className="text-xs text-slate">Generate your first post to see it here!</div>
@@ -88,11 +110,11 @@ export const PostHistory = ({ recentPosts, onCopy, loading = false }: PostHistor
             <div className="space-y-6">
               {/* Posts Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {recentPosts.map((post, index) => (
+                {postsToShow.map((post, index) => (
                   <div
                     key={post.id}
                     className={`group relative p-4 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm rounded-2xl border border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:bg-gradient-to-br hover:from-white/90 hover:to-white/70 ${
-                      index === 0 ? 'animate-slide-in-item' : ''
+                      index === 0 && !showAllPosts ? 'animate-slide-in-item' : ''
                     }`}
                     onClick={() => handlePostClick(post)}
                     role="button"
@@ -148,9 +170,26 @@ export const PostHistory = ({ recentPosts, onCopy, loading = false }: PostHistor
                 <div className="flex justify-center pt-4">
                   <Button 
                     variant="outline" 
+                    onClick={handleViewAllClick}
+                    disabled={loadingAll}
                     className="bg-white/60 backdrop-blur-sm border-neon/30 text-neon hover:bg-neon/10 hover:border-neon/50 transition-all duration-200"
                   >
-                    View All History
+                    {loadingAll ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Loading...
+                      </>
+                    ) : showAllPosts ? (
+                      <>
+                        <ChevronUp className="w-4 h-4 mr-2" />
+                        Show Less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4 mr-2" />
+                        View All History
+                      </>
+                    )}
                   </Button>
                 </div>
               )}

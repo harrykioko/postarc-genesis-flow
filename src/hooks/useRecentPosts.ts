@@ -15,17 +15,24 @@ interface RecentPost {
 export const useRecentPosts = (profileComplete: boolean) => {
   const { toast } = useToast();
   const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
+  const [allPosts, setAllPosts] = useState<RecentPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingAll, setLoadingAll] = useState(false);
 
-  const fetchRecentPosts = async () => {
+  const fetchPosts = async (limit?: number) => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('posts')
         .select('id, prompt_topic, content, created_at, template_used')
-        .order('created_at', { ascending: false })
-        .limit(6);
+        .order('created_at', { ascending: false });
+
+      if (limit) {
+        query = query.limit(limit);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching posts:', error);
@@ -40,17 +47,35 @@ export const useRecentPosts = (profileComplete: boolean) => {
         template: post.template_used
       }));
 
-      setRecentPosts(transformedPosts);
+      if (limit) {
+        setRecentPosts(transformedPosts);
+      } else {
+        setAllPosts(transformedPosts);
+      }
     } catch (error) {
-      console.error('Failed to fetch recent posts:', error);
+      console.error('Failed to fetch posts:', error);
       toast({
         title: "Failed to load history",
-        description: "Could not load your recent posts",
+        description: "Could not load your posts",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
+      setLoadingAll(false);
     }
+  };
+
+  const fetchAllPosts = async () => {
+    try {
+      setLoadingAll(true);
+      await fetchPosts(); // No limit for all posts
+    } catch (error) {
+      console.error('Failed to fetch all posts:', error);
+    }
+  };
+
+  const fetchRecentPosts = async () => {
+    await fetchPosts(6); // Limit to 6 for recent posts
   };
 
   useEffect(() => {
@@ -61,7 +86,10 @@ export const useRecentPosts = (profileComplete: boolean) => {
 
   return {
     recentPosts,
+    allPosts,
     loading,
-    refreshPosts: fetchRecentPosts
+    loadingAll,
+    refreshPosts: fetchRecentPosts,
+    fetchAllPosts
   };
 };

@@ -45,7 +45,14 @@ const Dashboard = () => {
     generatePost
   } = usePostGeneration();
 
-  const { recentPosts, loading: loadingPosts, refreshPosts } = useRecentPosts(
+  const { 
+    recentPosts, 
+    allPosts, 
+    loading: loadingPosts, 
+    loadingAll: loadingAllPosts,
+    refreshPosts,
+    fetchAllPosts
+  } = useRecentPosts(
     profile?.profile_complete || false
   );
 
@@ -151,8 +158,11 @@ const Dashboard = () => {
         <div className="mt-8">
           <PostHistory
             recentPosts={recentPosts}
+            allPosts={allPosts}
             onCopy={handleCopy}
             loading={loadingPosts}
+            loadingAll={loadingAllPosts}
+            onFetchAllPosts={fetchAllPosts}
           />
         </div>
       </div>
