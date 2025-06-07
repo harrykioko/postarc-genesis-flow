@@ -87,6 +87,7 @@ export type Database = {
         Row: {
           current_period_end: string | null
           id: string
+          monthly_quota: number | null
           status: string
           stripe_subscription: string
           tier: string
@@ -96,6 +97,7 @@ export type Database = {
         Insert: {
           current_period_end?: string | null
           id?: string
+          monthly_quota?: number | null
           status: string
           stripe_subscription: string
           tier: string
@@ -105,6 +107,7 @@ export type Database = {
         Update: {
           current_period_end?: string | null
           id?: string
+          monthly_quota?: number | null
           status?: string
           stripe_subscription?: string
           tier?: string
@@ -194,6 +197,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_quota: {
+        Args: { user_uuid: string }
+        Returns: Json
+      }
       get_user_monthly_usage: {
         Args: { user_uuid: string }
         Returns: number
