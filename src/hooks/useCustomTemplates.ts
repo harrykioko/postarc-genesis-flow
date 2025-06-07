@@ -31,33 +31,41 @@ export const useCustomTemplates = () => {
     }
 
     try {
+      console.log('🔄 Fetching custom templates from deployed edge function');
+      
       const { data, error } = await supabase.functions.invoke('manage-templates', {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching templates:', error);
+        throw error;
+      }
 
-      setTemplates(data || []);
+      console.log('✅ Successfully fetched templates:', data);
+      setTemplates(data?.templates || []);
     } catch (error) {
-      console.error('Error fetching custom templates:', error);
-      toast({
-        title: "Failed to load templates",
-        description: "Could not load your custom templates",
-        variant: "destructive",
-      });
+      console.error('❌ Failed to fetch custom templates:', error);
+      // Don't show error toast on dashboard load - fail silently
+      setTemplates([]);
     } finally {
       setLoading(false);
     }
   };
 
   const deleteTemplate = async (templateId: string) => {
+    if (!session) return;
+
     try {
+      console.log('🗑️ Deleting template:', templateId);
+      
       const { error } = await supabase.functions.invoke('manage-templates', {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: { id: templateId },
       });
@@ -71,7 +79,7 @@ export const useCustomTemplates = () => {
         description: "Your custom template has been removed",
       });
     } catch (error) {
-      console.error('Error deleting template:', error);
+      console.error('❌ Error deleting template:', error);
       toast({
         title: "Failed to delete template",
         description: "Please try again or contact support",

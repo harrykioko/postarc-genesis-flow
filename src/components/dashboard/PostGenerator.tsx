@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,7 +55,6 @@ export const PostGenerator = ({
   showSpark,
   onGenerate
 }: PostGeneratorProps) => {
-  const isAtQuota = quota.used >= quota.total;
   const [showCustomWizard, setShowCustomWizard] = useState(false);
   const { templates: customTemplates, loading: loadingTemplates, deleteTemplate, refreshTemplates } = useCustomTemplates();
 
@@ -130,6 +130,16 @@ export const PostGenerator = ({
                 isPro={isPro}
                 onClick={handleCreateCustomClick}
               />
+
+              {/* Custom templates loading state */}
+              {loadingTemplates && (
+                <div className="p-4 rounded-xl border-2 border-slate/20 bg-slate/5">
+                  <div className="text-center space-y-2">
+                    <div className="w-4 h-4 border-2 border-slate/30 border-t-slate rounded-full animate-spin mx-auto" />
+                    <div className="text-xs text-slate">Loading templates...</div>
+                  </div>
+                </div>
+              )}
 
               {/* Custom templates */}
               {!loadingTemplates && customTemplates.map((template) => (

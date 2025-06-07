@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -119,9 +118,24 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
       return;
     }
 
+    if (!session) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save templates.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const { error } = await supabase.functions.invoke('manage-templates', {
+      console.log('💾 Saving template to deployed edge function');
+      
+      const { data, error } = await supabase.functions.invoke('manage-templates', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: {
           name: wizardData.name,
           foundation_type: wizardData.foundation_type,
@@ -130,12 +144,14 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
           industry_context: wizardData.industry_context || null,
           system_prompt: customSystemPrompt
         },
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error saving template:', error);
+        throw error;
+      }
+
+      console.log('✅ Template saved successfully:', data);
 
       toast({
         title: "Template created successfully! 🎉",
@@ -143,11 +159,17 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
       });
 
       onTemplateCreated();
-    } catch (error) {
-      console.error('Error creating template:', error);
+    } catch (error: any) {
+      console.error('❌ Error creating template:', error);
+      
+      let errorMessage = "Failed to create template. Please try again.";
+      if (error.message?.includes("quota") || error.message?.includes("upgrade")) {
+        errorMessage = "Please upgrade to Pro to create custom templates.";
+      }
+      
       toast({
         title: "Failed to create template",
-        description: "Please try again or contact support if the problem persists.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
