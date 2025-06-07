@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Check, Crown, Sparkles, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -217,14 +216,14 @@ export const PricingModal = ({
                   }`}
                 >
                   {tier.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-neon text-midnight px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
-                        ⭐ Most Popular
+                    <div className="text-center mb-4">
+                      <span className="text-sm font-medium text-slate">
+                        Most Popular
                       </span>
                     </div>
                   )}
 
-                  <div className="flex items-center gap-3 mb-4 mt-2">
+                  <div className="flex items-center gap-3 mb-4">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                       isPro || isLegend ? 'bg-neon/20' : 'bg-slate/10'
                     }`}>
