@@ -2,28 +2,19 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { checkLinkedInConnectionStatus, disconnectLinkedIn as apiDisconnectLinkedIn } from '@/utils/linkedinApi';
-
-interface LinkedInProfile {
-  member_id: string;
-  profile_url: string;
-  profile_image_url: string;
-  name: string;
-  headline?: string;
-  industry?: string;
-}
+import { checkLinkedInConnectionStatus, disconnectLinkedIn } from '@/utils/linkedinApi';
+import type { LinkedInProfile } from '@/utils/linkedinApi';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  signOut: () => Promise<void>;
   linkedInConnected: boolean;
   linkedInProfile: LinkedInProfile | null;
   linkedInOAuthInProgress: boolean;
-  signInWithMagicLink: (email: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  checkLinkedInConnection: () => Promise<boolean>;
-  disconnectLinkedIn: () => Promise<{ error: any }>;
+  checkLinkedInConnection: () => Promise<void>;
+  disconnectLinkedIn: () => Promise<{ error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,7 +27,7 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,45 +35,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [linkedInProfile, setLinkedInProfile] = useState<LinkedInProfile | null>(null);
   const [linkedInOAuthInProgress, setLinkedInOAuthInProgress] = useState(false);
 
-  const checkLinkedInConnection = async (): Promise<boolean> => {
-    if (!user) return false;
-    
+  const checkLinkedInConnection = async () => {
+    if (!user) return;
+
     try {
+      console.log('Checking LinkedIn connection status...');
       const status = await checkLinkedInConnectionStatus();
       
-      if (!status.success || status.connection_status !== 'connected') {
+      if (status.success) {
+        const isConnected = status.connection_status === 'connected';
+        setLinkedInConnected(isConnected);
+        setLinkedInProfile(isConnected ? status.profile || null : null);
+        
+        console.log('LinkedIn connection status:', {
+          connected: isConnected,
+          profile: status.profile
+        });
+      } else {
+        console.log('LinkedIn connection check failed:', status.error);
         setLinkedInConnected(false);
         setLinkedInProfile(null);
-        return false;
       }
-
-      setLinkedInConnected(true);
-      if (status.profile) {
-        setLinkedInProfile({
-          member_id: status.profile.linkedin_member_id,
-          profile_url: status.profile.profile_url,
-          profile_image_url: status.profile.profile_image_url || '',
-          name: status.profile.name,
-        });
-      }
-      return true;
     } catch (error) {
       console.error('Error checking LinkedIn connection:', error);
       setLinkedInConnected(false);
       setLinkedInProfile(null);
-      return false;
     }
   };
 
-  const disconnectLinkedIn = async () => {
+  const handleDisconnectLinkedIn = async () => {
     try {
-      const result = await apiDisconnectLinkedIn();
-      if (result.success) {
+      const result = await disconnectLinkedIn();
+      if (!result.error) {
         setLinkedInConnected(false);
         setLinkedInProfile(null);
-        return { error: null };
+        console.log('LinkedIn disconnected successfully');
       }
-      return { error: result.error };
+      return result;
     } catch (error: any) {
       console.error('Error disconnecting LinkedIn:', error);
       return { error: error.message };
@@ -97,37 +86,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        
-        // Check LinkedIn connection for authenticated users
-        if (session?.user) {
+
+        // Check LinkedIn connection after auth state change (with delay)
+        if (session?.user && event === 'SIGNED_IN') {
           setTimeout(() => {
             checkLinkedInConnection();
-          }, 100);
-        }
-        
-        // Clear LinkedIn state when user signs out
-        if (event === 'SIGNED_OUT') {
+          }, 1000);
+        } else if (!session?.user) {
+          // Clear LinkedIn state when user signs out
           setLinkedInConnected(false);
           setLinkedInProfile(null);
-          setLinkedInOAuthInProgress(false);
-        }
-        
-        // Handle redirect after successful authentication
-        if (event === 'SIGNED_IN' && session?.user) {
-          const currentPath = window.location.pathname;
-          const searchParams = new URLSearchParams(window.location.search);
-          const intent = searchParams.get('intent');
-          
-          // Only redirect if we're on the auth page or landing page
-          if (currentPath === '/auth' || currentPath === '/') {
-            setTimeout(() => {
-              if (intent === 'upgrade') {
-                window.location.href = '/dashboard?upgrade=true';
-              } else {
-                window.location.href = '/dashboard';
-              }
-            }, 100);
-          }
         }
       }
     );
@@ -137,44 +105,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      
-      // Check LinkedIn connection for existing session
+
+      // Check LinkedIn connection if user is already authenticated
       if (session?.user) {
-        checkLinkedInConnection();
+        setTimeout(() => {
+          checkLinkedInConnection();
+        }, 500);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithMagicLink = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
-    
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: redirectUrl
-      }
-    });
-    
-    return { error };
-  };
-
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error signing out:', error);
+      throw error;
+    }
+    // Clear LinkedIn state on sign out
+    setLinkedInConnected(false);
+    setLinkedInProfile(null);
   };
 
   const value = {
     user,
     session,
     loading,
+    signOut,
     linkedInConnected,
     linkedInProfile,
     linkedInOAuthInProgress,
-    signInWithMagicLink,
-    signOut,
     checkLinkedInConnection,
-    disconnectLinkedIn,
+    disconnectLinkedIn: handleDisconnectLinkedIn,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -30,8 +30,8 @@ export const initiateLinkedInOAuth = async (): Promise<{ auth_url: string; state
     console.log('Initiating manual LinkedIn OAuth...');
     
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
-      body: {},
-      method: 'GET'
+      body: { action: 'initiate' },
+      method: 'POST'
     });
     
     if (error) {
@@ -60,7 +60,7 @@ export const handleLinkedInCallback = async (code: string, state: string): Promi
     console.log('Handling LinkedIn OAuth callback...');
     
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
-      body: { code, state },
+      body: { action: 'callback', code, state },
       headers: {
         'Content-Type': 'application/json',
       }
@@ -87,8 +87,8 @@ export const handleLinkedInCallback = async (code: string, state: string): Promi
 export const checkLinkedInConnectionStatus = async (): Promise<LinkedInConnectionStatus> => {
   try {
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
-      body: {},
-      method: 'GET',
+      body: { action: 'status' },
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       }
@@ -120,8 +120,8 @@ export const disconnectLinkedIn = async (): Promise<{ success: boolean; error?: 
     console.log('Disconnecting LinkedIn...');
     
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
-      body: {},
-      method: 'DELETE'
+      body: { action: 'disconnect' },
+      method: 'POST'
     });
     
     if (error) {
