@@ -1,11 +1,12 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, User, Settings as SettingsIcon, Shield, CreditCard } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, User, Link, Shield, CreditCard } from "lucide-react";
+import { Link as RouterLink } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { ProfileTab } from "@/components/settings/ProfileTab";
-import { ContentPreferencesTab } from "@/components/settings/ContentPreferencesTab";
+import { ConnectionsTab } from "@/components/settings/ConnectionsTab";
 import { AccountTab } from "@/components/settings/AccountTab";
 import { PrivacyTab } from "@/components/settings/PrivacyTab";
 
@@ -29,10 +30,10 @@ const Settings = () => {
       <header className="bg-white/80 backdrop-blur-sm border-b border-slate/10">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link to="/dashboard" className="flex items-center space-x-2 text-slate hover:text-midnight transition-colors">
+            <RouterLink to="/dashboard" className="flex items-center space-x-2 text-slate hover:text-midnight transition-colors">
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Dashboard</span>
-            </Link>
+            </RouterLink>
             <Separator orientation="vertical" className="h-6" />
             <div className="flex items-center space-x-2">
               <img 
@@ -55,7 +56,7 @@ const Settings = () => {
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-heading font-bold text-midnight mb-2">Account Settings</h1>
-            <p className="text-slate">Manage your profile, preferences, and account settings</p>
+            <p className="text-slate">Manage your profile, connections, and account settings</p>
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">
@@ -64,9 +65,9 @@ const Settings = () => {
                 <User className="w-4 h-4" />
                 <span>Profile</span>
               </TabsTrigger>
-              <TabsTrigger value="preferences" className="flex items-center space-x-2 data-[state=active]:bg-neon/10 data-[state=active]:text-midnight">
-                <SettingsIcon className="w-4 h-4" />
-                <span>Content</span>
+              <TabsTrigger value="connections" className="flex items-center space-x-2 data-[state=active]:bg-neon/10 data-[state=active]:text-midnight">
+                <Link className="w-4 h-4" />
+                <span>Connections</span>
               </TabsTrigger>
               <TabsTrigger value="account" className="flex items-center space-x-2 data-[state=active]:bg-neon/10 data-[state=active]:text-midnight">
                 <CreditCard className="w-4 h-4" />
@@ -82,8 +83,8 @@ const Settings = () => {
               <ProfileTab />
             </TabsContent>
 
-            <TabsContent value="preferences">
-              <ContentPreferencesTab />
+            <TabsContent value="connections">
+              <ConnectionsTab />
             </TabsContent>
 
             <TabsContent value="account">

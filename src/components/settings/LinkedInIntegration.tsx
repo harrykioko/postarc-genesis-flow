@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Linkedin, ExternalLink, CheckCircle, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Linkedin, ExternalLink, CheckCircle, AlertCircle, RefreshCw, Loader2, TrendingUp, User, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { initiateLinkedInOAuth } from "@/utils/linkedinApi";
@@ -112,22 +113,62 @@ export const LinkedInIntegration = () => {
   const isInOAuthFlow = isConnecting || linkedInOAuthInProgress;
 
   return (
-    <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-neon/10 transition-all duration-200">
+    <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-[#0077B5]/10 transition-all duration-200">
       <CardHeader>
-        <CardTitle className="font-heading text-midnight flex items-center space-x-2">
-          <Linkedin className="w-5 h-5" />
-          <span>LinkedIn Integration</span>
+        <CardTitle className="font-heading text-midnight flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Linkedin className="w-5 h-5 text-[#0077B5]" />
+            <span>LinkedIn Professional</span>
+          </div>
+          {linkedInConnected && (
+            <Badge className="bg-green-100 text-green-800 border-green-200">
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Connected
+            </Badge>
+          )}
+          {!linkedInConnected && !isInOAuthFlow && (
+            <Badge variant="outline" className="border-gray-300 text-gray-600">
+              <AlertCircle className="w-3 h-3 mr-1" />
+              Not Connected
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
+        {/* Feature Benefits */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3">
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <div className="flex items-center space-x-2">
+              <Zap className="w-4 h-4 text-[#0077B5]" />
+              <span className="text-sm text-midnight">Enable direct posting to LinkedIn</span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <div className="flex items-center space-x-2">
+              <User className="w-4 h-4 text-[#0077B5]" />
+              <span className="text-sm text-midnight">Auto-populate profile information</span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="w-4 h-4 text-[#0077B5]" />
+              <span className="text-sm text-midnight">Access posting analytics</span>
+              <Badge variant="outline" className="border-neon text-neon text-xs">Pro</Badge>
+            </div>
+          </div>
+        </div>
+
         {!linkedInConnected ? (
           <div className="space-y-4">
             {isInOAuthFlow ? (
-              <div className="flex items-center space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+              <div className="flex items-center space-x-3 p-4 bg-[#0077B5]/5 border border-[#0077B5]/20 rounded-lg">
+                <Loader2 className="w-5 h-5 text-[#0077B5] animate-spin" />
                 <div>
-                  <p className="font-semibold text-blue-800">Connecting to LinkedIn...</p>
-                  <p className="text-xs text-blue-600">
+                  <p className="font-semibold text-[#0077B5]">Connecting to LinkedIn...</p>
+                  <p className="text-xs text-[#0077B5]/70">
                     {linkedInOAuthInProgress 
                       ? "Syncing your LinkedIn profile..." 
                       : "Please complete the authorization in the popup window"
@@ -136,79 +177,79 @@ export const LinkedInIntegration = () => {
                 </div>
               </div>
             ) : (
-              <>
-                <div className="flex items-start space-x-3">
-                  <AlertCircle className="w-5 h-5 text-slate mt-0.5" />
-                  <div>
-                    <p className="text-slate text-sm">
-                      Connect your LinkedIn account to enable direct posting and automatically populate your profile information.
-                    </p>
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-gray-800 text-sm font-medium mb-1">Connect your LinkedIn account</p>
+                      <p className="text-gray-600 text-sm">
+                        Link your LinkedIn profile to enable direct posting and automatically populate your professional information.
+                      </p>
+                    </div>
                   </div>
                 </div>
                 <Button 
                   onClick={handleLinkedInConnect}
                   disabled={isInOAuthFlow}
-                  className="bg-[#0077B5] text-white hover:bg-[#0077B5]/90 flex items-center space-x-2"
+                  className="w-full bg-[#0077B5] text-white hover:bg-[#0077B5]/90 flex items-center justify-center space-x-2"
                 >
                   <Linkedin className="w-4 h-4" />
                   <span>Connect LinkedIn Account</span>
                   <ExternalLink className="w-3 h-3" />
                 </Button>
-              </>
+              </div>
             )}
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Connected User Info */}
             <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <div>
-                  <div className="flex items-center space-x-2">
-                    {linkedInProfile?.profile_image_url && (
-                      <img 
-                        src={linkedInProfile.profile_image_url} 
-                        alt="LinkedIn Profile" 
-                        className="w-8 h-8 rounded-full"
-                        onError={(e) => {
-                          // Hide image if it fails to load
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <div className="flex items-center space-x-3">
+                  {linkedInProfile?.profile_image_url && (
+                    <img 
+                      src={linkedInProfile.profile_image_url} 
+                      alt="LinkedIn Profile" 
+                      className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  )}
+                  <div>
+                    <p className="font-semibold text-green-800">
+                      {linkedInProfile?.name || 'LinkedIn User'}
+                    </p>
+                    {linkedInProfile?.headline && (
+                      <p className="text-sm text-green-600">{linkedInProfile.headline}</p>
                     )}
-                    <div>
-                      <p className="font-semibold text-green-800">
-                        {linkedInProfile?.name || 'LinkedIn User'}
-                      </p>
-                      {linkedInProfile?.headline && (
-                        <p className="text-xs text-green-600">{linkedInProfile.headline}</p>
-                      )}
-                      {linkedInProfile?.industry && (
-                        <p className="text-xs text-green-600">{linkedInProfile.industry}</p>
-                      )}
-                    </div>
+                    {linkedInProfile?.industry && (
+                      <p className="text-xs text-green-600">{linkedInProfile.industry}</p>
+                    )}
                   </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                {linkedInProfile?.profile_url && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-                    onClick={() => window.open(linkedInProfile.profile_url, '_blank')}
-                  >
-                    <ExternalLink className="w-3 h-3 mr-1" />
-                    View Profile
-                  </Button>
-                )}
-              </div>
+              {linkedInProfile?.profile_url && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                  onClick={() => window.open(linkedInProfile.profile_url, '_blank')}
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" />
+                  View Profile
+                </Button>
+              )}
             </div>
             
-            <div className="flex items-center justify-between">
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
               <div>
                 <p className="text-sm font-medium text-midnight">Account Connected</p>
-                <p className="text-xs text-slate">Enable direct LinkedIn posting in post generation</p>
+                <p className="text-xs text-slate">Direct LinkedIn posting is now enabled</p>
               </div>
               <div className="flex items-center space-x-2">
                 <Button
@@ -224,7 +265,7 @@ export const LinkedInIntegration = () => {
                   variant="outline"
                   size="sm"
                   onClick={handleReconnect}
-                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                  className="border-[#0077B5]/30 text-[#0077B5] hover:bg-[#0077B5]/10"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
                   Reconnect
