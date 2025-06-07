@@ -1,18 +1,12 @@
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { User, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
 
-interface DashboardHeaderProps {
-  quota: { used: number; total: number };
-  showPulse: boolean;
-}
-
-export const DashboardHeader = ({ quota, showPulse }: DashboardHeaderProps) => {
+export const DashboardHeader = () => {
   const { user, signOut } = useAuth();
   const { profile } = useUserProfile();
   const navigate = useNavigate();
@@ -43,14 +37,6 @@ export const DashboardHeader = ({ quota, showPulse }: DashboardHeaderProps) => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Badge variant="outline" className="border-neon text-midnight">
-              {quota.used}/{quota.total} posts used
-            </Badge>
-            {showPulse && (
-              <div className="absolute inset-0 rounded-full border-2 border-neon animate-pulse-ring pointer-events-none" />
-            )}
-          </div>
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="sm" className="flex items-center space-x-2">
               <Avatar className="h-6 w-6">
