@@ -27,21 +27,20 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onCopy }: PostPreviewM
   const [editedContent, setEditedContent] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  // Early return if no post - prevents any access to undefined properties
-  if (!post) return null;
-
-  // Now we can safely access post properties after the null check
-  const originalContent = post.fullText || post.preview;
-
-  // Reset states when modal opens with new content - only depend on primitive values
+  // Reset states when modal opens with new content - only when post exists
   useEffect(() => {
     if (isOpen && post) {
       const content = post.fullText || post.preview;
       setEditedContent(content);
       setIsEditMode(false);
     }
-  }, [isOpen, post?.id]); // Use post.id as dependency instead of originalContent
+  }, [isOpen, post?.id]);
 
+  // Early return after all hooks are declared
+  if (!post) return null;
+
+  // Now we can safely access post properties after the null check
+  const originalContent = post.fullText || post.preview;
   const hasChanges = editedContent !== originalContent;
   const currentContent = editedContent;
   const characterCount = currentContent.length;
