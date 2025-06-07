@@ -21,7 +21,7 @@ export const PostModalContent = ({
         <Textarea
           value={editedContent}
           onChange={(e) => onContentChange(e.target.value)}
-          className="h-full min-h-[400px] bg-white/80 backdrop-blur-sm border border-white/30 rounded-lg resize-none focus:ring-2 focus:ring-[#00FFC2] focus:border-transparent transition-all duration-200 text-sm leading-relaxed overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400"
+          className="h-full min-h-[400px] p-6 bg-white/80 backdrop-blur-sm border border-white/30 rounded-lg resize-none focus:ring-2 focus:ring-[#00FFC2] focus:border-transparent transition-all duration-200 text-sm leading-relaxed overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400"
           placeholder="Edit your post content..."
           autoFocus
         />
