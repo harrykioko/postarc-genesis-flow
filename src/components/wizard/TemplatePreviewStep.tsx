@@ -4,7 +4,6 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sparkles, Loader2, RotateCcw, ChevronDown, ChevronRight, ThumbsUp, Edit3 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -172,24 +171,32 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
 
     setIsSaving(true);
     try {
-      const { data, error } = await supabase.functions.invoke('manage-templates', {
-        body: templateData,
+      const response = await fetch(`https://obmrbvozmozvvxirrils.supabase.co/functions/v1/manage-templates`, {
+        method: 'POST',
         headers: {
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify(templateData)
       });
 
-      if (error) {
-        console.error('❌ Supabase function error:', error);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ HTTP Error:', response.status, errorText);
         
-        // Try to parse the error for more details
+        // Try to parse JSON error if possible
         let errorMessage = "Failed to create template. Please try again.";
-        if (error.message?.includes("quota") || error.message?.includes("upgrade")) {
-          errorMessage = "Please upgrade to Pro to create custom templates.";
-        } else if (error.message?.includes("authentication")) {
-          errorMessage = "Please sign in again and try saving your template.";
-        } else if (error.message?.includes("validation")) {
-          errorMessage = "Please check that all fields are properly filled out.";
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error?.includes("quota") || errorData.error?.includes("upgrade")) {
+            errorMessage = "Please upgrade to Pro to create custom templates.";
+          } else if (errorData.error?.includes("authentication")) {
+            errorMessage = "Please sign in again and try saving your template.";
+          } else if (errorData.error?.includes("validation")) {
+            errorMessage = "Please check that all fields are properly filled out.";
+          }
+        } catch (parseError) {
+          // Use default error message if parsing fails
         }
         
         toast({
@@ -200,6 +207,7 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
         return;
       }
 
+      const data = await response.json();
       console.log('✅ Template saved successfully:', data);
 
       toast({

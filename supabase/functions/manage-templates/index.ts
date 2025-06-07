@@ -20,6 +20,10 @@ interface UpdateTemplateRequest extends CreateTemplateRequest {
 }
 
 serve(async (req) => {
+  // Log request details for debugging
+  console.log(`📝 ${req.method} request received`);
+  console.log('📋 Request headers:', Object.fromEntries(req.headers.entries()));
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -36,7 +40,17 @@ serve(async (req) => {
       }
     )
 
-    const authHeader = req.headers.get('Authorization')!
+    const authHeader = req.headers.get('Authorization')
+    console.log('🔐 Auth header present:', !!authHeader);
+    
+    if (!authHeader) {
+      console.error('❌ No authorization header found');
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
 
     if (authError || !user) {
@@ -46,6 +60,8 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    console.log('✅ Authenticated user:', user.id);
 
     const { method } = req
     const url = new URL(req.url)
@@ -98,14 +114,36 @@ serve(async (req) => {
     }
 
     if (method === 'POST') {
-      const body: CreateTemplateRequest = await req.json()
-      console.log('📥 Received template creation request:', body);
+      // Add better request body handling
+      let body: CreateTemplateRequest;
+      
+      try {
+        const rawText = await req.text();
+        console.log('📥 Raw request body:', rawText);
+        
+        if (!rawText || rawText.trim() === '') {
+          console.error('❌ Empty request body received');
+          return new Response(
+            JSON.stringify({ error: 'Empty request body' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        
+        body = JSON.parse(rawText);
+        console.log('📋 Parsed request body:', body);
+      } catch (parseError) {
+        console.error('❌ Failed to parse JSON:', parseError);
+        return new Response(
+          JSON.stringify({ error: 'Invalid JSON in request body' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
       
       // Validate required fields
       if (!body.name || !body.foundation_type || !body.structure_type || !Array.isArray(body.tone_attributes)) {
         console.error('❌ Missing required fields:', body);
         return new Response(
-          JSON.stringify({ error: 'Missing required fields' }),
+          JSON.stringify({ error: 'Missing required fields: name, foundation_type, tone_attributes (array), structure_type' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -144,8 +182,29 @@ serve(async (req) => {
     }
 
     if (method === 'PUT') {
-      const body: UpdateTemplateRequest = await req.json()
-      console.log('📥 Received template update request:', body);
+      let body: UpdateTemplateRequest;
+      
+      try {
+        const rawText = await req.text();
+        console.log('📥 Raw PUT request body:', rawText);
+        
+        if (!rawText || rawText.trim() === '') {
+          console.error('❌ Empty PUT request body received');
+          return new Response(
+            JSON.stringify({ error: 'Empty request body' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        
+        body = JSON.parse(rawText);
+        console.log('📋 Parsed PUT request body:', body);
+      } catch (parseError) {
+        console.error('❌ Failed to parse PUT JSON:', parseError);
+        return new Response(
+          JSON.stringify({ error: 'Invalid JSON in request body' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
       
       // Generate updated system prompt
       const systemPrompt = generateSystemPrompt(body)
@@ -181,7 +240,30 @@ serve(async (req) => {
     }
 
     if (method === 'DELETE') {
-      const body = await req.json()
+      let body;
+      
+      try {
+        const rawText = await req.text();
+        console.log('📥 Raw DELETE request body:', rawText);
+        
+        if (!rawText || rawText.trim() === '') {
+          console.error('❌ Empty DELETE request body received');
+          return new Response(
+            JSON.stringify({ error: 'Empty request body - template ID required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        
+        body = JSON.parse(rawText);
+        console.log('📋 Parsed DELETE request body:', body);
+      } catch (parseError) {
+        console.error('❌ Failed to parse DELETE JSON:', parseError);
+        return new Response(
+          JSON.stringify({ error: 'Invalid JSON in request body' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      
       const templateId = body.id;
       
       if (!templateId) {

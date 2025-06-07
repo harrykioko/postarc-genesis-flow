@@ -31,19 +31,23 @@ export const useCustomTemplates = () => {
     }
 
     try {
-      console.log('🔄 Fetching custom templates from deployed edge function');
+      console.log('🔄 Fetching custom templates using direct fetch');
       
-      const { data, error } = await supabase.functions.invoke('manage-templates', {
+      const response = await fetch(`https://obmrbvozmozvvxirrils.supabase.co/functions/v1/manage-templates`, {
+        method: 'GET',
         headers: {
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         }
       });
 
-      if (error) {
-        console.error('❌ Error fetching templates:', error);
-        throw error;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ HTTP Error:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
+      const data = await response.json();
       console.log('✅ Successfully fetched templates:', data);
       setTemplates(data?.templates || []);
     } catch (error) {
@@ -61,17 +65,23 @@ export const useCustomTemplates = () => {
     try {
       console.log('🗑️ Deleting template:', templateId);
       
-      const { error } = await supabase.functions.invoke('manage-templates', {
-        body: { id: templateId },
+      const response = await fetch(`https://obmrbvozmozvvxirrils.supabase.co/functions/v1/manage-templates`, {
+        method: 'DELETE',
         headers: {
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({ id: templateId })
       });
 
-      if (error) {
-        console.error('❌ Error deleting template:', error);
-        throw error;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Delete HTTP Error:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
+
+      const result = await response.json();
+      console.log('✅ Delete successful:', result);
 
       setTemplates(prev => prev.filter(template => template.id !== templateId));
       
