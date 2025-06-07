@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      custom_templates: {
+        Row: {
+          created_at: string
+          foundation_type: string
+          id: string
+          industry_context: string | null
+          is_active: boolean
+          name: string
+          structure_type: string
+          system_prompt: string
+          tone_attributes: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          foundation_type: string
+          id?: string
+          industry_context?: string | null
+          is_active?: boolean
+          name: string
+          structure_type: string
+          system_prompt: string
+          tone_attributes?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          foundation_type?: string
+          id?: string
+          industry_context?: string | null
+          is_active?: boolean
+          name?: string
+          structure_type?: string
+          system_prompt?: string
+          tone_attributes?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       demo_usage: {
         Row: {
           created_at: string | null

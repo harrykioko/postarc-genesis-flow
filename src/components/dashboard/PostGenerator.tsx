@@ -5,6 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Sparkles } from "lucide-react";
+import { CustomTemplateWizard } from "@/components/CustomTemplateWizard";
+import { CreateCustomCard } from "@/components/CreateCustomCard";
+import { CustomTemplateCard } from "@/components/CustomTemplateCard";
+import { useCustomTemplates } from "@/hooks/useCustomTemplates";
 
 interface Template {
   id: string;
@@ -51,103 +55,155 @@ export const PostGenerator = ({
   onGenerate
 }: PostGeneratorProps) => {
   const isAtQuota = quota.used >= quota.total;
+  const [showCustomWizard, setShowCustomWizard] = useState(false);
+  const { templates: customTemplates, loading: loadingTemplates, deleteTemplate, refreshTemplates } = useCustomTemplates();
+
+  // For now, assuming Pro status - in real app, get from user context
+  const isPro = true; // This should come from user subscription status
+
+  const handleCreateCustomClick = () => {
+    if (isPro) {
+      setShowCustomWizard(true);
+    } else {
+      // Show upgrade modal - implementation depends on existing upgrade flow
+      console.log("Show upgrade modal");
+    }
+  };
+
+  const handleCustomTemplateSelect = (templateId: string) => {
+    setSelectedTemplate(`custom-${templateId}`);
+  };
+
+  const handleTemplateCreated = () => {
+    refreshTemplates();
+  };
+
+  const isCustomTemplateSelected = selectedTemplate.startsWith('custom-');
+  const selectedCustomTemplateId = isCustomTemplateSelected ? selectedTemplate.replace('custom-', '') : '';
 
   return (
-    <Card className="bg-white border-0 rounded-xl shadow-lg hover:ring-1 hover:ring-mint/10 transition-all duration-200">
-      <CardHeader>
-        <CardTitle className="font-heading text-midnight">Create Your Post</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div>
-          <Label htmlFor="post-input" className="text-base font-semibold">
-            Enter a topic or paste a URL
-          </Label>
-          <Input
-            id="post-input"
-            placeholder="e.g., 'AI in professional services' or paste an article URL"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="mt-2 border-slate/20 focus:ring-mint/40"
-            aria-label="Post topic input"
-          />
-        </div>
-        
-        <div>
-          <Label className="text-base font-semibold mb-3 block">Choose your style</Label>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {templates.map((template) => (
-              <div
-                key={template.id}
-                onClick={() => setSelectedTemplate(template.id)}
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:bg-mint/5 ${
-                  selectedTemplate === template.id
-                    ? 'border-neon bg-mint/10 shadow-lg border-l-4 border-l-neon'
-                    : 'border-slate/20 hover:border-neon/50'
-                }`}
-                role="button"
-                tabIndex={0}
-                aria-label={`Select ${template.name} template`}
-              >
-                <div className={`w-3 h-3 rounded-full ${template.color} mb-2 transition-all duration-120`} />
-                <div className="font-semibold text-midnight text-sm">{template.name}</div>
-                <div className="text-xs text-slate">{template.description}</div>
-              </div>
-            ))}
+    <>
+      <Card className="bg-white border-0 rounded-xl shadow-lg hover:ring-1 hover:ring-mint/10 transition-all duration-200">
+        <CardHeader>
+          <CardTitle className="font-heading text-midnight">Create Your Post</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <Label htmlFor="post-input" className="text-base font-semibold">
+              Enter a topic or paste a URL
+            </Label>
+            <Input
+              id="post-input"
+              placeholder="e.g., 'AI in professional services' or paste an article URL"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className="mt-2 border-slate/20 focus:ring-mint/40"
+              aria-label="Post topic input"
+            />
           </div>
-        </div>
-        
-        <div className="flex items-center justify-between pt-4">
-          <div className="flex items-center space-x-8">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="emojis"
-                checked={useEmojis}
-                onCheckedChange={setUseEmojis}
-                className="data-[state=checked]:bg-mint"
-                aria-label="Include emojis toggle"
+          
+          <div>
+            <Label className="text-base font-semibold mb-3 block">Choose your style</Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {/* Built-in templates */}
+              {templates.map((template) => (
+                <div
+                  key={template.id}
+                  onClick={() => setSelectedTemplate(template.id)}
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:bg-mint/5 ${
+                    selectedTemplate === template.id
+                      ? 'border-neon bg-mint/10 shadow-lg border-l-4 border-l-neon'
+                      : 'border-slate/20 hover:border-neon/50'
+                  }`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Select ${template.name} template`}
+                >
+                  <div className={`w-3 h-3 rounded-full ${template.color} mb-2 transition-all duration-120`} />
+                  <div className="font-semibold text-midnight text-sm">{template.name}</div>
+                  <div className="text-xs text-slate">{template.description}</div>
+                </div>
+              ))}
+
+              {/* Create Custom Card */}
+              <CreateCustomCard
+                isPro={isPro}
+                onClick={handleCreateCustomClick}
               />
-              <Label htmlFor="emojis">Include emojis</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="hashtags"
-                checked={useHashtags}
-                onCheckedChange={setUseHashtags}
-                className="data-[state=checked]:bg-mint"
-                aria-label="Include hashtags toggle"
-              />
-              <Label htmlFor="hashtags">Include hashtags</Label>
+
+              {/* Custom templates */}
+              {!loadingTemplates && customTemplates.map((template) => (
+                <CustomTemplateCard
+                  key={template.id}
+                  template={template}
+                  isSelected={selectedCustomTemplateId === template.id}
+                  onSelect={handleCustomTemplateSelect}
+                  onDelete={deleteTemplate}
+                />
+              ))}
             </div>
           </div>
           
-          <div className="relative">
-            <Button
-              onClick={onGenerate}
-              disabled={!input.trim() || isGenerating}
-              className="bg-neon text-midnight hover:bg-neon/90 px-6 transform hover:scale-105 active:scale-110 transition-transform duration-100"
-              aria-label="Generate post content"
-            >
-              {isGenerating ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin" />
-                  <span>Generating...</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Generate</span>
+          <div className="flex items-center justify-between pt-4">
+            <div className="flex items-center space-x-8">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="emojis"
+                  checked={useEmojis}
+                  onCheckedChange={setUseEmojis}
+                  className="data-[state=checked]:bg-mint"
+                  aria-label="Include emojis toggle"
+                />
+                <Label htmlFor="emojis">Include emojis</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="hashtags"
+                  checked={useHashtags}
+                  onCheckedChange={setUseHashtags}
+                  className="data-[state=checked]:bg-mint"
+                  aria-label="Include hashtags toggle"
+                />
+                <Label htmlFor="hashtags">Include hashtags</Label>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <Button
+                onClick={onGenerate}
+                disabled={!input.trim() || isGenerating}
+                className="bg-neon text-midnight hover:bg-neon/90 px-6 transform hover:scale-105 active:scale-110 transition-transform duration-100"
+                aria-label="Generate post content"
+              >
+                {isGenerating ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin" />
+                    <span>Generating...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Generate</span>
+                  </div>
+                )}
+              </Button>
+              
+              {showSpark && (
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 text-lg animate-spark-float pointer-events-none">
+                  ✨
                 </div>
               )}
-            </Button>
-            
-            {showSpark && (
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 text-lg animate-spark-float pointer-events-none">
-                ✨
-              </div>
-            )}
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Custom Template Wizard */}
+      <CustomTemplateWizard
+        isOpen={showCustomWizard}
+        onClose={() => setShowCustomWizard(false)}
+        onTemplateCreated={handleTemplateCreated}
+      />
+    </>
   );
 };
