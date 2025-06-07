@@ -35,6 +35,10 @@ export const Header = () => {
     }
   };
 
+  const handleLogoClick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSignUpFromDemo = () => {
     setShowAuthModal(true);
   };
@@ -49,11 +53,13 @@ export const Header = () => {
       <header className="w-full bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4 relative flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <img 
-              src="/lovable-uploads/4c54b1f5-c3f4-4d70-9a61-eca611f2e011.png" 
-              alt="PostArc Logo" 
-              className="h-8 w-auto object-contain"
-            />
+            <button onClick={handleLogoClick} className="cursor-pointer">
+              <img 
+                src="/lovable-uploads/4c54b1f5-c3f4-4d70-9a61-eca611f2e011.png" 
+                alt="PostArc Logo" 
+                className="h-8 w-auto object-contain hover:opacity-80 transition-opacity"
+              />
+            </button>
           </div>
           
           {/* Absolutely positioned centered navigation */}
