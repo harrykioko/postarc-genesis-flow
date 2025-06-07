@@ -27,9 +27,10 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onCopy }: PostPreviewM
   const [editedContent, setEditedContent] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+  // Early return if no post - prevents any access to undefined properties
   if (!post) return null;
 
-  // Use fullText if available, otherwise fall back to preview
+  // Now we can safely access post properties
   const originalContent = post.fullText || post.preview;
 
   // Reset states when modal opens with new content
