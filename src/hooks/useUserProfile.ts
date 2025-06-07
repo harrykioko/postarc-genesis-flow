@@ -10,6 +10,7 @@ interface UserProfile {
   job_title: string | null;
   linkedin_head: string | null;
   brand_voice: string | null;
+  role: string;
   profile_complete: boolean;
   created_at: string;
   updated_at: string;
