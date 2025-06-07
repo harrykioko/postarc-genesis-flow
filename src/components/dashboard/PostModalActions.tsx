@@ -36,7 +36,7 @@ export const PostModalActions = ({
             className="h-11 px-4 bg-[#00FFC2] hover:bg-[#00FFC2]/90 text-[#0B1C34] font-medium rounded-lg transition-all duration-200 flex items-center gap-2"
           >
             <Check className="w-4 h-4" />
-            Save
+            Save Changes
           </Button>
         </>
       ) : (
@@ -46,7 +46,7 @@ export const PostModalActions = ({
           className="h-11 px-4 border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 text-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2"
         >
           <Edit3 className="w-4 h-4" />
-          Edit
+          Edit Post
         </Button>
       )}
       
@@ -56,7 +56,7 @@ export const PostModalActions = ({
         className="h-11 px-4 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2"
       >
         <Copy className="w-4 h-4" />
-        Copy
+        Copy to Clipboard
       </Button>
       
       <Button
@@ -64,7 +64,7 @@ export const PostModalActions = ({
         className="h-11 px-4 bg-[#0077B5] hover:bg-[#0077B5]/90 text-white font-medium rounded-lg transition-all duration-200 flex items-center gap-2"
       >
         <ExternalLink className="w-4 h-4" />
-        Share
+        Open in LinkedIn
       </Button>
     </div>
   );

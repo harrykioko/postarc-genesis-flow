@@ -89,7 +89,7 @@ export const GeneratedPostModal = ({
           className="max-w-2xl max-h-[80vh] md:max-h-[80vh] sm:max-h-[85vh] bg-white/80 backdrop-blur-md border border-white/30 rounded-xl shadow-xl overflow-hidden transition-all duration-300"
           onKeyDown={handleKeyDown}
         >
-          <PostModalHeader isEditMode={isEditMode} />
+          <PostModalHeader isEditMode={isEditMode} modalType="generated" />
           
           <div className="flex flex-col min-h-0 flex-1">
             <PostModalContent
