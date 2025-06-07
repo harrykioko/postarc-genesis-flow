@@ -28,8 +28,14 @@ export const LinkedInConnectionCard = () => {
     
     setIsConnecting(true);
     try {
-      console.log('Initiating LinkedIn OAuth...');
-      await initiateLinkedInOAuth();
+      console.log('Initiating manual LinkedIn OAuth...');
+      
+      // Get the authorization URL from our edge function
+      const { auth_url } = await initiateLinkedInOAuth();
+      
+      // Open LinkedIn authorization in the current window
+      window.location.href = auth_url;
+      
     } catch (error: any) {
       console.error('LinkedIn OAuth error:', error);
       setIsConnecting(false);

@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { checkLinkedInConnectionStatus, disconnectLinkedIn as apiDisconnectLinkedIn } from '@/utils/linkedinApi';
 
 interface LinkedInProfile {
   member_id: string;
@@ -21,7 +22,6 @@ interface AuthContextType {
   linkedInOAuthInProgress: boolean;
   signInWithMagicLink: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  syncLinkedInProfile: (accessToken: string) => Promise<{ error: any }>;
   checkLinkedInConnection: () => Promise<boolean>;
   disconnectLinkedIn: () => Promise<{ error: any }>;
 }
@@ -48,35 +48,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) return false;
     
     try {
-      const { data: profile, error } = await supabase
-        .from('users')
-        .select('linkedin_member_id, linkedin_access_token, linkedin_token_expires_at, linkedin_profile_url, linkedin_profile_image_url, name, linkedin_head, linkedin_industry')
-        .eq('id', user.id)
-        .single();
-
-      if (error || !profile?.linkedin_access_token) {
-        setLinkedInConnected(false);
-        setLinkedInProfile(null);
-        return false;
-      }
-
-      // Check if token is expired
-      const expiresAt = profile.linkedin_token_expires_at;
-      if (expiresAt && new Date(expiresAt) <= new Date()) {
+      const status = await checkLinkedInConnectionStatus();
+      
+      if (!status.success || status.connection_status !== 'connected') {
         setLinkedInConnected(false);
         setLinkedInProfile(null);
         return false;
       }
 
       setLinkedInConnected(true);
-      setLinkedInProfile({
-        member_id: profile.linkedin_member_id,
-        profile_url: profile.linkedin_profile_url,
-        profile_image_url: profile.linkedin_profile_image_url,
-        name: profile.name,
-        headline: profile.linkedin_head,
-        industry: profile.linkedin_industry
-      });
+      if (status.profile) {
+        setLinkedInProfile({
+          member_id: status.profile.linkedin_member_id,
+          profile_url: status.profile.profile_url,
+          profile_image_url: status.profile.profile_image_url || '',
+          name: status.profile.name,
+        });
+      }
       return true;
     } catch (error) {
       console.error('Error checking LinkedIn connection:', error);
@@ -86,76 +74,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const syncLinkedInProfile = async (accessToken: string) => {
-    try {
-      setLinkedInOAuthInProgress(true);
-      console.log('Syncing LinkedIn profile with access token...');
-      
-      const { data, error } = await supabase.functions.invoke('linkedin-profile-sync', {
-        body: { access_token: accessToken }
-      });
-      
-      if (error) {
-        console.error('LinkedIn profile sync error:', error);
-        return { error };
-      }
-
-      console.log('LinkedIn profile sync successful:', data);
-      
-      // Refresh LinkedIn connection status after successful sync
-      await checkLinkedInConnection();
-      
-      return { error: null };
-    } catch (error: any) {
-      console.error('LinkedIn profile sync error:', error);
-      return { error };
-    } finally {
-      setLinkedInOAuthInProgress(false);
-    }
-  };
-
-  const handleLinkedInOAuthCallback = async (session: Session) => {
-    try {
-      // Check if this is a LinkedIn OAuth callback
-      const providerToken = session.provider_token;
-      const provider = session.user?.app_metadata?.provider;
-      
-      if (provider === 'linkedin_oidc' && providerToken) {
-        console.log('LinkedIn OAuth callback detected, syncing profile...');
-        await syncLinkedInProfile(providerToken);
-      }
-    } catch (error) {
-      console.error('Error handling LinkedIn OAuth callback:', error);
-      setLinkedInOAuthInProgress(false);
-    }
-  };
-
   const disconnectLinkedIn = async () => {
-    if (!user) return { error: 'User not authenticated' };
-
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          linkedin_access_token: null,
-          linkedin_token_expires_at: null,
-          linkedin_member_id: null,
-          linkedin_profile_url: null,
-          linkedin_profile_image_url: null,
-          linkedin_head: null,
-          linkedin_industry: null
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      setLinkedInConnected(false);
-      setLinkedInProfile(null);
-      
-      return { error: null };
+      const result = await apiDisconnectLinkedIn();
+      if (result.success) {
+        setLinkedInConnected(false);
+        setLinkedInProfile(null);
+        return { error: null };
+      }
+      return { error: result.error };
     } catch (error: any) {
       console.error('Error disconnecting LinkedIn:', error);
-      return { error };
+      return { error: error.message };
     }
   };
 
@@ -168,18 +98,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Handle LinkedIn OAuth callback
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Check if this is a LinkedIn OAuth callback
-          const provider = session.user?.app_metadata?.provider;
-          if (provider === 'linkedin_oidc') {
-            await handleLinkedInOAuthCallback(session);
-          } else {
-            // For regular sign-ins, just check LinkedIn connection
-            setTimeout(() => {
-              checkLinkedInConnection();
-            }, 100);
-          }
+        // Check LinkedIn connection for authenticated users
+        if (session?.user) {
+          setTimeout(() => {
+            checkLinkedInConnection();
+          }, 100);
         }
         
         // Clear LinkedIn state when user signs out
@@ -250,7 +173,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     linkedInOAuthInProgress,
     signInWithMagicLink,
     signOut,
-    syncLinkedInProfile,
     checkLinkedInConnection,
     disconnectLinkedIn,
   };

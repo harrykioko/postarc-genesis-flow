@@ -259,11 +259,15 @@ export type Database = {
           id: string
           job_title: string | null
           linkedin_access_token: string | null
+          linkedin_connected_at: string | null
           linkedin_head: string | null
           linkedin_industry: string | null
           linkedin_member_id: string | null
+          linkedin_oauth_initiated_at: string | null
+          linkedin_oauth_state: string | null
           linkedin_profile_image_url: string | null
           linkedin_profile_url: string | null
+          linkedin_refresh_token: string | null
           linkedin_token_expires_at: string | null
           name: string | null
           profile_complete: boolean | null
@@ -277,11 +281,15 @@ export type Database = {
           id?: string
           job_title?: string | null
           linkedin_access_token?: string | null
+          linkedin_connected_at?: string | null
           linkedin_head?: string | null
           linkedin_industry?: string | null
           linkedin_member_id?: string | null
+          linkedin_oauth_initiated_at?: string | null
+          linkedin_oauth_state?: string | null
           linkedin_profile_image_url?: string | null
           linkedin_profile_url?: string | null
+          linkedin_refresh_token?: string | null
           linkedin_token_expires_at?: string | null
           name?: string | null
           profile_complete?: boolean | null
@@ -295,11 +303,15 @@ export type Database = {
           id?: string
           job_title?: string | null
           linkedin_access_token?: string | null
+          linkedin_connected_at?: string | null
           linkedin_head?: string | null
           linkedin_industry?: string | null
           linkedin_member_id?: string | null
+          linkedin_oauth_initiated_at?: string | null
+          linkedin_oauth_state?: string | null
           linkedin_profile_image_url?: string | null
           linkedin_profile_url?: string | null
+          linkedin_refresh_token?: string | null
           linkedin_token_expires_at?: string | null
           name?: string | null
           profile_complete?: boolean | null

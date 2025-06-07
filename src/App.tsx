@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { LinkedInCallbackHandler } from "@/components/settings/linkedin/LinkedInCallbackHandler";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
@@ -38,6 +39,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/connections/linkedin/callback" 
+              element={
+                <ProtectedRoute>
+                  <LinkedInCallbackHandler />
                 </ProtectedRoute>
               } 
             />
