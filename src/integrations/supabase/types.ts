@@ -134,6 +134,7 @@ export type Database = {
           id: string
           monthly_quota: number | null
           status: string
+          stripe_customer_id: string | null
           stripe_subscription: string
           tier: string
           updated_at: string | null
@@ -144,6 +145,7 @@ export type Database = {
           id?: string
           monthly_quota?: number | null
           status: string
+          stripe_customer_id?: string | null
           stripe_subscription: string
           tier: string
           updated_at?: string | null
@@ -154,6 +156,7 @@ export type Database = {
           id?: string
           monthly_quota?: number | null
           status?: string
+          stripe_customer_id?: string | null
           stripe_subscription?: string
           tier?: string
           updated_at?: string | null

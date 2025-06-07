@@ -1,8 +1,8 @@
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Star, Zap, CreditCard, FileText } from "lucide-react";
+import { Crown, Star, Zap, CreditCard, FileText, Template, History, Document } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,31 +16,45 @@ const planDetails = {
   free: {
     name: "Free Plan",
     quota: "5 posts per month",
-    price: "Free forever",
-    features: ["Basic templates", "7-day history", "Standard support"],
+    price: "Free",
+    period: "forever",
+    features: [
+      { icon: Template, text: "Basic templates" },
+      { icon: History, text: "7-day history" },
+      { icon: Star, text: "Standard support" }
+    ],
     upgradeText: "Upgrade to Pro",
     icon: Star,
-    badgeColor: "bg-gray-100 text-gray-700",
     tier: 'pro'
   },
   pro: {
     name: "Pro Plan", 
     quota: "15 posts per month",
-    price: "$9/month",
-    features: ["Custom templates", "Unlimited history", "Priority support", "Advanced analytics"],
+    price: "$9",
+    period: "month",
+    features: [
+      { icon: Template, text: "Custom templates" },
+      { icon: History, text: "Unlimited history" },
+      { icon: Star, text: "Priority support" },
+      { icon: Document, text: "Advanced analytics" }
+    ],
     upgradeText: "Upgrade to Legend",
     icon: Crown,
-    badgeColor: "bg-blue-100 text-blue-700",
     tier: 'legend'
   },
   legend: {
     name: "Legend Plan",
     quota: "Unlimited posts", 
-    price: "$25/month",
-    features: ["Everything in Pro", "Advanced analytics", "White-label options", "Custom branding"],
+    price: "$25",
+    period: "month",
+    features: [
+      { icon: Template, text: "Everything in Pro" },
+      { icon: Document, text: "Advanced analytics" },
+      { icon: Star, text: "White-label options" },
+      { icon: Crown, text: "Custom branding" }
+    ],
     upgradeText: null,
     icon: Zap,
-    badgeColor: "bg-purple-100 text-purple-700",
     tier: null
   }
 };
@@ -109,104 +123,109 @@ export const CurrentPlanSection = ({ userRole, subscription, onRefresh }: Curren
   };
 
   return (
-    <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-neon/10 transition-all duration-200">
-      <CardHeader>
-        <CardTitle className="font-heading text-midnight flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Icon className="w-5 h-5 text-neon" />
-            <span>Current Plan</span>
+    <div className="account-settings max-w-2xl mx-auto space-y-6">
+      {/* Plan Header Card */}
+      <div className="plan-header-card bg-gradient-to-r from-neon/10 to-neon/5 rounded-xl p-6 border border-neon/20">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-neon/20 rounded-lg flex items-center justify-center">
+              <Icon className="w-5 h-5 text-neon" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-midnight">{currentPlan.name}</h2>
+              <p className="text-slate">{currentPlan.quota}</p>
+            </div>
           </div>
-          <Badge className={currentPlan.badgeColor}>
-            {currentPlan.name}
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Plan Overview */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold text-midnight text-lg">{currentPlan.name}</h3>
-            <p className="text-slate">{currentPlan.quota}</p>
-            <p className="text-sm font-medium text-neon">{currentPlan.price}</p>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-neon">{currentPlan.price}</div>
+            <div className="text-sm text-slate">per {currentPlan.period}</div>
           </div>
         </div>
+      </div>
 
-        {/* Billing Information */}
-        {showBilling && (
-          <div className="billing-info p-4 bg-slate/5 rounded-lg">
-            <h4 className="text-sm font-medium text-midnight mb-3">Billing Information</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-              <div>
-                <span className="text-slate">Next billing:</span>
-                <div className="font-medium text-midnight">
-                  {formatDate(subscription?.current_period_end)}
+      {/* Billing Information Card */}
+      {showBilling && (
+        <div className="billing-card bg-white rounded-xl p-6 border border-slate/20 shadow-sm">
+          <h3 className="text-lg font-semibold text-midnight mb-4">Billing Information</h3>
+          
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="text-sm font-medium text-slate">Next billing</label>
+              <div className="text-midnight font-medium">
+                {formatDate(subscription?.current_period_end)}
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-slate">Amount</label>
+              <div className="text-midnight font-medium">{currentPlan.price}/{currentPlan.period}</div>
+            </div>
+          </div>
+          
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              className="flex-1 border-slate/30 text-midnight hover:bg-neon/10 hover:border-neon/30"
+              onClick={openCustomerPortal}
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Manage Billing
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex-1 border-slate/30 text-midnight hover:bg-neon/10 hover:border-neon/30"
+              onClick={openCustomerPortal}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              View Invoices
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Features Card */}
+      <div className="features-card bg-white rounded-xl p-6 border border-slate/20 shadow-sm">
+        <h3 className="text-lg font-semibold text-midnight mb-4">What's included</h3>
+        
+        <div className="grid grid-cols-2 gap-4">
+          {currentPlan.features.map((feature, index) => {
+            const FeatureIcon = feature.icon;
+            return (
+              <div key={index} className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-neon/10 rounded-lg flex items-center justify-center">
+                  <FeatureIcon className="w-4 h-4 text-neon" />
                 </div>
+                <span className="text-slate">{feature.text}</span>
               </div>
-              <div>
-                <span className="text-slate">Plan:</span>
-                <div className="font-medium text-midnight">{currentPlan.price}</div>
-              </div>
-            </div>
-            
-            {/* Billing Management Links */}
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={openCustomerPortal}
-                className="border-midnight text-midnight hover:bg-neon hover:text-midnight hover:border-neon"
-              >
-                <CreditCard className="w-4 h-4 mr-2" />
-                Manage Billing
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={openCustomerPortal}
-                className="border-midnight text-midnight hover:bg-neon hover:text-midnight hover:border-neon"
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                View Invoices
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Plan Features */}
-        <div className="features">
-          <h4 className="text-sm font-medium text-midnight mb-3">What's included:</h4>
-          <ul className="space-y-2">
-            {currentPlan.features.map((feature, index) => (
-              <li key={index} className="flex items-center text-sm text-slate">
-                <Check className="w-4 h-4 text-neon mr-3 flex-shrink-0" />
-                {feature}
-              </li>
-            ))}
-          </ul>
+            );
+          })}
         </div>
+      </div>
 
+      {/* Actions Section */}
+      <div className="actions-section space-y-4">
         {/* Upgrade Button */}
         {currentPlan.upgradeText && (
           <Button 
-            className="w-full bg-neon text-midnight hover:bg-neon/90 font-semibold transition-all duration-200"
+            className="w-full bg-gradient-to-r from-neon to-neon/90 hover:from-neon/90 hover:to-neon text-midnight font-medium py-3 transition-all duration-200"
             onClick={() => handleUpgrade(currentPlan.tier!)}
           >
+            <Star className="w-4 h-4 mr-2" />
             {currentPlan.upgradeText}
           </Button>
         )}
 
         {/* Cancel/Downgrade for paid plans */}
         {showBilling && (
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="w-full text-slate hover:text-red-600 transition-colors"
-            onClick={handleCancelSubscription}
-          >
-            Cancel Subscription
-          </Button>
+          <div className="text-center">
+            <button 
+              className="text-slate hover:text-red-600 text-sm transition-colors"
+              onClick={handleCancelSubscription}
+            >
+              Cancel Subscription
+            </button>
+          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
