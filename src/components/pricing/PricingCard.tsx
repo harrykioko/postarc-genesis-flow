@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { PricingTier } from "./types";
@@ -27,14 +26,12 @@ export const PricingCard = ({ tier, onFreeSignup, onUpgrade }: PricingCardProps)
         <div className="absolute -inset-4 bg-gradient-to-r from-neon/20 via-mint/30 to-neon/20 rounded-3xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity"></div>
       )}
       
-      {/* Most Popular Badge */}
+      {/* Simple Most Popular text */}
       {tier.popular && (
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
-          <div className="bg-gradient-to-r from-neon to-mint px-6 py-2 rounded-full shadow-lg border-2 border-white">
-            <span className="text-midnight font-heading font-bold text-sm">
-              ⭐ Most Popular
-            </span>
-          </div>
+        <div className="text-center mb-4">
+          <span className="text-sm text-slate font-medium">
+            Most Popular
+          </span>
         </div>
       )}
       
