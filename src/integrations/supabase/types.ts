@@ -89,6 +89,9 @@ export type Database = {
           hashtags_enabled: boolean | null
           id: string
           length_setting: string | null
+          linkedin_post_id: string | null
+          linkedin_post_url: string | null
+          posted_to_linkedin: boolean | null
           prompt_topic: string | null
           scraped_data: Json | null
           template_used: string | null
@@ -101,6 +104,9 @@ export type Database = {
           hashtags_enabled?: boolean | null
           id?: string
           length_setting?: string | null
+          linkedin_post_id?: string | null
+          linkedin_post_url?: string | null
+          posted_to_linkedin?: boolean | null
           prompt_topic?: string | null
           scraped_data?: Json | null
           template_used?: string | null
@@ -113,6 +119,9 @@ export type Database = {
           hashtags_enabled?: boolean | null
           id?: string
           length_setting?: string | null
+          linkedin_post_id?: string | null
+          linkedin_post_url?: string | null
+          posted_to_linkedin?: boolean | null
           prompt_topic?: string | null
           scraped_data?: Json | null
           template_used?: string | null
@@ -249,7 +258,13 @@ export type Database = {
           email: string
           id: string
           job_title: string | null
+          linkedin_access_token: string | null
           linkedin_head: string | null
+          linkedin_industry: string | null
+          linkedin_member_id: string | null
+          linkedin_profile_image_url: string | null
+          linkedin_profile_url: string | null
+          linkedin_token_expires_at: string | null
           name: string | null
           profile_complete: boolean | null
           role: string
@@ -261,7 +276,13 @@ export type Database = {
           email: string
           id?: string
           job_title?: string | null
+          linkedin_access_token?: string | null
           linkedin_head?: string | null
+          linkedin_industry?: string | null
+          linkedin_member_id?: string | null
+          linkedin_profile_image_url?: string | null
+          linkedin_profile_url?: string | null
+          linkedin_token_expires_at?: string | null
           name?: string | null
           profile_complete?: boolean | null
           role?: string
@@ -273,7 +294,13 @@ export type Database = {
           email?: string
           id?: string
           job_title?: string | null
+          linkedin_access_token?: string | null
           linkedin_head?: string | null
+          linkedin_industry?: string | null
+          linkedin_member_id?: string | null
+          linkedin_profile_image_url?: string | null
+          linkedin_profile_url?: string | null
+          linkedin_token_expires_at?: string | null
           name?: string | null
           profile_complete?: boolean | null
           role?: string

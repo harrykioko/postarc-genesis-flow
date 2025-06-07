@@ -30,6 +30,8 @@ const Dashboard = () => {
     setUseEmojis,
     useHashtags,
     setUseHashtags,
+    postToLinkedIn,
+    setPostToLinkedIn,
     clearInput
   } = useDashboardState();
 
@@ -92,7 +94,7 @@ const Dashboard = () => {
   const handleGenerate = async () => {
     await generatePost(
       input,
-      { selectedTemplate, useEmojis, useHashtags },
+      { selectedTemplate, useEmojis, useHashtags, postToLinkedIn },
       currentUsage,
       totalQuota,
       resetDate,
@@ -137,6 +139,8 @@ const Dashboard = () => {
               setUseEmojis={setUseEmojis}
               useHashtags={useHashtags}
               setUseHashtags={setUseHashtags}
+              postToLinkedIn={postToLinkedIn}
+              setPostToLinkedIn={setPostToLinkedIn}
               isGenerating={isGenerating}
               quota={{ used: currentUsage, total: totalQuota }}
               showSpark={showSpark}

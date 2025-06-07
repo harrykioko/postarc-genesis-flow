@@ -14,6 +14,8 @@ interface PostGeneratorProps {
   setUseEmojis: (value: boolean) => void;
   useHashtags: boolean;
   setUseHashtags: (value: boolean) => void;
+  postToLinkedIn: boolean;
+  setPostToLinkedIn: (value: boolean) => void;
   isGenerating: boolean;
   quota: { used: number; total: number };
   showSpark: boolean;
@@ -29,6 +31,8 @@ export const PostGenerator = ({
   setUseEmojis,
   useHashtags,
   setUseHashtags,
+  postToLinkedIn,
+  setPostToLinkedIn,
   isGenerating,
   quota,
   showSpark,
@@ -48,12 +52,16 @@ export const PostGenerator = ({
         />
         
         <div className="flex items-center justify-between pt-4 border-t border-slate/10">
-          <PostSettings
-            useEmojis={useEmojis}
-            setUseEmojis={setUseEmojis}
-            useHashtags={useHashtags}
-            setUseHashtags={setUseHashtags}
-          />
+          <div className="flex-1 mr-4">
+            <PostSettings
+              useEmojis={useEmojis}
+              setUseEmojis={setUseEmojis}
+              useHashtags={useHashtags}
+              setUseHashtags={setUseHashtags}
+              postToLinkedIn={postToLinkedIn}
+              setPostToLinkedIn={setPostToLinkedIn}
+            />
+          </div>
           
           <GenerateButton
             onGenerate={onGenerate}
