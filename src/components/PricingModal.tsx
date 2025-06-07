@@ -1,9 +1,72 @@
+
 import React, { useState } from 'react';
-import { X, Check, Crown, Sparkles } from 'lucide-react';
+import { X, Check, Crown, Sparkles, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+
+const pricingTiers = [
+  {
+    id: 'free',
+    name: 'Free',
+    price: '$0',
+    period: 'forever',
+    quota: '5 posts/month',
+    icon: Sparkles,
+    description: 'Try it out',
+    features: [
+      '5 posts per month',
+      '5 basic templates',
+      'Copy & share to LinkedIn',
+      '7-day post history'
+    ],
+    cta: 'Get Started',
+    popular: false,
+    disabled: true
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: '$9',
+    period: 'per month',
+    quota: '15 posts/month',
+    icon: Crown,
+    description: 'Perfect for regular creators',
+    features: [
+      '15 posts per month',
+      'All premium templates',
+      'Full post editing',
+      'Unlimited post history',
+      'Priority support',
+      'Save drafts'
+    ],
+    cta: 'Start Pro',
+    popular: true,
+    stripeTier: 'pro'
+  },
+  {
+    id: 'legend',
+    name: 'Legend',
+    price: '$25',
+    period: 'per month',
+    quota: 'Unlimited posts',
+    icon: Zap,
+    description: 'For power users',
+    features: [
+      'Unlimited posts',
+      'Advanced analytics',
+      'Content calendar',
+      'Team features',
+      'Priority support',
+      'Custom templates',
+      'API access'
+    ],
+    cta: 'Go Legend',
+    popular: false,
+    stripeTier: 'legend'
+  }
+];
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -22,24 +85,25 @@ export const PricingModal = ({
   limit, 
   resetDate 
 }: PricingModalProps) => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleUpgrade = async () => {
-    // If user is not authenticated, redirect to auth with upgrade intent
+  const handleUpgrade = async (tier: string) => {
     if (!user) {
-      navigate('/auth?intent=upgrade');
+      navigate(`/auth?intent=upgrade&tier=${tier}`);
       onClose();
       return;
     }
 
-    setLoading(true);
+    setLoading(tier);
     try {
-      console.log("🚀 Starting Stripe checkout process...");
+      console.log(`🚀 Starting Stripe checkout process for ${tier}...`);
       
-      const { data, error } = await supabase.functions.invoke('create-checkout-session');
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { tier }
+      });
       
       if (error) {
         console.error("❌ Checkout error:", error);
@@ -48,9 +112,8 @@ export const PricingModal = ({
 
       if (data?.url) {
         console.log("✅ Checkout session created, opening Stripe...");
-        // Open Stripe checkout in a new tab
         window.open(data.url, '_blank');
-        onClose(); // Close the modal after opening checkout
+        onClose();
       } else {
         throw new Error('No checkout URL received');
       }
@@ -62,19 +125,17 @@ export const PricingModal = ({
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
 
   const handleFreeSignup = () => {
-    // If user is not authenticated, redirect to auth
     if (!user) {
       navigate('/auth');
       onClose();
       return;
     }
 
-    // If user is already authenticated, just close modal
     onClose();
     if (onAuthClick) {
       onAuthClick();
@@ -97,7 +158,7 @@ export const PricingModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up">
+      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up">
         {/* Header */}
         <div className="relative p-6 border-b border-slate/10">
           <button
@@ -117,7 +178,7 @@ export const PricingModal = ({
           </div>
         </div>
 
-        {/* Usage Alert - Only show when there's actual usage */}
+        {/* Usage Alert */}
         {currentUsage > 0 && (
           <div className="p-6 bg-gradient-to-r from-neon/5 to-mint/5 border-b border-slate/10">
             <div className="text-center">
@@ -141,140 +202,87 @@ export const PricingModal = ({
 
         {/* Pricing Cards */}
         <div className="p-8">
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {/* Free Plan */}
-            <div className="glass-card border border-slate/20 rounded-xl p-6 relative">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-slate/10 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-slate" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-heading font-bold text-midnight">Free</h3>
-                  <p className="text-slate text-sm">Perfect for getting started</p>
-                </div>
-              </div>
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {pricingTiers.map((tier) => {
+              const Icon = tier.icon;
+              const isPro = tier.id === 'pro';
+              const isLegend = tier.id === 'legend';
+              const isLoading = loading === tier.stripeTier;
               
-              <div className="mb-8">
-                <div className="text-4xl font-heading font-bold text-midnight">
-                  $0<span className="text-lg font-normal text-slate">/month</span>
+              return (
+                <div 
+                  key={tier.id}
+                  className={`glass-card rounded-xl p-6 relative ${
+                    isPro ? 'border-2 border-neon shadow-xl bg-gradient-to-br from-neon/5 to-mint/5' : 'border border-slate/20'
+                  }`}
+                >
+                  {tier.popular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-neon text-midnight px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
+                        ⭐ Most Popular
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3 mb-4 mt-2">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      isPro || isLegend ? 'bg-neon/20' : 'bg-slate/10'
+                    }`}>
+                      <Icon className={`w-6 h-6 ${isPro || isLegend ? 'text-neon' : 'text-slate'}`} />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-heading font-bold text-midnight">{tier.name}</h3>
+                      <p className="text-slate text-sm">{tier.description}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <div className="text-4xl font-heading font-bold text-midnight">
+                      {tier.price}<span className="text-lg font-normal text-slate">/{tier.period === 'forever' ? 'forever' : 'month'}</span>
+                    </div>
+                    <p className="text-sm text-slate mt-1">{tier.quota}</p>
+                  </div>
+
+                  <ul className="space-y-3 mb-8">
+                    {tier.features.map((feature, index) => (
+                      <li key={index} className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                          isPro || isLegend ? 'bg-neon' : 'bg-slate/20'
+                        }`}>
+                          <Check className={`w-3 h-3 ${isPro || isLegend ? 'text-midnight' : 'text-slate'}`} />
+                        </div>
+                        <span className="text-midnight text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button 
+                    onClick={() => {
+                      if (tier.id === 'free') {
+                        handleFreeSignup();
+                      } else {
+                        handleUpgrade(tier.stripeTier!);
+                      }
+                    }}
+                    disabled={isLoading}
+                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed focus-enhanced ${
+                      tier.id === 'free' 
+                        ? 'bg-slate/10 text-midnight hover:bg-slate/20' 
+                        : 'btn-neon'
+                    }`}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin"></div>
+                        Processing...
+                      </div>
+                    ) : (
+                      tier.cta
+                    )}
+                  </button>
                 </div>
-              </div>
-
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-slate/20 rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-slate" />
-                  </div>
-                  <span className="text-midnight">5 post generations per month</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-slate/20 rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-slate" />
-                  </div>
-                  <span className="text-midnight">All professional templates</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-slate/20 rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-slate" />
-                  </div>
-                  <span className="text-midnight">Share to LinkedIn</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-slate/20 rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-slate" />
-                  </div>
-                  <span className="text-midnight">Post history (last 20)</span>
-                </li>
-              </ul>
-
-              <button 
-                onClick={handleFreeSignup}
-                className="w-full py-3 px-4 bg-slate/10 text-midnight rounded-lg font-medium hover:bg-slate/20 transition-colors focus-enhanced"
-              >
-                {user ? 'Current Plan' : 'Get Started Free'}
-              </button>
-            </div>
-
-            {/* Pro Plan */}
-            <div className="glass-card-strong border-2 border-neon rounded-xl p-6 relative shadow-xl bg-gradient-to-br from-neon/5 to-mint/5">
-              {/* Most Popular Badge */}
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-neon text-midnight px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
-                  Most Popular
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3 mb-6 mt-2">
-                <div className="w-12 h-12 bg-neon/20 rounded-full flex items-center justify-center">
-                  <Crown className="w-6 h-6 text-neon" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-heading font-bold text-midnight">Pro</h3>
-                  <p className="text-slate text-sm">Everything you need to scale</p>
-                </div>
-              </div>
-              
-              <div className="mb-8">
-                <div className="text-4xl font-heading font-bold text-midnight">
-                  $25<span className="text-lg font-normal text-slate">/month</span>
-                </div>
-                <p className="text-sm text-slate mt-1">30-day money-back guarantee</p>
-              </div>
-
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-neon rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-midnight" />
-                  </div>
-                  <span className="text-midnight font-medium">Unlimited post generations</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-neon rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-midnight" />
-                  </div>
-                  <span className="text-midnight">All professional templates</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-neon rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-midnight" />
-                  </div>
-                  <span className="text-midnight">Priority AI processing</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-neon rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-midnight" />
-                  </div>
-                  <span className="text-midnight">Complete post history</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-neon rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-midnight" />
-                  </div>
-                  <span className="text-midnight">URL content scraping</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-neon rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-midnight" />
-                  </div>
-                  <span className="text-midnight">Custom brand voice</span>
-                </li>
-              </ul>
-
-              <button 
-                onClick={handleUpgrade}
-                disabled={loading}
-                className="w-full py-3 px-4 btn-neon rounded-lg font-semibold text-lg transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed focus-enhanced"
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin"></div>
-                    Processing...
-                  </div>
-                ) : (
-                  'Sign Up for Pro'
-                )}
-              </button>
-            </div>
+              );
+            })}
           </div>
 
           {/* Footer */}
