@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -41,7 +40,6 @@ const Settings = () => {
                 alt="PostArc Logo" 
                 className="h-8 w-auto object-contain"
               />
-              <span className="text-2xl font-heading font-bold text-midnight">PostArc</span>
             </div>
           </div>
           
