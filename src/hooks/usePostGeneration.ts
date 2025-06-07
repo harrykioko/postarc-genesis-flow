@@ -8,6 +8,7 @@ interface GenerationOptions {
   selectedTemplate: string;
   useEmojis: boolean;
   useHashtags: boolean;
+  postToLinkedIn: boolean;
 }
 
 interface QuotaErrorData {

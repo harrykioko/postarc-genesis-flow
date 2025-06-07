@@ -43,19 +43,24 @@ export const postToLinkedIn = async (postId: string, content: string): Promise<L
   }
 };
 
-export const initiateLinkedInOAuth = () => {
-  const { data, error } = supabase.auth.signInWithOAuth({
-    provider: 'linkedin_oidc',
-    options: {
-      redirectTo: `${window.location.origin}/dashboard`,
-      scopes: 'profile email openid w_member_social'
+export const initiateLinkedInOAuth = async () => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'linkedin_oidc',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+        scopes: 'profile email openid w_member_social'
+      }
+    });
+    
+    if (error) {
+      console.error('LinkedIn OAuth error:', error);
+      throw error;
     }
-  });
-  
-  if (error) {
-    console.error('LinkedIn OAuth error:', error);
+    
+    return data;
+  } catch (error) {
+    console.error('LinkedIn OAuth initiation error:', error);
     throw error;
   }
-  
-  return data;
 };
