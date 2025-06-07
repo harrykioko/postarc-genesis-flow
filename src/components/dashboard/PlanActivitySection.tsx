@@ -2,8 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp, Users, BarChart3, Crown } from "lucide-react";
+import { TrendingUp, Users, BarChart3, Crown, FileText, Calendar, Star, Clock, User } from "lucide-react";
 import { useQuota } from "@/hooks/useQuota";
+import { useUserStats } from "@/hooks/useUserStats";
+import { StatCard } from "./StatCard";
 
 interface PlanActivitySectionProps {
   onUpgrade?: () => void;
@@ -11,13 +13,14 @@ interface PlanActivitySectionProps {
 
 export const PlanActivitySection = ({ onUpgrade }: PlanActivitySectionProps) => {
   const { canGenerate, remainingQuota, totalQuota, plan, currentUsage, loading, error, refreshQuota } = useQuota();
+  const userStats = useUserStats();
 
   // Calculate usage percentage for progress bar
   const usagePercentage = totalQuota > 0 ? (currentUsage / totalQuota) * 100 : 0;
   
   // Determine status and warning messages
   const getStatusInfo = () => {
-    if (plan === 'pro') {
+    if (plan === 'pro' || plan === 'legend') {
       return {
         message: "Unlimited posts",
         color: "text-green-600",
@@ -111,11 +114,11 @@ export const PlanActivitySection = ({ onUpgrade }: PlanActivitySectionProps) => 
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-midnight">Posts Used</span>
             <span className="text-sm font-semibold text-midnight">
-              {plan === 'pro' ? 'Unlimited' : `${currentUsage} of ${totalQuota}`}
+              {plan === 'pro' || plan === 'legend' ? 'Unlimited' : `${currentUsage} of ${totalQuota}`}
             </span>
           </div>
           
-          {plan !== 'pro' && (
+          {plan !== 'pro' && plan !== 'legend' && (
             <Progress 
               value={usagePercentage} 
               className="h-3 bg-slate/20"
@@ -130,9 +133,9 @@ export const PlanActivitySection = ({ onUpgrade }: PlanActivitySectionProps) => 
         {/* Plan Tier */}
         <div className="flex items-center justify-between p-3 bg-slate/5 rounded-lg">
           <div className="flex items-center space-x-2">
-            <Crown className={`w-4 h-4 ${plan === 'pro' ? 'text-neon' : 'text-slate'}`} />
+            <Crown className={`w-4 h-4 ${plan === 'pro' || plan === 'legend' ? 'text-neon' : 'text-slate'}`} />
             <span className="font-medium text-midnight">
-              {plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
+              {plan === 'pro' ? 'Pro Plan' : plan === 'legend' ? 'Legend Plan' : 'Free Plan'}
             </span>
           </div>
           <div className={`w-2 h-2 rounded-full ${statusInfo.dotColor}`} />
@@ -148,35 +151,76 @@ export const PlanActivitySection = ({ onUpgrade }: PlanActivitySectionProps) => 
           </Button>
         )}
 
-        {/* Future Analytics Placeholders */}
+        {/* User Statistics */}
         <div className="space-y-4 pt-4 border-t border-slate/10">
-          <h4 className="text-sm font-semibold text-midnight">Coming Soon</h4>
+          <h4 className="text-sm font-semibold text-midnight">Your Stats</h4>
           
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="w-4 h-4 text-slate" />
-                <span className="text-xs text-slate">Avg. engagement</span>
-              </div>
-              <span className="text-xs text-slate">—</span>
+          {userStats.loading ? (
+            <div className="grid grid-cols-2 gap-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-16 bg-slate/20 rounded-lg animate-pulse" />
+              ))}
             </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Users className="w-4 h-4 text-slate" />
-                <span className="text-xs text-slate">Most used style</span>
-              </div>
-              <span className="text-xs text-slate">—</span>
+          ) : userStats.error ? (
+            <div className="text-center py-4">
+              <p className="text-slate text-xs mb-2">{userStats.error}</p>
+              <Button 
+                onClick={userStats.refreshStats}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                Retry
+              </Button>
             </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <BarChart3 className="w-4 h-4 text-slate" />
-                <span className="text-xs text-slate">Avg. post length</span>
-              </div>
-              <span className="text-xs text-slate">—</span>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <StatCard 
+                icon={<FileText className="w-4 h-4" />}
+                label="Total Posts"
+                value={userStats.totalPosts}
+                subtitle="All time"
+              />
+              
+              <StatCard 
+                icon={<Calendar className="w-4 h-4" />}
+                label="This Month"
+                value={userStats.monthlyLimit === 'unlimited' 
+                  ? `${userStats.monthlyUsage}/∞` 
+                  : `${userStats.monthlyUsage}/${userStats.monthlyLimit}`
+                }
+                subtitle="Posts created"
+              />
+              
+              <StatCard 
+                icon={<Star className="w-4 h-4" />}
+                label="Favorite Style"
+                value={userStats.mostUsedTemplate}
+                subtitle="Most used"
+              />
+              
+              <StatCard 
+                icon={<Clock className="w-4 h-4" />}
+                label="Last Activity"
+                value={userStats.lastActivity}
+                subtitle="Recent post"
+              />
+              
+              <StatCard 
+                icon={<TrendingUp className="w-4 h-4" />}
+                label="Avg. Length"
+                value={`${userStats.averageLength} words`}
+                subtitle="Typical post"
+              />
+              
+              <StatCard 
+                icon={<User className="w-4 h-4" />}
+                label="Member Since"
+                value={userStats.memberSince}
+                subtitle="Account created"
+              />
             </div>
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>
