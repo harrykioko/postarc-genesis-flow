@@ -236,7 +236,8 @@ export const Pricing = () => {
                         ${isPro ? 'py-4 text-lg font-bold' : 'py-3'}
                         ${tier.id === 'free' ? 
                           'btn-primary hover:shadow-lg' : 
-                          'btn-neon hover:shadow-xl hover:shadow-neon/30'
+                          isPro ? 'btn-neon hover:shadow-xl hover:shadow-neon/30' :
+                          'btn-primary hover:shadow-lg'
                         }
                       `}
                     >
