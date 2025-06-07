@@ -40,6 +40,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
 
     if (authError || !user) {
+      console.error('❌ Authentication error:', authError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -61,6 +62,7 @@ serve(async (req) => {
           .single()
 
         if (error) {
+          console.error('❌ Error fetching template:', error);
           return new Response(
             JSON.stringify({ error: error.message }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -81,6 +83,7 @@ serve(async (req) => {
           .order('created_at', { ascending: false })
 
         if (error) {
+          console.error('❌ Error fetching templates:', error);
           return new Response(
             JSON.stringify({ error: error.message }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -88,7 +91,7 @@ serve(async (req) => {
         }
 
         return new Response(
-          JSON.stringify(data),
+          JSON.stringify({ templates: data }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -96,9 +99,20 @@ serve(async (req) => {
 
     if (method === 'POST') {
       const body: CreateTemplateRequest = await req.json()
+      console.log('📥 Received template creation request:', body);
+      
+      // Validate required fields
+      if (!body.name || !body.foundation_type || !body.structure_type || !Array.isArray(body.tone_attributes)) {
+        console.error('❌ Missing required fields:', body);
+        return new Response(
+          JSON.stringify({ error: 'Missing required fields' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
       
       // Generate system prompt based on wizard choices
       const systemPrompt = generateSystemPrompt(body)
+      console.log('✅ Generated system prompt for template');
 
       const { data, error } = await supabase
         .from('custom_templates')
@@ -108,19 +122,21 @@ serve(async (req) => {
           foundation_type: body.foundation_type,
           tone_attributes: body.tone_attributes,
           structure_type: body.structure_type,
-          industry_context: body.industry_context,
+          industry_context: body.industry_context || null,
           system_prompt: systemPrompt,
         })
         .select()
         .single()
 
       if (error) {
+        console.error('❌ Database error creating template:', error);
         return new Response(
           JSON.stringify({ error: error.message }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
+      console.log('✅ Template created successfully:', data.id);
       return new Response(
         JSON.stringify(data),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -129,6 +145,7 @@ serve(async (req) => {
 
     if (method === 'PUT') {
       const body: UpdateTemplateRequest = await req.json()
+      console.log('📥 Received template update request:', body);
       
       // Generate updated system prompt
       const systemPrompt = generateSystemPrompt(body)
@@ -140,7 +157,7 @@ serve(async (req) => {
           foundation_type: body.foundation_type,
           tone_attributes: body.tone_attributes,
           structure_type: body.structure_type,
-          industry_context: body.industry_context,
+          industry_context: body.industry_context || null,
           system_prompt: systemPrompt,
         })
         .eq('id', body.id)
@@ -149,12 +166,14 @@ serve(async (req) => {
         .single()
 
       if (error) {
+        console.error('❌ Database error updating template:', error);
         return new Response(
           JSON.stringify({ error: error.message }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
+      console.log('✅ Template updated successfully:', data.id);
       return new Response(
         JSON.stringify(data),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -162,12 +181,17 @@ serve(async (req) => {
     }
 
     if (method === 'DELETE') {
+      const body = await req.json()
+      const templateId = body.id;
+      
       if (!templateId) {
         return new Response(
           JSON.stringify({ error: 'Template ID required' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
+
+      console.log('🗑️ Deleting template:', templateId);
 
       const { error } = await supabase
         .from('custom_templates')
@@ -176,12 +200,14 @@ serve(async (req) => {
         .eq('user_id', user.id)
 
       if (error) {
+        console.error('❌ Database error deleting template:', error);
         return new Response(
           JSON.stringify({ error: error.message }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
+      console.log('✅ Template deleted successfully:', templateId);
       return new Response(
         JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -194,6 +220,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('❌ Unexpected error in manage-templates function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

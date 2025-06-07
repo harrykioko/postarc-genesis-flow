@@ -147,18 +147,18 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
     // Ensure tone_attributes is an array before checking length
     const safeToneAttributes = Array.isArray(wizardData.tone_attributes) ? wizardData.tone_attributes : [];
 
-    // Validate required data before sending
+    // Create template data that matches the edge function interface exactly
     const templateData = {
       name: wizardData.name.trim(),
       foundation_type: wizardData.foundation_type,
       tone_attributes: safeToneAttributes,
       structure_type: wizardData.structure_type,
-      industry_context: wizardData.industry_context || null,
-      system_prompt: customSystemPrompt.trim()
+      industry_context: wizardData.industry_context || undefined // Convert null to undefined
+      // Note: NOT including system_prompt - the edge function generates this internally
     };
 
     // Validate that we have all required fields
-    if (!templateData.name || !templateData.foundation_type || !templateData.tone_attributes.length || !templateData.structure_type || !templateData.system_prompt) {
+    if (!templateData.name || !templateData.foundation_type || !templateData.tone_attributes.length || !templateData.structure_type) {
       console.error('❌ Missing required template data:', templateData);
       toast({
         title: "Invalid template data",
@@ -181,7 +181,23 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
 
       if (error) {
         console.error('❌ Supabase function error:', error);
-        throw error;
+        
+        // Try to parse the error for more details
+        let errorMessage = "Failed to create template. Please try again.";
+        if (error.message?.includes("quota") || error.message?.includes("upgrade")) {
+          errorMessage = "Please upgrade to Pro to create custom templates.";
+        } else if (error.message?.includes("authentication")) {
+          errorMessage = "Please sign in again and try saving your template.";
+        } else if (error.message?.includes("validation")) {
+          errorMessage = "Please check that all fields are properly filled out.";
+        }
+        
+        toast({
+          title: "Failed to create template",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
       }
 
       console.log('✅ Template saved successfully:', data);
