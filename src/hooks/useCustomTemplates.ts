@@ -34,10 +34,9 @@ export const useCustomTemplates = () => {
       console.log('🔄 Fetching custom templates from deployed edge function');
       
       const { data, error } = await supabase.functions.invoke('manage-templates', {
-        method: 'GET',
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+          'Content-Type': 'application/json',
+        }
       });
 
       if (error) {
@@ -63,14 +62,16 @@ export const useCustomTemplates = () => {
       console.log('🗑️ Deleting template:', templateId);
       
       const { error } = await supabase.functions.invoke('manage-templates', {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
         body: { id: templateId },
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error deleting template:', error);
+        throw error;
+      }
 
       setTemplates(prev => prev.filter(template => template.id !== templateId));
       

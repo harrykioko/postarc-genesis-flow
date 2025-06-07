@@ -127,27 +127,40 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
       return;
     }
 
+    // Validate required data before sending
+    const templateData = {
+      name: wizardData.name.trim(),
+      foundation_type: wizardData.foundation_type,
+      tone_attributes: wizardData.tone_attributes,
+      structure_type: wizardData.structure_type,
+      industry_context: wizardData.industry_context || null,
+      system_prompt: customSystemPrompt.trim()
+    };
+
+    // Validate that we have all required fields
+    if (!templateData.name || !templateData.foundation_type || !templateData.tone_attributes.length || !templateData.structure_type || !templateData.system_prompt) {
+      console.error('❌ Missing required template data:', templateData);
+      toast({
+        title: "Invalid template data",
+        description: "Please complete all required fields before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('💾 Saving template with data:', templateData);
+
     setIsSaving(true);
     try {
-      console.log('💾 Saving template to deployed edge function');
-      
       const { data, error } = await supabase.functions.invoke('manage-templates', {
-        method: 'POST',
+        body: templateData,
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          name: wizardData.name,
-          foundation_type: wizardData.foundation_type,
-          tone_attributes: wizardData.tone_attributes,
-          structure_type: wizardData.structure_type,
-          industry_context: wizardData.industry_context || null,
-          system_prompt: customSystemPrompt
-        },
+          'Content-Type': 'application/json',
+        }
       });
 
       if (error) {
-        console.error('❌ Error saving template:', error);
+        console.error('❌ Supabase function error:', error);
         throw error;
       }
 
@@ -165,6 +178,10 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
       let errorMessage = "Failed to create template. Please try again.";
       if (error.message?.includes("quota") || error.message?.includes("upgrade")) {
         errorMessage = "Please upgrade to Pro to create custom templates.";
+      } else if (error.message?.includes("authentication")) {
+        errorMessage = "Please sign in again and try saving your template.";
+      } else if (error.message?.includes("validation")) {
+        errorMessage = "Please check that all fields are properly filled out.";
       }
       
       toast({
