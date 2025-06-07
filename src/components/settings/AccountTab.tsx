@@ -6,9 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { LinkedInIntegration } from "./LinkedInIntegration";
+import { CurrentPlanSection } from "./CurrentPlanSection";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export const AccountTab = () => {
   const { toast } = useToast();
+  const { profile } = useUserProfile();
+  const { subscription, refreshSubscription } = useSubscription();
   
   const [accountSettings, setAccountSettings] = useState({
     emailNotifications: true,
@@ -25,22 +30,11 @@ export const AccountTab = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-neon/10 transition-all duration-200">
-        <CardHeader>
-          <CardTitle className="font-heading text-midnight">Current Plan</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-midnight">Free Plan</h3>
-              <p className="text-slate">5 posts per month</p>
-            </div>
-            <Button variant="outline" className="border-midnight text-midnight hover:bg-neon hover:text-midnight hover:border-neon">
-              Upgrade to Pro
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <CurrentPlanSection 
+        userRole={profile?.role || 'free'}
+        subscription={subscription}
+        onRefresh={refreshSubscription}
+      />
 
       <LinkedInIntegration />
 
