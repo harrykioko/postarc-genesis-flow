@@ -2,7 +2,16 @@
 import type { TemplateWizardData } from '@/components/CustomTemplateWizard';
 
 export const buildSystemPromptFromChoices = (wizardData: TemplateWizardData): string => {
+  // Add defensive checks for undefined data
+  if (!wizardData) {
+    console.warn('⚠️ buildSystemPromptFromChoices called with undefined wizardData');
+    return "Create engaging, professional content with clear insights and actionable takeaways.";
+  }
+
   const { foundation_type, tone_attributes, structure_type, industry_context } = wizardData;
+
+  // Ensure tone_attributes is an array
+  const safeTonesArray = Array.isArray(tone_attributes) ? tone_attributes : [];
 
   // Foundation base prompts
   const foundationPrompts = {
@@ -23,8 +32,8 @@ export const buildSystemPromptFromChoices = (wizardData: TemplateWizardData): st
     opinion: "Present a clear viewpoint: State your opinion → Provide supporting evidence or reasoning → Address potential counterarguments → Invite discussion."
   };
 
-  // Tone modifiers
-  const toneModifiers = tone_attributes.map(tone => {
+  // Tone modifiers with safe array access
+  const toneModifiers = safeTonesArray.map(tone => {
     const toneMap: Record<string, string> = {
       conversational: "Use a conversational, approachable tone",
       professional: "Maintain professional language and formal structure",
@@ -42,7 +51,7 @@ export const buildSystemPromptFromChoices = (wizardData: TemplateWizardData): st
     return toneMap[tone] || "";
   }).filter(Boolean);
 
-  // Build the complete system prompt
+  // Build the complete system prompt with safe property access
   let systemPrompt = foundationPrompts[foundation_type as keyof typeof foundationPrompts] || foundationPrompts.fresh;
   
   systemPrompt += `\n\n${structurePrompts[structure_type as keyof typeof structurePrompts] || structurePrompts.story}`;
@@ -61,6 +70,11 @@ export const buildSystemPromptFromChoices = (wizardData: TemplateWizardData): st
 };
 
 export const generateTemplateNameSuggestions = (wizardData: TemplateWizardData): string[] => {
+  // Add defensive checks
+  if (!wizardData) {
+    return ["Custom Template"];
+  }
+
   const { foundation_type, tone_attributes, industry_context } = wizardData;
   
   const foundationNames = {
@@ -74,7 +88,10 @@ export const generateTemplateNameSuggestions = (wizardData: TemplateWizardData):
 
   const baseName = foundationNames[foundation_type as keyof typeof foundationNames] || "Custom";
   const industry = industry_context ? ` ${industry_context}` : "";
-  const primaryTone = tone_attributes[0] ? ` ${tone_attributes[0].charAt(0).toUpperCase() + tone_attributes[0].slice(1)}` : "";
+  
+  // Safe access to tone_attributes array
+  const safeTonesArray = Array.isArray(tone_attributes) ? tone_attributes : [];
+  const primaryTone = safeTonesArray.length > 0 ? ` ${safeTonesArray[0].charAt(0).toUpperCase() + safeTonesArray[0].slice(1)}` : "";
 
   return [
     `${baseName}${industry} Style`,

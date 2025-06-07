@@ -4,16 +4,18 @@ import type { TemplateWizardData } from '@/components/CustomTemplateWizard';
 
 const WIZARD_DRAFT_KEY = 'postArc_template_wizard_draft';
 
+const getInitialWizardData = (): TemplateWizardData => ({
+  foundation_type: "",
+  tone_attributes: [],
+  structure_type: "",
+  industry_context: "",
+  name: ""
+});
+
 export const useWizardState = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set([1]));
-  const [wizardData, setWizardData] = useState<TemplateWizardData>({
-    foundation_type: "",
-    tone_attributes: [],
-    structure_type: "",
-    industry_context: "",
-    name: ""
-  });
+  const [wizardData, setWizardData] = useState<TemplateWizardData>(getInitialWizardData());
 
   const totalSteps = 5;
 
@@ -23,11 +25,21 @@ export const useWizardState = () => {
     if (savedDraft) {
       try {
         const { data, step, completed } = JSON.parse(savedDraft);
-        setWizardData(data);
-        setCurrentStep(step);
-        setCompletedSteps(new Set(completed));
+        // Ensure loaded data has all required properties with safe defaults
+        const safeData: TemplateWizardData = {
+          foundation_type: data?.foundation_type || "",
+          tone_attributes: Array.isArray(data?.tone_attributes) ? data.tone_attributes : [],
+          structure_type: data?.structure_type || "",
+          industry_context: data?.industry_context || "",
+          name: data?.name || ""
+        };
+        setWizardData(safeData);
+        setCurrentStep(step || 1);
+        setCompletedSteps(new Set(Array.isArray(completed) ? completed : [1]));
       } catch (error) {
         console.error('Failed to load wizard draft:', error);
+        // Reset to safe initial state on error
+        setWizardData(getInitialWizardData());
       }
     }
   }, []);
@@ -51,12 +63,15 @@ export const useWizardState = () => {
   }, []);
 
   const canProceed = useCallback(() => {
+    // Add safe property access with null checks
+    if (!wizardData) return false;
+    
     switch (currentStep) {
-      case 1: return wizardData.foundation_type !== "";
-      case 2: return wizardData.tone_attributes.length > 0;
-      case 3: return wizardData.structure_type !== "";
+      case 1: return Boolean(wizardData.foundation_type);
+      case 2: return Array.isArray(wizardData.tone_attributes) && wizardData.tone_attributes.length > 0;
+      case 3: return Boolean(wizardData.structure_type);
       case 4: return true; // Industry context is optional
-      case 5: return wizardData.name.trim() !== "";
+      case 5: return Boolean(wizardData.name && wizardData.name.trim());
       default: return false;
     }
   }, [currentStep, wizardData]);

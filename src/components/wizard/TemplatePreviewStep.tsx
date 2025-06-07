@@ -31,6 +31,12 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
 
   // Generate system prompt and suggest names when component mounts
   useEffect(() => {
+    // Add safety check for wizardData
+    if (!wizardData) {
+      console.warn('⚠️ TemplatePreviewStep: wizardData is undefined');
+      return;
+    }
+
     const generatedPrompt = buildSystemPromptFromChoices(wizardData);
     setCustomSystemPrompt(generatedPrompt);
     
@@ -109,7 +115,18 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
   };
 
   const saveTemplate = async () => {
-    if (!wizardData.name.trim()) {
+    // Add comprehensive validation with safety checks
+    if (!wizardData) {
+      console.error('❌ wizardData is undefined');
+      toast({
+        title: "Template data missing",
+        description: "Please restart the template creation process.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!wizardData.name || !wizardData.name.trim()) {
       toast({
         title: "Template name required",
         description: "Please enter a name for your template.",
@@ -127,11 +144,14 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
       return;
     }
 
+    // Ensure tone_attributes is an array before checking length
+    const safeToneAttributes = Array.isArray(wizardData.tone_attributes) ? wizardData.tone_attributes : [];
+
     // Validate required data before sending
     const templateData = {
       name: wizardData.name.trim(),
       foundation_type: wizardData.foundation_type,
-      tone_attributes: wizardData.tone_attributes,
+      tone_attributes: safeToneAttributes,
       structure_type: wizardData.structure_type,
       industry_context: wizardData.industry_context || null,
       system_prompt: customSystemPrompt.trim()
@@ -225,6 +245,20 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
     "Lessons learned from a failed product launch"
   ];
 
+  // Add safety check for wizardData before rendering
+  if (!wizardData) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="text-lg text-slate">Loading template data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Safe access to tone_attributes for display
+  const safeToneAttributes = Array.isArray(wizardData.tone_attributes) ? wizardData.tone_attributes : [];
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -245,7 +279,7 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
           <Input
             id="template-name"
             placeholder="e.g., My Leadership Style"
-            value={wizardData.name}
+            value={wizardData.name || ""}
             onChange={(e) => onNameChange(e.target.value)}
             className="mt-2 border-slate/20 focus:ring-mint/40"
           />
@@ -255,9 +289,9 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
         <div className="bg-mint/10 p-4 rounded-lg">
           <h4 className="font-medium text-midnight mb-2">Your Template Summary:</h4>
           <div className="text-sm text-slate space-y-1">
-            <p><span className="font-medium">Foundation:</span> {getFoundationName(wizardData.foundation_type)}</p>
-            <p><span className="font-medium">Tone:</span> {wizardData.tone_attributes.join(", ")}</p>
-            <p><span className="font-medium">Structure:</span> {getStructureName(wizardData.structure_type)}</p>
+            <p><span className="font-medium">Foundation:</span> {getFoundationName(wizardData.foundation_type || "")}</p>
+            <p><span className="font-medium">Tone:</span> {safeToneAttributes.join(", ")}</p>
+            <p><span className="font-medium">Structure:</span> {getStructureName(wizardData.structure_type || "")}</p>
             {wizardData.industry_context && (
               <p><span className="font-medium">Industry:</span> {wizardData.industry_context}</p>
             )}
