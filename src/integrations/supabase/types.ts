@@ -88,6 +88,7 @@ export type Database = {
           emojis_enabled: boolean | null
           hashtags_enabled: boolean | null
           id: string
+          length_setting: string | null
           prompt_topic: string | null
           scraped_data: Json | null
           template_used: string | null
@@ -99,6 +100,7 @@ export type Database = {
           emojis_enabled?: boolean | null
           hashtags_enabled?: boolean | null
           id?: string
+          length_setting?: string | null
           prompt_topic?: string | null
           scraped_data?: Json | null
           template_used?: string | null
@@ -110,6 +112,7 @@ export type Database = {
           emojis_enabled?: boolean | null
           hashtags_enabled?: boolean | null
           id?: string
+          length_setting?: string | null
           prompt_topic?: string | null
           scraped_data?: Json | null
           template_used?: string | null
