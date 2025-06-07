@@ -2,30 +2,47 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Linkedin, ExternalLink, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { Linkedin, ExternalLink, CheckCircle, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { initiateLinkedInOAuth } from "@/utils/linkedinApi";
 
 export const LinkedInIntegration = () => {
   const { toast } = useToast();
-  const { linkedInConnected, linkedInProfile, disconnectLinkedIn, checkLinkedInConnection } = useAuth();
+  const { 
+    linkedInConnected, 
+    linkedInProfile, 
+    linkedInOAuthInProgress,
+    disconnectLinkedIn, 
+    checkLinkedInConnection 
+  } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
-  const [isReconnecting, setIsReconnecting] = useState(false);
 
   const handleLinkedInConnect = async () => {
+    if (isConnecting || linkedInOAuthInProgress) return;
+    
     setIsConnecting(true);
     try {
+      console.log('Initiating LinkedIn OAuth...');
       await initiateLinkedInOAuth();
+      // Don't set isConnecting to false here - it will be handled by the OAuth callback
     } catch (error: any) {
       console.error('LinkedIn OAuth error:', error);
+      setIsConnecting(false);
+      
+      let errorMessage = "Failed to connect to LinkedIn. Please try again.";
+      if (error.message?.includes('popup')) {
+        errorMessage = "Please allow popups for this site and try again.";
+      } else if (error.message?.includes('network')) {
+        errorMessage = "Network error. Please check your connection and try again.";
+      }
+      
       toast({
         title: "Connection failed",
-        description: "Failed to connect to LinkedIn. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
-      setIsConnecting(false);
     }
   };
 
@@ -58,13 +75,13 @@ export const LinkedInIntegration = () => {
   };
 
   const handleReconnect = async () => {
-    setIsReconnecting(true);
     try {
       // First disconnect, then reconnect
       await disconnectLinkedIn();
+      // Small delay to ensure disconnect completes
       setTimeout(() => {
-        initiateLinkedInOAuth();
-      }, 1000);
+        handleLinkedInConnect();
+      }, 500);
     } catch (error) {
       console.error('Error reconnecting LinkedIn:', error);
       toast({
@@ -72,17 +89,27 @@ export const LinkedInIntegration = () => {
         description: "Failed to reconnect LinkedIn. Please try again.",
         variant: "destructive"
       });
-      setIsReconnecting(false);
     }
   };
 
   const handleRefreshConnection = async () => {
-    await checkLinkedInConnection();
-    toast({
-      title: "Connection refreshed",
-      description: "LinkedIn connection status has been updated.",
-    });
+    try {
+      await checkLinkedInConnection();
+      toast({
+        title: "Connection refreshed",
+        description: "LinkedIn connection status has been updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Refresh failed",
+        description: "Failed to refresh connection status.",
+        variant: "destructive"
+      });
+    }
   };
+
+  // Show connecting state during OAuth flow
+  const isInOAuthFlow = isConnecting || linkedInOAuthInProgress;
 
   return (
     <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-neon/10 transition-all duration-200">
@@ -95,32 +122,40 @@ export const LinkedInIntegration = () => {
       <CardContent className="space-y-4">
         {!linkedInConnected ? (
           <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="w-5 h-5 text-slate mt-0.5" />
-              <div>
-                <p className="text-slate text-sm">
-                  Connect your LinkedIn account to enable direct posting and automatically populate your profile information.
-                </p>
+            {isInOAuthFlow ? (
+              <div className="flex items-center space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                <div>
+                  <p className="font-semibold text-blue-800">Connecting to LinkedIn...</p>
+                  <p className="text-xs text-blue-600">
+                    {linkedInOAuthInProgress 
+                      ? "Syncing your LinkedIn profile..." 
+                      : "Please complete the authorization in the popup window"
+                    }
+                  </p>
+                </div>
               </div>
-            </div>
-            <Button 
-              onClick={handleLinkedInConnect}
-              disabled={isConnecting}
-              className="bg-[#0077B5] text-white hover:bg-[#0077B5]/90 flex items-center space-x-2"
-            >
-              {isConnecting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Connecting...</span>
-                </>
-              ) : (
-                <>
+            ) : (
+              <>
+                <div className="flex items-start space-x-3">
+                  <AlertCircle className="w-5 h-5 text-slate mt-0.5" />
+                  <div>
+                    <p className="text-slate text-sm">
+                      Connect your LinkedIn account to enable direct posting and automatically populate your profile information.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleLinkedInConnect}
+                  disabled={isInOAuthFlow}
+                  className="bg-[#0077B5] text-white hover:bg-[#0077B5]/90 flex items-center space-x-2"
+                >
                   <Linkedin className="w-4 h-4" />
                   <span>Connect LinkedIn Account</span>
                   <ExternalLink className="w-3 h-3" />
-                </>
-              )}
-            </Button>
+                </Button>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -134,6 +169,11 @@ export const LinkedInIntegration = () => {
                         src={linkedInProfile.profile_image_url} 
                         alt="LinkedIn Profile" 
                         className="w-8 h-8 rounded-full"
+                        onError={(e) => {
+                          // Hide image if it fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
                       />
                     )}
                     <div>
@@ -183,26 +223,16 @@ export const LinkedInIntegration = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={isReconnecting ? undefined : handleReconnect}
-                  disabled={isReconnecting}
+                  onClick={handleReconnect}
                   className="border-blue-300 text-blue-600 hover:bg-blue-50"
                 >
-                  {isReconnecting ? (
-                    <>
-                      <div className="w-3 h-3 border border-blue-600/30 border-t-blue-600 rounded-full animate-spin mr-1" />
-                      Reconnecting...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="w-3 h-3 mr-1" />
-                      Reconnect
-                    </>
-                  )}
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  Reconnect
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={isDisconnecting ? undefined : handleLinkedInDisconnect}
+                  onClick={handleLinkedInDisconnect}
                   disabled={isDisconnecting}
                   className="border-red-300 text-red-600 hover:bg-red-50"
                 >

@@ -18,6 +18,7 @@ interface AuthContextType {
   loading: boolean;
   linkedInConnected: boolean;
   linkedInProfile: LinkedInProfile | null;
+  linkedInOAuthInProgress: boolean;
   signInWithMagicLink: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   syncLinkedInProfile: (accessToken: string) => Promise<{ error: any }>;
@@ -41,6 +42,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [linkedInConnected, setLinkedInConnected] = useState(false);
   const [linkedInProfile, setLinkedInProfile] = useState<LinkedInProfile | null>(null);
+  const [linkedInOAuthInProgress, setLinkedInOAuthInProgress] = useState(false);
 
   const checkLinkedInConnection = async (): Promise<boolean> => {
     if (!user) return false;
@@ -86,6 +88,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const syncLinkedInProfile = async (accessToken: string) => {
     try {
+      setLinkedInOAuthInProgress(true);
+      console.log('Syncing LinkedIn profile with access token...');
+      
       const { data, error } = await supabase.functions.invoke('linkedin-profile-sync', {
         body: { access_token: accessToken }
       });
@@ -95,13 +100,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       }
 
-      // Refresh LinkedIn connection status
+      console.log('LinkedIn profile sync successful:', data);
+      
+      // Refresh LinkedIn connection status after successful sync
       await checkLinkedInConnection();
       
       return { error: null };
     } catch (error: any) {
       console.error('LinkedIn profile sync error:', error);
       return { error };
+    } finally {
+      setLinkedInOAuthInProgress(false);
+    }
+  };
+
+  const handleLinkedInOAuthCallback = async (session: Session) => {
+    try {
+      // Check if this is a LinkedIn OAuth callback
+      const providerToken = session.provider_token;
+      const provider = session.user?.app_metadata?.provider;
+      
+      if (provider === 'linkedin_oidc' && providerToken) {
+        console.log('LinkedIn OAuth callback detected, syncing profile...');
+        await syncLinkedInProfile(providerToken);
+      }
+    } catch (error) {
+      console.error('Error handling LinkedIn OAuth callback:', error);
+      setLinkedInOAuthInProgress(false);
     }
   };
 
@@ -137,23 +162,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Check LinkedIn connection when user signs in
+        // Handle LinkedIn OAuth callback
         if (event === 'SIGNED_IN' && session?.user) {
-          setTimeout(() => {
-            checkLinkedInConnection();
-          }, 100);
+          // Check if this is a LinkedIn OAuth callback
+          const provider = session.user?.app_metadata?.provider;
+          if (provider === 'linkedin_oidc') {
+            await handleLinkedInOAuthCallback(session);
+          } else {
+            // For regular sign-ins, just check LinkedIn connection
+            setTimeout(() => {
+              checkLinkedInConnection();
+            }, 100);
+          }
         }
         
         // Clear LinkedIn state when user signs out
         if (event === 'SIGNED_OUT') {
           setLinkedInConnected(false);
           setLinkedInProfile(null);
+          setLinkedInOAuthInProgress(false);
         }
         
         // Handle redirect after successful authentication
@@ -163,7 +196,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const intent = searchParams.get('intent');
           
           // Only redirect if we're on the auth page or landing page
-          // This prevents disrupting users who are already on protected pages
           if (currentPath === '/auth' || currentPath === '/') {
             setTimeout(() => {
               if (intent === 'upgrade') {
@@ -215,6 +247,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     linkedInConnected,
     linkedInProfile,
+    linkedInOAuthInProgress,
     signInWithMagicLink,
     signOut,
     syncLinkedInProfile,
