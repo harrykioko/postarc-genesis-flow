@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { LinkedInIntegration } from "./LinkedInIntegration";
 import { CurrentPlanSection } from "./CurrentPlanSection";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -35,8 +34,6 @@ export const AccountTab = () => {
         subscription={subscription}
         onRefresh={refreshSubscription}
       />
-
-      <LinkedInIntegration />
 
       <Card className="bg-white border-slate/10 rounded-xl shadow-sm hover:shadow-md hover:ring-1 hover:ring-neon/10 transition-all duration-200">
         <CardHeader>
