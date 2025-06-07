@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Star, Zap, CreditCard, FileText, Template, History, Document } from "lucide-react";
+import { Crown, Star, Zap, CreditCard, FileText, LayoutTemplate, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,7 +19,7 @@ const planDetails = {
     price: "Free",
     period: "forever",
     features: [
-      { icon: Template, text: "Basic templates" },
+      { icon: LayoutTemplate, text: "Basic templates" },
       { icon: History, text: "7-day history" },
       { icon: Star, text: "Standard support" }
     ],
@@ -33,10 +33,10 @@ const planDetails = {
     price: "$9",
     period: "month",
     features: [
-      { icon: Template, text: "Custom templates" },
+      { icon: LayoutTemplate, text: "Custom templates" },
       { icon: History, text: "Unlimited history" },
       { icon: Star, text: "Priority support" },
-      { icon: Document, text: "Advanced analytics" }
+      { icon: FileText, text: "Advanced analytics" }
     ],
     upgradeText: "Upgrade to Legend",
     icon: Crown,
@@ -48,8 +48,8 @@ const planDetails = {
     price: "$25",
     period: "month",
     features: [
-      { icon: Template, text: "Everything in Pro" },
-      { icon: Document, text: "Advanced analytics" },
+      { icon: LayoutTemplate, text: "Everything in Pro" },
+      { icon: FileText, text: "Advanced analytics" },
       { icon: Star, text: "White-label options" },
       { icon: Crown, text: "Custom branding" }
     ],
