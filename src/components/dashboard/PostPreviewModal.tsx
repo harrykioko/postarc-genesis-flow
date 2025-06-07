@@ -27,20 +27,21 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onCopy }: PostPreviewM
   const [editedContent, setEditedContent] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  // Reset states when modal opens with new content - only when post exists
+  // Reset states when modal opens with new content - safely handle null post
   useEffect(() => {
     if (isOpen && post) {
       const content = post.fullText || post.preview;
       setEditedContent(content);
       setIsEditMode(false);
+    } else if (isOpen && !post) {
+      // Reset to empty state when no post
+      setEditedContent("");
+      setIsEditMode(false);
     }
   }, [isOpen, post?.id]);
 
-  // Early return after all hooks are declared
-  if (!post) return null;
-
-  // Now we can safely access post properties after the null check
-  const originalContent = post.fullText || post.preview;
+  // Safe content handling - use empty string as fallback
+  const originalContent = post ? (post.fullText || post.preview) : "";
   const hasChanges = editedContent !== originalContent;
   const currentContent = editedContent;
   const characterCount = currentContent.length;
@@ -95,56 +96,60 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onCopy }: PostPreviewM
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={handleClose}>
+      <Dialog open={isOpen && !!post} onOpenChange={handleClose}>
         <DialogContent 
           className="max-w-2xl max-h-[80vh] md:max-h-[80vh] sm:max-h-[85vh] bg-white/80 backdrop-blur-md border border-white/30 rounded-xl shadow-xl overflow-hidden transition-all duration-300"
           onKeyDown={handleKeyDown}
         >
-          <PostModalHeader isEditMode={isEditMode} modalType="preview" />
-          
-          <div className="flex flex-col min-h-0 flex-1">
-            {/* Post Meta */}
-            <div className="flex items-center justify-between mb-4 flex-shrink-0">
-              <div className="flex items-center space-x-2">
-                {post.template && (
-                  <Badge variant="outline" className="text-xs border-neon/30 text-neon">
-                    {post.template}
-                  </Badge>
-                )}
-                <span className="text-xs text-slate">{post.date}</span>
+          {post && (
+            <>
+              <PostModalHeader isEditMode={isEditMode} modalType="preview" />
+              
+              <div className="flex flex-col min-h-0 flex-1">
+                {/* Post Meta */}
+                <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                  <div className="flex items-center space-x-2">
+                    {post.template && (
+                      <Badge variant="outline" className="text-xs border-neon/30 text-neon">
+                        {post.template}
+                      </Badge>
+                    )}
+                    <span className="text-xs text-slate">{post.date}</span>
+                  </div>
+                </div>
+
+                <PostModalContent
+                  isEditMode={isEditMode}
+                  currentContent={currentContent}
+                  editedContent={editedContent}
+                  onContentChange={setEditedContent}
+                />
+
+                {/* Character Count & Status - Fixed at Bottom */}
+                <div className="flex items-center justify-between mb-6 text-xs flex-shrink-0">
+                  <div className="flex items-center gap-3">
+                    <span className="text-slate font-medium">
+                      {characterCount} characters
+                    </span>
+                    {hasChanges && !isEditMode && (
+                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs px-2 py-1">
+                        Edited
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <PostModalActions
+                  isEditMode={isEditMode}
+                  onEdit={handleEdit}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                  onCopy={handleCopy}
+                  onShare={handleShare}
+                />
               </div>
-            </div>
-
-            <PostModalContent
-              isEditMode={isEditMode}
-              currentContent={currentContent}
-              editedContent={editedContent}
-              onContentChange={setEditedContent}
-            />
-
-            {/* Character Count & Status - Fixed at Bottom */}
-            <div className="flex items-center justify-between mb-6 text-xs flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <span className="text-slate font-medium">
-                  {characterCount} characters
-                </span>
-                {hasChanges && !isEditMode && (
-                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs px-2 py-1">
-                    Edited
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            <PostModalActions
-              isEditMode={isEditMode}
-              onEdit={handleEdit}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              onCopy={handleCopy}
-              onShare={handleShare}
-            />
-          </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
