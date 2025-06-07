@@ -2,25 +2,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Linkedin, Twitter, Facebook, Zap, Calendar, BarChart3, Link as LinkIcon } from "lucide-react";
+import { Linkedin, Twitter, Facebook, Zap, Calendar, BarChart3 } from "lucide-react";
 import { LinkedInIntegration } from "./LinkedInIntegration";
 
 export const ConnectionsTab = () => {
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <Card className="bg-white border-slate/10 rounded-xl shadow-sm">
-        <CardHeader>
-          <CardTitle className="font-heading text-midnight flex items-center space-x-3">
-            <LinkIcon className="w-6 h-6 text-neon" />
-            <span>Connections</span>
-          </CardTitle>
-          <p className="text-slate">
-            Manage your social accounts and integrations to enhance your PostArc experience
-          </p>
-        </CardHeader>
-      </Card>
-
       {/* Social Accounts Section */}
       <div className="space-y-6">
         <div className="flex items-center space-x-3">
