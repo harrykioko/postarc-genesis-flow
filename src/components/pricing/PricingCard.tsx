@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { PricingTier } from "./types";
@@ -26,15 +27,6 @@ export const PricingCard = ({ tier, onFreeSignup, onUpgrade }: PricingCardProps)
         <div className="absolute -inset-4 bg-gradient-to-r from-neon/20 via-mint/30 to-neon/20 rounded-3xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity"></div>
       )}
       
-      {/* Simple Most Popular text */}
-      {tier.popular && (
-        <div className="text-center mb-4">
-          <span className="text-sm text-slate font-medium">
-            Most Popular
-          </span>
-        </div>
-      )}
-      
       <div 
         className={`
           relative glass-card rounded-2xl transition-all duration-300 group-hover:shadow-2xl
@@ -51,6 +43,15 @@ export const PricingCard = ({ tier, onFreeSignup, onUpgrade }: PricingCardProps)
           isLegend ? 'bg-gradient-to-r from-slate/30 to-midnight/30' :
           'bg-gradient-to-r from-slate/20 to-slate/40'
         }`}></div>
+        
+        {/* Most Popular text inside the card */}
+        {tier.popular && (
+          <div className="text-center mb-4">
+            <span className="text-sm text-slate font-medium">
+              Most Popular
+            </span>
+          </div>
+        )}
         
         <div className={`flex items-center space-x-3 ${isPro ? 'mb-8' : 'mb-6'}`}>
           <div className={`
