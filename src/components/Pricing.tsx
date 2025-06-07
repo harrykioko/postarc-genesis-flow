@@ -30,7 +30,7 @@ export const Pricing = () => {
   return (
     <section id="pricing" className="py-20 bg-white/50 overflow-hidden">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
+        <div className="text-center mb-24">
           <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-midnight">
             Simple, transparent pricing
           </h2>
