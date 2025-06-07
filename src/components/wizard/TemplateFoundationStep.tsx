@@ -1,5 +1,5 @@
 
-import { Lightbulb, UserTie, Rocket, TrendingUp, Users, DollarSign } from "lucide-react";
+import { Lightbulb, Briefcase, Rocket, TrendingUp, Users, DollarSign } from "lucide-react";
 
 interface TemplateFoundationStepProps {
   selectedFoundation: string;
@@ -19,7 +19,7 @@ export const TemplateFoundationStep = ({ selectedFoundation, onFoundationSelect 
       id: "consultant",
       name: "Professional",
       description: "Like Consultant template",
-      icon: UserTie,
+      icon: Briefcase,
       color: "bg-blue-500"
     },
     {
