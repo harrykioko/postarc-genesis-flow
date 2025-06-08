@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import Stripe from 'https://esm.sh/stripe@14.21.0';
@@ -26,64 +25,87 @@ serve(async (req) => {
 
     const body = await req.text();
     const signature = req.headers.get('stripe-signature');
+    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
 
-    if (!signature) {
-      console.error('No Stripe signature found');
-      return new Response('No signature', { status: 400 });
+    if (!signature || !webhookSecret) {
+      console.error('Missing signature or webhook secret');
+      return new Response('Missing signature or webhook secret', { status: 400 });
     }
 
     let event;
     try {
-      // In production, you'd set up a webhook endpoint secret
-      // For now, we'll parse the event directly
-      event = JSON.parse(body);
-    } catch (err) {
-      console.error('Error parsing webhook body:', err);
-      return new Response('Invalid JSON', { status: 400 });
+      // Verify the webhook signature
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        webhookSecret
+      );
+    } catch (err: any) {
+      console.error('Webhook signature verification failed:', err.message);
+      return new Response(`Webhook Error: ${err.message}`, { status: 400 });
     }
 
-    console.log('Received webhook event:', event.type);
+    console.log('✅ Webhook verified, event type:', event.type);
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object;
+        const session = event.data.object as Stripe.Checkout.Session;
         console.log('Checkout session completed:', session.id);
 
-        if (session.mode === 'subscription') {
+        if (session.mode === 'subscription' && session.subscription) {
           // Handle subscription creation
-          const subscription = await stripe.subscriptions.retrieve(session.subscription);
-          await handleSubscriptionUpdate(supabaseClient, subscription);
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+          await handleSubscriptionUpdate(supabaseClient, subscription, session.metadata?.user_id);
         }
         break;
       }
 
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
-        const subscription = event.data.object;
+        const subscription = event.data.object as Stripe.Subscription;
         console.log('Subscription updated:', subscription.id);
         await handleSubscriptionUpdate(supabaseClient, subscription);
         break;
       }
 
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object;
+        const subscription = event.data.object as Stripe.Subscription;
         console.log('Subscription cancelled:', subscription.id);
         
-        // Update subscription to cancelled
-        await supabaseClient
-          .from('subscriptions')
-          .update({
-            status: 'cancelled',
-            tier: 'free',
-            monthly_quota: 5,
-            updated_at: new Date().toISOString()
-          })
-          .eq('stripe_subscription', subscription.id);
+        // Get user by customer email
+        const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
+        
+        if (customer.email) {
+          const { data: user } = await supabaseClient
+            .from('users')
+            .select('id')
+            .eq('email', customer.email)
+            .single();
+
+          if (user) {
+            // Update user role to free
+            await supabaseClient
+              .from('users')
+              .update({ role: 'free' })
+              .eq('id', user.id);
+
+            // Update subscription record
+            await supabaseClient
+              .from('subscriptions')
+              .update({
+                status: 'cancelled',
+                tier: 'free',
+                monthly_quota: 5,
+                updated_at: new Date().toISOString()
+              })
+              .eq('stripe_subscription', subscription.id);
+          }
+        }
         break;
       }
 
       case 'invoice.payment_failed': {
-        const invoice = event.data.object;
+        const invoice = event.data.object as Stripe.Invoice;
         console.log('Payment failed for subscription:', invoice.subscription);
         
         // Update subscription status
@@ -93,7 +115,7 @@ serve(async (req) => {
             status: 'past_due',
             updated_at: new Date().toISOString()
           })
-          .eq('stripe_subscription', invoice.subscription);
+          .eq('stripe_subscription', invoice.subscription as string);
         break;
       }
 
@@ -117,17 +139,38 @@ serve(async (req) => {
   }
 });
 
-async function handleSubscriptionUpdate(supabaseClient: any, subscription: any) {
+async function handleSubscriptionUpdate(
+  supabaseClient: any, 
+  subscription: Stripe.Subscription,
+  userId?: string
+) {
   try {
-    // Get customer details
-    const customer = await supabaseClient
-      .from('users')
-      .select('id')
-      .eq('email', subscription.customer?.email)
-      .single();
+    let user;
+    
+    // If userId provided (from metadata), use it
+    if (userId) {
+      const { data } = await supabaseClient
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      user = data;
+    } else {
+      // Otherwise, get user by customer email
+      const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
+      
+      if (customer.email) {
+        const { data } = await supabaseClient
+          .from('users')
+          .select('*')
+          .eq('email', customer.email)
+          .single();
+        user = data;
+      }
+    }
 
-    if (!customer.data) {
-      console.error('No user found for customer email');
+    if (!user) {
+      console.error('No user found for subscription');
       return;
     }
 
@@ -145,11 +188,17 @@ async function handleSubscriptionUpdate(supabaseClient: any, subscription: any) 
       quota = -1; // unlimited
     }
 
+    // Update user role
+    await supabaseClient
+      .from('users')
+      .update({ role: tier })
+      .eq('id', user.id);
+
     // Update subscription in database
     await supabaseClient
       .from('subscriptions')
       .upsert({
-        user_id: customer.data.id,
+        user_id: user.id,
         stripe_customer_id: subscription.customer,
         stripe_subscription: subscription.id,
         tier: tier,
@@ -159,8 +208,8 @@ async function handleSubscriptionUpdate(supabaseClient: any, subscription: any) 
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
 
-    console.log('Subscription updated in database:', {
-      userId: customer.data.id,
+    console.log('✅ Subscription updated:', {
+      userId: user.id,
       tier: tier,
       status: subscription.status
     });
