@@ -31,7 +31,10 @@ export const initiateLinkedInOAuth = async (): Promise<{ auth_url: string; state
     
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
       body: { action: 'initiate' },
-      method: 'POST'
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
     
     console.log('OAuth initiation response:', { data, error });
@@ -71,6 +74,7 @@ export const handleLinkedInCallback = async (code: string, state: string): Promi
     
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
       body: { action: 'callback', code, state },
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       }
@@ -142,7 +146,10 @@ export const disconnectLinkedIn = async (): Promise<{ success: boolean; error?: 
     
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
       body: { action: 'disconnect' },
-      method: 'POST'
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
     
     if (error) {
@@ -167,6 +174,10 @@ export const postToLinkedIn = async (postId: string, content: string): Promise<L
       body: { 
         post_id: postId, 
         content: content 
+      },
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       }
     });
     
