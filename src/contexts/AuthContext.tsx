@@ -10,7 +10,6 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  signInWithMagicLink: (email: string) => Promise<{ error?: any }>;
   linkedInConnected: boolean;
   linkedInProfile: LinkedInProfile | null;
   linkedInOAuthInProgress: boolean;
@@ -35,20 +34,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [linkedInConnected, setLinkedInConnected] = useState(false);
   const [linkedInProfile, setLinkedInProfile] = useState<LinkedInProfile | null>(null);
   const [linkedInOAuthInProgress, setLinkedInOAuthInProgress] = useState(false);
-
-  const signInWithMagicLink = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`
-        }
-      });
-      return { error };
-    } catch (error: any) {
-      return { error };
-    }
-  };
 
   const checkLinkedInConnection = async () => {
     if (!user) return;
@@ -148,7 +133,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     loading,
     signOut,
-    signInWithMagicLink,
     linkedInConnected,
     linkedInProfile,
     linkedInOAuthInProgress,
