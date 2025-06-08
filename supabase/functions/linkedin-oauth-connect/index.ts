@@ -103,12 +103,37 @@ serve(async (req) => {
     if (action === 'initiate') {
       // Generate OAuth URL
       const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
-      const redirectUri = `${Deno.env.get('FRONTEND_URL')}/linkedin-callback`;
+      const frontendUrl = Deno.env.get('FRONTEND_URL');
+      
+      if (!clientId) {
+        console.error('❌ LinkedIn Client ID not configured');
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'LinkedIn Client ID not configured'
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!frontendUrl) {
+        console.error('❌ Frontend URL not configured');
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Frontend URL not configured'
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const redirectUri = `${frontendUrl}/linkedin-callback`;
       const scope = 'profile email w_member_social';
       const randomState = crypto.randomUUID();
 
       console.log('🔧 Generating OAuth URL with redirect URI:', redirectUri);
       console.log('🔧 State:', randomState);
+      console.log('🔧 Client ID:', clientId?.substring(0, 5) + '...');
 
       // Store the state in the database using admin client
       const { error: updateError } = await supabaseAdmin
@@ -149,7 +174,19 @@ serve(async (req) => {
       // Exchange code for access token
       const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
       const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET');
-      const redirectUri = `${Deno.env.get('FRONTEND_URL')}/linkedin-callback`;
+      const frontendUrl = Deno.env.get('FRONTEND_URL');
+      const redirectUri = `${frontendUrl}/linkedin-callback`;
+
+      if (!clientId || !clientSecret) {
+        console.error('❌ LinkedIn credentials not configured');
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'LinkedIn credentials not configured' 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
       // Verify state using admin client
       const { data: userData, error: userError } = await supabaseAdmin
@@ -162,7 +199,7 @@ serve(async (req) => {
         console.error('❌ Invalid state parameter:', { userError, expectedState: state, actualState: userData?.linkedin_oauth_state });
         return new Response(JSON.stringify({ 
           success: false, 
-          error: 'Invalid state parameter' 
+          error: 'Invalid state parameter - security validation failed' 
         }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -192,7 +229,7 @@ serve(async (req) => {
         console.error('❌ LinkedIn token exchange failed:', tokenData);
         return new Response(JSON.stringify({ 
           success: false, 
-          error: 'Token exchange failed' 
+          error: `Token exchange failed: ${tokenData.error_description || tokenData.error}` 
         }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -214,7 +251,7 @@ serve(async (req) => {
         console.error('❌ LinkedIn profile fetch failed:', profileData);
         return new Response(JSON.stringify({ 
           success: false, 
-          error: 'Profile fetch failed' 
+          error: `Profile fetch failed: ${profileData.message || 'Unknown error'}` 
         }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
