@@ -112,34 +112,51 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    );
+    console.log('🚀 Generate post function called');
+    console.log('📋 Headers:', {
+      authorization: req.headers.get('Authorization') ? 'Present' : 'Missing',
+      contentType: req.headers.get('Content-Type'),
+    });
 
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
+    // Get the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('❌ No authorization header');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Check quota directly using RPC function
-    const { data: quotaResult, error: quotaError } = await supabaseClient
+    // Create Supabase client - use service role key for server-side operations
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
+
+    // Verify the user token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('❌ Auth verification failed:', authError);
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('✅ Authenticated user:', user.id, user.email);
+
+    // Check quota using RPC
+    const { data: quotaResult, error: quotaError } = await supabaseAdmin
       .rpc('check_user_quota', { user_uuid: user.id });
 
     console.log('📊 Quota check result:', quotaResult);
 
     if (quotaError) {
       console.error('❌ Quota check error:', quotaError);
-      // Return a proper error response
       return new Response(JSON.stringify({
         error: 'Failed to check quota',
         message: quotaError.message
@@ -149,28 +166,40 @@ serve(async (req) => {
       });
     }
 
+    // Type the quota result
+    const quota = quotaResult as {
+      tier: string;
+      used: number;
+      quota: number;
+      remaining: number;
+      reset_date: string;
+    };
+
     // Check if user can generate
-    const canGenerate = quotaResult.remaining > 0 || quotaResult.remaining === -1;
+    const canGenerate = quota.remaining > 0 || quota.remaining === -1;
 
     if (!canGenerate) {
-      console.log('🚫 Quota exceeded for user:', user.id, quotaResult);
+      console.log('🚫 Quota exceeded for user:', user.id, quota);
       return new Response(JSON.stringify({
         error: 'Quota exceeded',
         quotaExceeded: true,
-        currentUsage: quotaResult.used,
-        limit: quotaResult.quota,
-        resetDate: quotaResult.reset_date,
-        message: `You've used all ${quotaResult.quota} posts for this month. Upgrade to Pro for more!`
+        currentUsage: quota.used,
+        limit: quota.quota,
+        resetDate: quota.reset_date,
+        message: `You've used all ${quota.quota} posts for this month. Upgrade to Pro for more!`
       }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    // Continue with the rest of the function...
     const { topic, url, template, hasEmojis = false, hasHashtags = false } = await req.json();
 
+    console.log('📝 Generation request:', { topic, url, template, hasEmojis, hasHashtags });
+
     // Get user profile for context
-    const { data: userProfile } = await supabaseClient
+    const { data: userProfile } = await supabaseAdmin
       .from('users')
       .select('name, job_title, linkedin_head, brand_voice')
       .eq('id', user.id)
@@ -261,7 +290,7 @@ serve(async (req) => {
     const generatedPost = aiData.choices[0].message.content;
 
     // Save the post to database
-    const { data: savedPost, error: saveError } = await supabaseClient
+    const { data: savedPost, error: saveError } = await supabaseAdmin
       .from('posts')
       .insert({
         user_id: user.id,
@@ -280,7 +309,7 @@ serve(async (req) => {
     }
 
     // Log usage event
-    await supabaseClient
+    await supabaseAdmin
       .from('usage_events')
       .insert({
         user_id: user.id,
