@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,7 +37,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithMagicLink = async (email: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      // Redirect to dashboard after magic link authentication
+      const redirectUrl = `${window.location.origin}/dashboard`;
       
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -105,6 +105,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Redirect to dashboard if user just signed in and is on landing page
+        if (session?.user && event === 'SIGNED_IN' && window.location.pathname === '/') {
+          window.location.href = '/dashboard';
+        }
 
         // Check LinkedIn connection after auth state change (with delay)
         if (session?.user && event === 'SIGNED_IN') {
