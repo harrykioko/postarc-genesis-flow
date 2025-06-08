@@ -7,6 +7,104 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Enhanced URL content scraper
+const scrapeURL = async (url: string) => {
+  console.log('Scraping URL:', url);
+  
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const htmlContent = await response.text();
+    
+    // Extract title
+    const titleMatch = htmlContent.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const title = titleMatch?.[1]?.trim() || '';
+
+    // Extract meta description
+    const descMatch = htmlContent.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
+    const description = descMatch?.[1]?.trim() || '';
+
+    // Extract Open Graph title and description as fallbacks
+    const ogTitleMatch = htmlContent.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
+    const ogDescMatch = htmlContent.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i);
+
+    // Extract main content from common article selectors
+    const contentSelectors = [
+      /<article[^>]*>(.*?)<\/article>/gis,
+      /<main[^>]*>(.*?)<\/main>/gis,
+      /<div[^>]*class=["'][^"']*content[^"']*["'][^>]*>(.*?)<\/div>/gis,
+      /<div[^>]*class=["'][^"']*post[^"']*["'][^>]*>(.*?)<\/div>/gis
+    ];
+
+    let mainContent = '';
+    for (const selector of contentSelectors) {
+      const matches = htmlContent.match(selector);
+      if (matches && matches[0]) {
+        mainContent = matches[0];
+        break;
+      }
+    }
+
+    // Clean HTML tags and extract text
+    const cleanText = (html: string) => {
+      return html
+        .replace(/<script[^>]*>.*?<\/script>/gis, '')
+        .replace(/<style[^>]*>.*?<\/style>/gis, '')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    };
+
+    const cleanMainContent = mainContent ? cleanText(mainContent) : '';
+
+    // Combine all extracted content
+    const finalTitle = title || ogTitleMatch?.[1]?.trim() || '';
+    const finalDescription = description || ogDescMatch?.[1]?.trim() || '';
+    
+    let combinedContent = [finalTitle, finalDescription].filter(Boolean).join('\n\n');
+    
+    // If we have main content and it's substantial, add it
+    if (cleanMainContent && cleanMainContent.length > 100) {
+      // Limit content to prevent excessive token usage
+      const limitedContent = cleanMainContent.substring(0, 2000);
+      combinedContent += '\n\n' + limitedContent;
+    }
+
+    if (!combinedContent.trim()) {
+      throw new Error('Could not extract meaningful content from URL');
+    }
+
+    console.log('Successfully scraped content:', {
+      title: finalTitle,
+      description: finalDescription,
+      contentLength: cleanMainContent.length,
+      url
+    });
+
+    return {
+      content: combinedContent,
+      scrapedData: {
+        title: finalTitle,
+        description: finalDescription,
+        url: url,
+        contentLength: cleanMainContent.length
+      }
+    };
+
+  } catch (error) {
+    console.error('URL scraping failed:', error);
+    throw new Error(`Failed to scrape URL: ${error.message}`);
+  }
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -63,29 +161,11 @@ serve(async (req) => {
     let scrapedData = null;
 
     if (url) {
-      // Scrape URL content
+      // Use enhanced URL scraping
       try {
-        const scrapeResponse = await fetch(url);
-        const htmlContent = await scrapeResponse.text();
-        
-        // Basic content extraction (title and meta description)
-        const titleMatch = htmlContent.match(/<title[^>]*>([^<]+)<\/title>/i);
-        const descMatch = htmlContent.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
-        
-        content = [
-          titleMatch?.[1] || '',
-          descMatch?.[1] || ''
-        ].filter(Boolean).join('\n\n');
-
-        scrapedData = {
-          title: titleMatch?.[1] || '',
-          description: descMatch?.[1] || '',
-          url: url
-        };
-        
-        if (!content) {
-          throw new Error('Could not extract content from URL');
-        }
+        const scrapeResult = await scrapeURL(url);
+        content = scrapeResult.content;
+        scrapedData = scrapeResult.scrapedData;
       } catch (error) {
         console.error('URL scraping failed:', error);
         return new Response(JSON.stringify({
