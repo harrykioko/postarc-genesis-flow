@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,15 +15,6 @@ interface UseQuotaReturn extends QuotaData {
   loading: boolean;
   error: string | null;
   refreshQuota: () => void;
-}
-
-// Type for the RPC response from check_user_quota
-interface QuotaResult {
-  tier: string;
-  used: number;
-  quota: number;
-  remaining: number;
-  reset_date: string;
 }
 
 export const useQuota = (): UseQuotaReturn => {
@@ -58,43 +48,39 @@ export const useQuota = (): UseQuotaReturn => {
       setLoading(true);
       setError(null);
 
-      console.log('🔄 Calling check_user_quota RPC directly...');
-      
-      // Call the database function directly instead of the edge function
-      const { data: quotaResult, error: rpcError } = await supabase
+      // Call the RPC function directly with proper typing
+      const { data: quotaResult, error: quotaError } = await supabase
         .rpc('check_user_quota', { user_uuid: user.id });
 
-      console.log('📊 Quota RPC result:', { data: quotaResult, error: rpcError });
-
-      if (rpcError) {
-        throw rpcError;
+      if (quotaError) {
+        console.error('Quota check error:', quotaError);
+        throw quotaError;
       }
 
-      if (!quotaResult) {
-        throw new Error('No quota data returned');
-      }
-
-      // Type assertion to properly access the properties
-      const result = quotaResult as QuotaResult;
-
-      // Format the response to match our interface
-      const canGenerate = result.remaining > 0 || result.remaining === -1;
-      const resetDate = new Date(result.reset_date).toISOString();
-
-      const formattedData = {
-        canGenerate,
-        remainingQuota: result.remaining === -1 ? 999 : result.remaining,
-        totalQuota: result.quota === -1 ? 999 : result.quota,
-        plan: result.tier || 'free',
-        resetDate,
-        currentUsage: result.used || 0,
+      // Type assertion since we know the structure of the returned JSON
+      const quota = quotaResult as {
+        tier: string;
+        used: number;
+        quota: number;
+        remaining: number;
+        reset_date: string;
       };
 
-      console.log('✅ Quota data formatted:', formattedData);
-      setQuotaData(formattedData);
+      // Convert the data to our expected format
+      const canGenerate = quota.remaining > 0 || quota.remaining === -1;
+      const resetDate = new Date(quota.reset_date).toISOString();
 
-    } catch (err) {
-      console.error('❌ Error fetching quota data:', err);
+      setQuotaData({
+        canGenerate,
+        remainingQuota: quota.remaining === -1 ? 999 : quota.remaining,
+        totalQuota: quota.quota === -1 ? 999 : quota.quota,
+        plan: quota.tier || 'free',
+        resetDate,
+        currentUsage: quota.used,
+      });
+
+    } catch (err: any) {
+      console.error('Error fetching quota data:', err);
       setError('Failed to fetch quota information');
       
       // Set safe defaults on error
@@ -103,7 +89,7 @@ export const useQuota = (): UseQuotaReturn => {
         remainingQuota: 0,
         totalQuota: 5,
         plan: 'free',
-        resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString(),
+        resetDate: '',
         currentUsage: 0,
       });
     } finally {
@@ -112,7 +98,6 @@ export const useQuota = (): UseQuotaReturn => {
   };
 
   const refreshQuota = () => {
-    console.log('🔄 Refreshing quota data...');
     fetchQuotaData();
   };
 
