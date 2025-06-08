@@ -18,6 +18,15 @@ interface UseQuotaReturn extends QuotaData {
   refreshQuota: () => void;
 }
 
+// Type for the RPC response from check_user_quota
+interface QuotaResult {
+  tier: string;
+  used: number;
+  quota: number;
+  remaining: number;
+  reset_date: string;
+}
+
 export const useQuota = (): UseQuotaReturn => {
   const { session, user } = useAuth();
   const [quotaData, setQuotaData] = useState<QuotaData>({
@@ -65,17 +74,20 @@ export const useQuota = (): UseQuotaReturn => {
         throw new Error('No quota data returned');
       }
 
+      // Type assertion to properly access the properties
+      const result = quotaResult as QuotaResult;
+
       // Format the response to match our interface
-      const canGenerate = quotaResult.remaining > 0 || quotaResult.remaining === -1;
-      const resetDate = new Date(quotaResult.reset_date).toISOString();
+      const canGenerate = result.remaining > 0 || result.remaining === -1;
+      const resetDate = new Date(result.reset_date).toISOString();
 
       const formattedData = {
         canGenerate,
-        remainingQuota: quotaResult.remaining === -1 ? 999 : quotaResult.remaining,
-        totalQuota: quotaResult.quota === -1 ? 999 : quotaResult.quota,
-        plan: quotaResult.tier || 'free',
+        remainingQuota: result.remaining === -1 ? 999 : result.remaining,
+        totalQuota: result.quota === -1 ? 999 : result.quota,
+        plan: result.tier || 'free',
         resetDate,
-        currentUsage: quotaResult.used || 0,
+        currentUsage: result.used || 0,
       };
 
       console.log('✅ Quota data formatted:', formattedData);
