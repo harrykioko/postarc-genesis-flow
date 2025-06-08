@@ -45,22 +45,21 @@ serve(async (req) => {
 
     console.log('✅ Authorization header found');
 
-    // Create supabase client with explicit auth
+    // Extract JWT token
+    const token = authHeader.replace('Bearer ', '');
+    console.log('🔑 JWT token extracted, length:', token.length);
+
+    // Create supabase client with SERVICE ROLE KEY for admin operations
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get the authenticated user
-    console.log('🔐 Verifying user authentication...');
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    // Manually verify the JWT token using service role client
+    console.log('🔐 Verifying JWT token with service role client...');
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
     
-    console.log('🔍 Auth validation result:', {
+    console.log('🔍 JWT verification result:', {
       userFound: !!user,
       userId: user?.id,
       userEmail: user?.email,
@@ -68,9 +67,9 @@ serve(async (req) => {
     });
     
     if (authError) {
-      console.error('❌ Authentication error:', authError);
+      console.error('❌ JWT verification failed:', authError);
       return new Response(JSON.stringify({ 
-        error: 'Authentication failed',
+        error: 'Invalid or expired token',
         details: authError.message 
       }), {
         status: 401,
@@ -79,9 +78,9 @@ serve(async (req) => {
     }
 
     if (!user) {
-      console.error('❌ No user found after auth validation');
+      console.error('❌ No user found from JWT token');
       return new Response(JSON.stringify({ 
-        error: 'User not authenticated' 
+        error: 'Invalid token - no user found' 
       }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -98,7 +97,7 @@ serve(async (req) => {
       });
     }
 
-    console.log('✅ User authenticated successfully:', user.email);
+    console.log('✅ User authenticated successfully via JWT:', user.email);
 
     // Parse request body
     const { tier } = await req.json();
