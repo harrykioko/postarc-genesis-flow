@@ -103,11 +103,12 @@ serve(async (req) => {
     if (action === 'initiate') {
       // Generate OAuth URL
       const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
-      const redirectUri = `${Deno.env.get('FRONTEND_URL')}/connections/linkedin/callback`;
+      const redirectUri = `${Deno.env.get('FRONTEND_URL')}/linkedin-callback`;
       const scope = 'profile email w_member_social';
       const randomState = crypto.randomUUID();
 
-      console.log('🔧 Generating OAuth URL with state:', randomState);
+      console.log('🔧 Generating OAuth URL with redirect URI:', redirectUri);
+      console.log('🔧 State:', randomState);
 
       // Store the state in the database using admin client
       const { error: updateError } = await supabaseAdmin
@@ -148,7 +149,7 @@ serve(async (req) => {
       // Exchange code for access token
       const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
       const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET');
-      const redirectUri = `${Deno.env.get('FRONTEND_URL')}/connections/linkedin/callback`;
+      const redirectUri = `${Deno.env.get('FRONTEND_URL')}/linkedin-callback`;
 
       // Verify state using admin client
       const { data: userData, error: userError } = await supabaseAdmin

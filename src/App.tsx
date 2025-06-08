@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import Success from "./pages/Success";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import LinkedInCallback from "./pages/LinkedInCallback";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,10 @@ const App = () => (
                   <Settings />
                 </ProtectedRoute>
               } 
+            />
+            <Route 
+              path="/linkedin-callback" 
+              element={<LinkedInCallback />} 
             />
             <Route 
               path="/connections/linkedin/callback" 
