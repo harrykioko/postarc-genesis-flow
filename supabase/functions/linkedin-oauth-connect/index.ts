@@ -22,26 +22,83 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    );
-
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    console.log('🚀 LinkedIn OAuth function called');
+    
+    // Check for auth header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('❌ No authorization header provided');
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'No authorization header provided' 
+      }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    if (!authHeader.startsWith('Bearer ')) {
+      console.error('❌ Invalid authorization header format');
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Invalid authorization header format' 
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('✅ Authorization header found');
+
+    // Extract JWT token
+    const token = authHeader.replace('Bearer ', '');
+    console.log('🔑 JWT token extracted, length:', token.length);
+
+    // Create supabase admin client with SERVICE ROLE KEY for admin operations
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
+
+    // Manually verify the JWT token using service role client
+    console.log('🔐 Verifying JWT token with service role client...');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    console.log('🔍 JWT verification result:', {
+      userFound: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      authError: authError?.message
+    });
+    
+    if (authError) {
+      console.error('❌ JWT verification failed:', authError);
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Invalid or expired token',
+        details: authError.message 
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!user) {
+      console.error('❌ No user found from JWT token');
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Invalid token - no user found' 
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('✅ User authenticated successfully via JWT:', user.email);
+
     const { action, code, state } = await req.json();
+    console.log('📋 Processing action:', action);
 
     if (action === 'initiate') {
       // Generate OAuth URL
@@ -50,8 +107,10 @@ serve(async (req) => {
       const scope = 'profile email w_member_social';
       const randomState = crypto.randomUUID();
 
-      // Store the state in the database
-      await supabaseClient
+      console.log('🔧 Generating OAuth URL with state:', randomState);
+
+      // Store the state in the database using admin client
+      const { error: updateError } = await supabaseAdmin
         .from('users')
         .update({
           linkedin_oauth_state: randomState,
@@ -59,9 +118,20 @@ serve(async (req) => {
         })
         .eq('id', user.id);
 
+      if (updateError) {
+        console.error('❌ Failed to store OAuth state:', updateError);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Failed to store OAuth state'
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${randomState}&scope=${encodeURIComponent(scope)}`;
 
-      console.log('LinkedIn OAuth initiated for user:', user.id);
+      console.log('✅ LinkedIn OAuth initiated for user:', user.id);
 
       return new Response(JSON.stringify({
         success: true,
@@ -73,19 +143,22 @@ serve(async (req) => {
     }
 
     if (action === 'callback') {
+      console.log('🔄 Processing OAuth callback...');
+      
       // Exchange code for access token
       const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
       const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET');
       const redirectUri = `${Deno.env.get('FRONTEND_URL')}/connections/linkedin/callback`;
 
-      // Verify state
-      const { data: userData } = await supabaseClient
+      // Verify state using admin client
+      const { data: userData, error: userError } = await supabaseAdmin
         .from('users')
         .select('linkedin_oauth_state')
         .eq('id', user.id)
         .single();
 
-      if (!userData || userData.linkedin_oauth_state !== state) {
+      if (userError || !userData || userData.linkedin_oauth_state !== state) {
+        console.error('❌ Invalid state parameter:', { userError, expectedState: state, actualState: userData?.linkedin_oauth_state });
         return new Response(JSON.stringify({ 
           success: false, 
           error: 'Invalid state parameter' 
@@ -94,6 +167,8 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+
+      console.log('✅ State verified, exchanging code for tokens...');
 
       // Exchange code for tokens
       const tokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
@@ -113,7 +188,7 @@ serve(async (req) => {
       const tokenData = await tokenResponse.json();
 
       if (!tokenResponse.ok) {
-        console.error('LinkedIn token exchange failed:', tokenData);
+        console.error('❌ LinkedIn token exchange failed:', tokenData);
         return new Response(JSON.stringify({ 
           success: false, 
           error: 'Token exchange failed' 
@@ -122,6 +197,8 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+
+      console.log('🎯 Token exchange successful, fetching profile...');
 
       // Get user profile
       const profileResponse = await fetch('https://api.linkedin.com/v2/userinfo', {
@@ -133,7 +210,7 @@ serve(async (req) => {
       const profileData = await profileResponse.json();
 
       if (!profileResponse.ok) {
-        console.error('LinkedIn profile fetch failed:', profileData);
+        console.error('❌ LinkedIn profile fetch failed:', profileData);
         return new Response(JSON.stringify({ 
           success: false, 
           error: 'Profile fetch failed' 
@@ -143,10 +220,12 @@ serve(async (req) => {
         });
       }
 
-      // Store tokens and profile data
+      console.log('👤 Profile fetched successfully:', profileData.name);
+
+      // Store tokens and profile data using admin client
       const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000));
       
-      await supabaseClient
+      const { error: profileUpdateError } = await supabaseAdmin
         .from('users')
         .update({
           linkedin_access_token: tokenData.access_token,
@@ -160,6 +239,17 @@ serve(async (req) => {
         })
         .eq('id', user.id);
 
+      if (profileUpdateError) {
+        console.error('❌ Failed to store LinkedIn profile:', profileUpdateError);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Failed to store LinkedIn profile'
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const profile: LinkedInProfile = {
         linkedin_member_id: profileData.sub,
         name: profileData.name,
@@ -168,7 +258,7 @@ serve(async (req) => {
         connected_at: new Date().toISOString()
       };
 
-      console.log('LinkedIn connection successful for user:', user.id);
+      console.log('✅ LinkedIn connection successful for user:', user.id);
 
       return new Response(JSON.stringify({
         success: true,
@@ -179,14 +269,28 @@ serve(async (req) => {
     }
 
     if (action === 'status') {
-      // Check connection status
-      const { data: userData } = await supabaseClient
+      console.log('📊 Checking LinkedIn connection status...');
+      
+      // Check connection status using admin client
+      const { data: userData, error: userError } = await supabaseAdmin
         .from('users')
         .select('linkedin_access_token, linkedin_token_expires_at, linkedin_member_id, linkedin_profile_url, linkedin_profile_image_url, linkedin_connected_at')
         .eq('id', user.id)
         .single();
 
+      if (userError) {
+        console.error('❌ Failed to fetch user LinkedIn data:', userError);
+        return new Response(JSON.stringify({
+          success: false,
+          connection_status: 'disconnected',
+          error: 'Failed to fetch connection status'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       if (!userData || !userData.linkedin_access_token) {
+        console.log('📊 LinkedIn not connected');
         return new Response(JSON.stringify({
           success: true,
           connection_status: 'disconnected'
@@ -200,6 +304,7 @@ serve(async (req) => {
         new Date(userData.linkedin_token_expires_at) < new Date();
 
       if (isExpired) {
+        console.log('⏰ LinkedIn token expired');
         return new Response(JSON.stringify({
           success: true,
           connection_status: 'expired',
@@ -217,6 +322,8 @@ serve(async (req) => {
         connected_at: userData.linkedin_connected_at || ''
       };
 
+      console.log('✅ LinkedIn connected and active');
+
       return new Response(JSON.stringify({
         success: true,
         connection_status: 'connected',
@@ -228,8 +335,10 @@ serve(async (req) => {
     }
 
     if (action === 'disconnect') {
-      // Disconnect LinkedIn
-      await supabaseClient
+      console.log('🔌 Disconnecting LinkedIn...');
+      
+      // Disconnect LinkedIn using admin client
+      const { error: disconnectError } = await supabaseAdmin
         .from('users')
         .update({
           linkedin_access_token: null,
@@ -243,7 +352,18 @@ serve(async (req) => {
         })
         .eq('id', user.id);
 
-      console.log('LinkedIn disconnected for user:', user.id);
+      if (disconnectError) {
+        console.error('❌ Failed to disconnect LinkedIn:', disconnectError);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Failed to disconnect LinkedIn'
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      console.log('✅ LinkedIn disconnected for user:', user.id);
 
       return new Response(JSON.stringify({
         success: true
@@ -252,6 +372,7 @@ serve(async (req) => {
       });
     }
 
+    console.error('❌ Invalid action:', action);
     return new Response(JSON.stringify({ 
       success: false, 
       error: 'Invalid action' 
@@ -261,7 +382,7 @@ serve(async (req) => {
     });
 
   } catch (error: any) {
-    console.error('LinkedIn OAuth error:', error);
+    console.error('💥 LinkedIn OAuth error:', error);
     return new Response(JSON.stringify({ 
       success: false, 
       error: error.message 
