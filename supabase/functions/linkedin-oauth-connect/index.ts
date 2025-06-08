@@ -128,12 +128,14 @@ serve(async (req) => {
       }
 
       const redirectUri = `${frontendUrl}/linkedin-callback`;
-      const scope = 'profile email w_member_social';
+      // Updated scope to include OpenID Connect
+      const scope = 'openid profile email w_member_social';
       const randomState = crypto.randomUUID();
 
       console.log('🔧 Generating OAuth URL with redirect URI:', redirectUri);
       console.log('🔧 State:', randomState);
       console.log('🔧 Client ID:', clientId?.substring(0, 5) + '...');
+      console.log('🔧 Updated scope:', scope);
 
       // Store the state in the database using admin client
       const { error: updateError } = await supabaseAdmin
@@ -155,9 +157,16 @@ serve(async (req) => {
         });
       }
 
-      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${randomState}&scope=${encodeURIComponent(scope)}`;
+      // Construct OAuth URL with proper parameter order
+      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?` + 
+        `response_type=code&` +
+        `client_id=${clientId}&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `state=${randomState}&` +
+        `scope=${encodeURIComponent(scope)}`;
 
       console.log('✅ LinkedIn OAuth initiated for user:', user.id);
+      console.log('🔗 Generated auth URL (partial):', authUrl.substring(0, 100) + '...');
 
       return new Response(JSON.stringify({
         success: true,
@@ -238,30 +247,112 @@ serve(async (req) => {
 
       console.log('🎯 Token exchange successful, fetching profile...');
 
-      // Get user profile
-      const profileResponse = await fetch('https://api.linkedin.com/v2/userinfo', {
+      // Get user profile using the correct OAuth 2.0 endpoint
+      const profileResponse = await fetch('https://api.linkedin.com/v2/me', {
         headers: {
           'Authorization': `Bearer ${tokenData.access_token}`,
         },
       });
 
-      const profileData = await profileResponse.json();
-
       if (!profileResponse.ok) {
-        console.error('❌ LinkedIn profile fetch failed:', profileData);
-        return new Response(JSON.stringify({ 
-          success: false, 
-          error: `Profile fetch failed: ${profileData.message || 'Unknown error'}` 
+        console.error('❌ LinkedIn profile fetch failed:', profileResponse.status, profileResponse.statusText);
+        
+        // Try fallback to userinfo endpoint for OpenID Connect
+        console.log('🔄 Trying OpenID userinfo endpoint...');
+        const userinfoResponse = await fetch('https://api.linkedin.com/v2/userinfo', {
+          headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+          },
+        });
+
+        if (!userinfoResponse.ok) {
+          const errorData = await userinfoResponse.json().catch(() => ({}));
+          console.error('❌ LinkedIn userinfo fetch also failed:', errorData);
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: `Profile fetch failed: ${errorData.message || 'Unknown error'}` 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const profileData = await userinfoResponse.json();
+        console.log('👤 Profile fetched via userinfo endpoint:', profileData.name || profileData.given_name);
+
+        // Store tokens and profile data using admin client
+        const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000));
+        
+        const { error: profileUpdateError } = await supabaseAdmin
+          .from('users')
+          .update({
+            linkedin_access_token: tokenData.access_token,
+            linkedin_refresh_token: tokenData.refresh_token,
+            linkedin_token_expires_at: expiresAt.toISOString(),
+            linkedin_member_id: profileData.sub,
+            linkedin_profile_url: `https://www.linkedin.com/in/${profileData.sub}`,
+            linkedin_profile_image_url: profileData.picture,
+            linkedin_connected_at: new Date().toISOString(),
+            linkedin_oauth_state: null
+          })
+          .eq('id', user.id);
+
+        if (profileUpdateError) {
+          console.error('❌ Failed to store LinkedIn profile:', profileUpdateError);
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Failed to store LinkedIn profile'
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const profile: LinkedInProfile = {
+          linkedin_member_id: profileData.sub,
+          name: profileData.name || `${profileData.given_name} ${profileData.family_name}`.trim(),
+          profile_url: `https://www.linkedin.com/in/${profileData.sub}`,
+          profile_image_url: profileData.picture,
+          connected_at: new Date().toISOString()
+        };
+
+        console.log('✅ LinkedIn connection successful for user:', user.id);
+
+        return new Response(JSON.stringify({
+          success: true,
+          profile
         }), {
-          status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      console.log('👤 Profile fetched successfully:', profileData.name);
+      const profileData = await profileResponse.json();
+      console.log('👤 Profile fetched successfully via /me endpoint:', profileData.localizedFirstName);
+
+      // Get email separately if needed
+      let emailAddress = user.email; // fallback to user's auth email
+      try {
+        const emailResponse = await fetch('https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))', {
+          headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+          },
+        });
+
+        if (emailResponse.ok) {
+          const emailData = await emailResponse.json();
+          if (emailData.elements && emailData.elements.length > 0) {
+            emailAddress = emailData.elements[0]['handle~'].emailAddress;
+          }
+        }
+      } catch (emailError) {
+        console.log('⚠️ Could not fetch email from LinkedIn, using auth email:', emailError);
+      }
 
       // Store tokens and profile data using admin client
       const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000));
+      
+      const profileName = `${profileData.localizedFirstName} ${profileData.localizedLastName}`.trim();
+      const memberId = profileData.id;
       
       const { error: profileUpdateError } = await supabaseAdmin
         .from('users')
@@ -269,9 +360,9 @@ serve(async (req) => {
           linkedin_access_token: tokenData.access_token,
           linkedin_refresh_token: tokenData.refresh_token,
           linkedin_token_expires_at: expiresAt.toISOString(),
-          linkedin_member_id: profileData.sub,
-          linkedin_profile_url: `https://www.linkedin.com/in/${profileData.sub}`,
-          linkedin_profile_image_url: profileData.picture,
+          linkedin_member_id: memberId,
+          linkedin_profile_url: `https://www.linkedin.com/in/${memberId}`,
+          linkedin_profile_image_url: profileData.profilePicture?.['displayImage~']?.elements?.[0]?.identifiers?.[0]?.identifier,
           linkedin_connected_at: new Date().toISOString(),
           linkedin_oauth_state: null
         })
@@ -289,10 +380,10 @@ serve(async (req) => {
       }
 
       const profile: LinkedInProfile = {
-        linkedin_member_id: profileData.sub,
-        name: profileData.name,
-        profile_url: `https://www.linkedin.com/in/${profileData.sub}`,
-        profile_image_url: profileData.picture,
+        linkedin_member_id: memberId,
+        name: profileName,
+        profile_url: `https://www.linkedin.com/in/${memberId}`,
+        profile_image_url: profileData.profilePicture?.['displayImage~']?.elements?.[0]?.identifiers?.[0]?.identifier,
         connected_at: new Date().toISOString()
       };
 

@@ -128,28 +128,23 @@ serve(async (req) => {
       });
     }
 
-    console.log('🔗 Posting to LinkedIn API...');
+    console.log('🔗 Posting to LinkedIn using Share API v2...');
 
-    // Post to LinkedIn using their API
-    const linkedInResponse = await fetch('https://api.linkedin.com/v2/ugcPosts', {
+    // Post to LinkedIn using the updated Share API v2
+    const linkedInResponse = await fetch('https://api.linkedin.com/v2/shares', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${userData.linkedin_access_token}`,
         'Content-Type': 'application/json',
+        'X-Restli-Protocol-Version': '2.0.0',
       },
       body: JSON.stringify({
-        author: `urn:li:person:${userData.linkedin_member_id}`,
-        lifecycleState: 'PUBLISHED',
-        specificContent: {
-          'com.linkedin.ugc.ShareContent': {
-            shareCommentary: {
-              text: content
-            },
-            shareMediaCategory: 'NONE'
-          }
+        distribution: {
+          linkedInDistributionTarget: {}
         },
-        visibility: {
-          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
+        owner: `urn:li:person:${userData.linkedin_member_id}`,
+        text: {
+          text: content
         }
       }),
     });
@@ -161,6 +156,8 @@ serve(async (req) => {
       let errorMessage = 'Failed to post to LinkedIn';
       if (errorData.message?.includes('token')) {
         errorMessage = 'LinkedIn token expired. Please reconnect your account.';
+      } else if (errorData.message?.includes('forbidden')) {
+        errorMessage = 'LinkedIn posting not authorized. Please check your LinkedIn app permissions.';
       }
       
       return new Response(JSON.stringify({ 
@@ -175,7 +172,7 @@ serve(async (req) => {
     const linkedInData = await linkedInResponse.json();
     const linkedInPostId = linkedInData.id;
     
-    // Generate LinkedIn post URL (approximate format)
+    // Generate LinkedIn post URL (approximate format for Share API)
     const linkedInPostUrl = `https://www.linkedin.com/feed/update/${linkedInPostId}`;
 
     console.log('✅ LinkedIn post successful:', { linkedInPostId, linkedInPostUrl });
