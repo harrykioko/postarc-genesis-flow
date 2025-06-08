@@ -49,7 +49,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_custom_templates_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       demo_usage: {
         Row: {
@@ -203,47 +211,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "usage_events_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_templates: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          example_post: string | null
-          id: string
-          name: string
-          system_prompt: string
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          example_post?: string | null
-          id?: string
-          name: string
-          system_prompt: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          example_post?: string | null
-          id?: string
-          name?: string
-          system_prompt?: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_templates_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"

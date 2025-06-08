@@ -194,7 +194,7 @@ serve(async (req) => {
     }
 
     // Continue with the rest of the function...
-    const { topic, url, template, hasEmojis = false, hasHashtags = false } = await req.json();
+    const { topic, url, template, hasEmojis = false, hasHashtags = false, customSystemPrompt } = await req.json();
 
     console.log('📝 Generation request:', { topic, url, template, hasEmojis, hasHashtags });
 
@@ -231,21 +231,53 @@ serve(async (req) => {
     // Build prompt based on template and user profile
     let systemPrompt = '';
     
-    switch (template) {
-      case 'Consultant':
-        systemPrompt = `You are a professional consultant creating LinkedIn posts. Write in an authoritative yet approachable tone that demonstrates expertise and builds trust.`;
-        break;
-      case 'Thought Leader':
-        systemPrompt = `You are an industry thought leader creating LinkedIn posts. Share insights, trends, and forward-thinking perspectives that position you as an innovator.`;
-        break;
-      case 'Entrepreneur':
-        systemPrompt = `You are an entrepreneur creating LinkedIn posts. Write with passion about business, growth, and innovation. Share lessons learned and inspire others.`;
-        break;
-      case 'Executive':
-        systemPrompt = `You are a C-level executive creating LinkedIn posts. Write with strategic vision and leadership perspective. Focus on high-level insights and industry direction.`;
-        break;
-      default:
-        systemPrompt = `You are a professional creating LinkedIn posts. Write in a professional yet engaging tone.`;
+    // Handle custom templates
+    if (template && template.startsWith('custom-')) {
+      const customTemplateId = template.replace('custom-', '');
+      
+      // Fetch the custom template
+      const { data: customTemplate, error: templateError } = await supabaseAdmin
+        .from('custom_templates')
+        .select('system_prompt')
+        .eq('id', customTemplateId)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .single();
+
+      if (templateError || !customTemplate) {
+        console.error('Custom template not found:', templateError);
+        return new Response(JSON.stringify({
+          error: 'Custom template not found',
+          message: 'The selected template does not exist or has been deleted.'
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Use the custom template's system prompt
+      systemPrompt = customTemplate.system_prompt;
+    } else if (customSystemPrompt) {
+      // Use provided custom system prompt (from template preview)
+      systemPrompt = customSystemPrompt;
+    } else {
+      // Use built-in template logic
+      switch (template) {
+        case 'Consultant':
+          systemPrompt = `You are a professional consultant creating LinkedIn posts. Write in an authoritative yet approachable tone that demonstrates expertise and builds trust.`;
+          break;
+        case 'Thought Leader':
+          systemPrompt = `You are an industry thought leader creating LinkedIn posts. Share insights, trends, and forward-thinking perspectives that position you as an innovator.`;
+          break;
+        case 'Entrepreneur':
+          systemPrompt = `You are an entrepreneur creating LinkedIn posts. Write with passion about business, growth, and innovation. Share lessons learned and inspire others.`;
+          break;
+        case 'Executive':
+          systemPrompt = `You are a C-level executive creating LinkedIn posts. Write with strategic vision and leadership perspective. Focus on high-level insights and industry direction.`;
+          break;
+        default:
+          systemPrompt = `You are a professional creating LinkedIn posts. Write in a professional yet engaging tone.`;
+      }
     }
 
     if (userProfile) {
