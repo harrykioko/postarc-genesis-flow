@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
@@ -105,6 +104,10 @@ serve(async (req) => {
       const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
       const frontendUrl = Deno.env.get('FRONTEND_URL');
       
+      console.log('🔧 Environment variables check:');
+      console.log('  - Client ID configured:', !!clientId);
+      console.log('  - Frontend URL:', frontendUrl);
+      
       if (!clientId) {
         console.error('❌ LinkedIn Client ID not configured');
         return new Response(JSON.stringify({
@@ -127,15 +130,23 @@ serve(async (req) => {
         });
       }
 
-      const redirectUri = `${frontendUrl}/linkedin-callback`;
+      // Fix double slash issue by removing trailing slash from frontendUrl
+      const cleanFrontendUrl = frontendUrl.replace(/\/$/, '');
+      const redirectUri = `${cleanFrontendUrl}/linkedin-callback`;
+      
+      console.log('🔍 URL Construction:');
+      console.log('  - Original Frontend URL:', frontendUrl);
+      console.log('  - Cleaned Frontend URL:', cleanFrontendUrl);
+      console.log('🔍 Redirect URI being used:', redirectUri);
+      
       // Updated scope to include OpenID Connect
       const scope = 'openid profile email w_member_social';
       const randomState = crypto.randomUUID();
 
-      console.log('🔧 Generating OAuth URL with redirect URI:', redirectUri);
-      console.log('🔧 State:', randomState);
-      console.log('🔧 Client ID:', clientId?.substring(0, 5) + '...');
-      console.log('🔧 Updated scope:', scope);
+      console.log('🔧 OAuth Parameters:');
+      console.log('  - State:', randomState);
+      console.log('  - Client ID:', clientId?.substring(0, 5) + '...');
+      console.log('  - Scope:', scope);
 
       // Store the state in the database using admin client
       const { error: updateError } = await supabaseAdmin
@@ -165,8 +176,8 @@ serve(async (req) => {
         `state=${randomState}&` +
         `scope=${encodeURIComponent(scope)}`;
 
+      console.log('🔍 Full auth URL:', authUrl);
       console.log('✅ LinkedIn OAuth initiated for user:', user.id);
-      console.log('🔗 Generated auth URL (partial):', authUrl.substring(0, 100) + '...');
 
       return new Response(JSON.stringify({
         success: true,
@@ -179,12 +190,23 @@ serve(async (req) => {
 
     if (action === 'callback') {
       console.log('🔄 Processing OAuth callback...');
+      console.log('📝 Callback parameters:', {
+        codeLength: code?.length,
+        stateLength: state?.length
+      });
       
       // Exchange code for access token
       const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
       const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET');
       const frontendUrl = Deno.env.get('FRONTEND_URL');
-      const redirectUri = `${frontendUrl}/linkedin-callback`;
+      
+      // Use same URL cleaning logic as in initiate
+      const cleanFrontendUrl = frontendUrl?.replace(/\/$/, '') || '';
+      const redirectUri = `${cleanFrontendUrl}/linkedin-callback`;
+      
+      console.log('🔍 Callback URL Construction:');
+      console.log('  - Frontend URL:', frontendUrl);
+      console.log('  - Redirect URI for token exchange:', redirectUri);
 
       if (!clientId || !clientSecret) {
         console.error('❌ LinkedIn credentials not configured');
