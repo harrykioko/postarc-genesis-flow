@@ -10,7 +10,6 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  signInWithMagicLink: (email: string) => Promise<{ error?: any }>;
   linkedInConnected: boolean;
   linkedInProfile: LinkedInProfile | null;
   linkedInOAuthInProgress: boolean;
@@ -35,28 +34,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [linkedInConnected, setLinkedInConnected] = useState(false);
   const [linkedInProfile, setLinkedInProfile] = useState<LinkedInProfile | null>(null);
   const [linkedInOAuthInProgress, setLinkedInOAuthInProgress] = useState(false);
-  const [hasProcessedSignIn, setHasProcessedSignIn] = useState(false);
-
-  const signInWithMagicLink = async (email: string) => {
-    try {
-      // Redirect to dashboard after magic link authentication
-      const redirectUrl = `${window.location.origin}/dashboard`;
-      
-      console.log('Sending magic link with redirect URL:', redirectUrl);
-      
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: redirectUrl
-        }
-      });
-      
-      return { error };
-    } catch (error: any) {
-      console.error('Magic link error:', error);
-      return { error };
-    }
-  };
 
   const checkLinkedInConnection = async () => {
     if (!user) return;
@@ -101,63 +78,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const handleAuthStateChange = (event: string, session: Session | null) => {
-    console.log('Auth state changed:', { 
-      event, 
-      userEmail: session?.user?.email, 
-      currentPath: window.location.pathname,
-      hasProcessedSignIn 
-    });
-    
-    setSession(session);
-    setUser(session?.user ?? null);
-    setLoading(false);
-
-    // Handle dashboard redirect for sign in events
-    if (session?.user && event === 'SIGNED_IN' && !hasProcessedSignIn) {
-      setHasProcessedSignIn(true);
-      
-      console.log('Processing SIGNED_IN event, current path:', window.location.pathname);
-      
-      // Use setTimeout to ensure the auth state is fully updated
-      setTimeout(() => {
-        if (window.location.pathname === '/') {
-          console.log('Redirecting from landing page to dashboard');
-          window.location.href = '/dashboard';
-        } else {
-          console.log('User signed in but not on landing page, staying on:', window.location.pathname);
-        }
-      }, 100);
-    }
-
-    // Reset the flag when user signs out
-    if (!session?.user) {
-      setHasProcessedSignIn(false);
-      setLinkedInConnected(false);
-      setLinkedInProfile(null);
-    }
-
-    // Check LinkedIn connection after successful sign in
-    if (session?.user && event === 'SIGNED_IN') {
-      setTimeout(() => {
-        checkLinkedInConnection();
-      }, 1000);
-    }
-  };
-
   useEffect(() => {
-    console.log('Setting up auth state listener...');
-    
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+
+        // Check LinkedIn connection after auth state change (with delay)
+        if (session?.user && event === 'SIGNED_IN') {
+          setTimeout(() => {
+            checkLinkedInConnection();
+          }, 1000);
+        } else if (!session?.user) {
+          // Clear LinkedIn state when user signs out
+          setLinkedInConnected(false);
+          setLinkedInProfile(null);
+        }
+      }
+    );
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', { 
-        userEmail: session?.user?.email, 
-        currentPath: window.location.pathname 
-      });
-      
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -170,27 +114,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    return () => {
-      console.log('Cleaning up auth state listener');
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
-
-  // Fallback check - if user is authenticated but still on landing page after a delay
-  useEffect(() => {
-    if (!loading && user && window.location.pathname === '/') {
-      console.log('Fallback check: authenticated user on landing page');
-      
-      const fallbackTimer = setTimeout(() => {
-        if (window.location.pathname === '/') {
-          console.log('Fallback redirect to dashboard');
-          window.location.href = '/dashboard';
-        }
-      }, 2000);
-
-      return () => clearTimeout(fallbackTimer);
-    }
-  }, [loading, user]);
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -201,7 +126,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Clear LinkedIn state on sign out
     setLinkedInConnected(false);
     setLinkedInProfile(null);
-    setHasProcessedSignIn(false);
   };
 
   const value = {
@@ -209,7 +133,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     loading,
     signOut,
-    signInWithMagicLink,
     linkedInConnected,
     linkedInProfile,
     linkedInOAuthInProgress,
