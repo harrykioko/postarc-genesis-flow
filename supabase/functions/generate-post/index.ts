@@ -13,9 +13,13 @@ serve(async (req)=>{
   }
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
-    // Get authenticated user
+    // Parse request body
+    const requestData = await req.json();
+    const action = requestData.action || 'initiate';
+    console.log('LinkedIn OAuth action:', action);
+    // Get authenticated user for most actions (except some status checks)
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    if (!authHeader && action !== 'status') {
       return new Response(JSON.stringify({
         error: 'Authentication required'
       }), {
@@ -26,23 +30,25 @@ serve(async (req)=>{
         }
       });
     }
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !user) {
-      return new Response(JSON.stringify({
-        error: 'Invalid authentication'
-      }), {
-        status: 401,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      });
+    let user = null;
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user: authUser }, error: userError } = await supabase.auth.getUser(token);
+      if (userError || !authUser) {
+        return new Response(JSON.stringify({
+          error: 'Invalid authentication'
+        }), {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+      user = authUser;
     }
-    // Parse request body
-    const requestData = await req.json();
-    // TODO: Add your existing generate-post logic here
-    console.log('Generate post request from user:', user.id);
+    // TODO: Add your existing linkedin-oauth-connect logic here
+    console.log('LinkedIn OAuth request from user:', user?.id, 'action:', action);
     return new Response(JSON.stringify({
       success: true,
       message: "Function scaffolded - add your existing logic here"
@@ -53,7 +59,7 @@ serve(async (req)=>{
       }
     });
   } catch (error) {
-    console.error('Generate post error:', error);
+    console.error('LinkedIn OAuth error:', error);
     return new Response(JSON.stringify({
       error: error.message,
       success: false
