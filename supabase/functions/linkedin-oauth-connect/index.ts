@@ -20,6 +20,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Only accept POST requests for the API
+  if (req.method !== 'POST') {
+    console.log('⚠️ Received non-POST request:', req.method, req.url);
+    return new Response(JSON.stringify({ 
+      success: false,
+      error: `Method ${req.method} not allowed. This endpoint only accepts POST requests.` 
+    }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     console.log('🚀 LinkedIn OAuth function called');
     
@@ -96,7 +108,22 @@ serve(async (req) => {
 
     console.log('✅ User authenticated successfully via JWT:', user.email);
 
-    const { action, code, state } = await req.json();
+    // Parse JSON body safely
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (jsonError) {
+      console.error('❌ Failed to parse JSON body:', jsonError);
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Invalid JSON in request body' 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { action, code, state } = requestBody;
     console.log('📋 Processing action:', action);
 
     if (action === 'initiate') {
