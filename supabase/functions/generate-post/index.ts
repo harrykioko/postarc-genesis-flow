@@ -131,17 +131,36 @@ serve(async (req) => {
       });
     }
 
-    // Check quota first
-    const { data: quotaData, error: quotaError } = await supabaseClient.functions.invoke('checkQuota');
-    
-    if (quotaError || !quotaData.canGenerate) {
-      console.log('Quota exceeded for user:', user.id, quotaData);
+    // Check quota directly using RPC function
+    const { data: quotaResult, error: quotaError } = await supabaseClient
+      .rpc('check_user_quota', { user_uuid: user.id });
+
+    console.log('📊 Quota check result:', quotaResult);
+
+    if (quotaError) {
+      console.error('❌ Quota check error:', quotaError);
+      // Return a proper error response
+      return new Response(JSON.stringify({
+        error: 'Failed to check quota',
+        message: quotaError.message
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Check if user can generate
+    const canGenerate = quotaResult.remaining > 0 || quotaResult.remaining === -1;
+
+    if (!canGenerate) {
+      console.log('🚫 Quota exceeded for user:', user.id, quotaResult);
       return new Response(JSON.stringify({
         error: 'Quota exceeded',
         quotaExceeded: true,
-        currentUsage: quotaData?.currentUsage || 0,
-        limit: quotaData?.totalQuota || 5,
-        resetDate: quotaData?.resetDate
+        currentUsage: quotaResult.used,
+        limit: quotaResult.quota,
+        resetDate: quotaResult.reset_date,
+        message: `You've used all ${quotaResult.quota} posts for this month. Upgrade to Pro for more!`
       }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

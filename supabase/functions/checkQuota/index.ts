@@ -63,24 +63,24 @@ serve(async (req) => {
         remainingQuota: 0,
         totalQuota: 5,
         plan: 'free',
-        resetDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
+        resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString(),
         currentUsage: 0
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const quota = quotaResult;
-    const canGenerate = quota.remaining > 0 || quota.remaining === -1; // -1 means unlimited
-    const resetDate = new Date(quota.reset_date).toISOString();
+    // Format the response
+    const canGenerate = quotaResult.remaining > 0 || quotaResult.remaining === -1;
+    const resetDate = new Date(quotaResult.reset_date).toISOString();
 
     const responseData = {
       canGenerate,
-      remainingQuota: quota.remaining,
-      totalQuota: quota.quota,
-      plan: quota.tier || 'free',
+      remainingQuota: quotaResult.remaining === -1 ? 999 : quotaResult.remaining,
+      totalQuota: quotaResult.quota === -1 ? 999 : quotaResult.quota,
+      plan: quotaResult.tier || 'free',
       resetDate,
-      currentUsage: quota.used
+      currentUsage: quotaResult.used
     };
 
     console.log('✅ Quota check successful:', responseData);
@@ -98,7 +98,7 @@ serve(async (req) => {
       remainingQuota: 0,
       totalQuota: 5,
       plan: 'free',
-      resetDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
+      resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString(),
       currentUsage: 0,
       error: 'Internal server error'
     }), {

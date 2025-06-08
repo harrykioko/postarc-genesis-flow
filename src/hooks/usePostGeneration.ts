@@ -69,36 +69,47 @@ export const usePostGeneration = () => {
         body: JSON.stringify(payload),
       });
 
-      // ALWAYS parse the response as JSON
-      const data = await response.json();
-      
-      console.log("📊 Direct fetch response:", {
-        status: response.status,
-        ok: response.ok,
-        data: data
-      });
+      console.log("📊 Direct fetch response status:", response.status);
 
       if (!response.ok) {
-        // Check specifically for quota exceeded (403 status with quotaExceeded flag)
-        if (response.status === 403 && data.quotaExceeded) {
+        const data = await response.json();
+        
+        console.log("📊 Error response:", {
+          status: response.status,
+          data: data,
+          quotaExceeded: data.quotaExceeded,
+          error: data.error
+        });
+        
+        // Check for quota exceeded - handle multiple possible error formats
+        if (response.status === 403 && 
+            (data.quotaExceeded || 
+             data.error?.toLowerCase().includes('quota') ||
+             data.error === 'Quota exceeded')) {
+          
           console.log("🎯 QUOTA EXCEEDED DETECTED!", data);
           
-          // Set quota data and show upsell modal
+          // Extract quota information from the error response
           const quotaData = {
-            currentUsage: data.currentUsage || currentUsage,
-            limit: data.limit || totalQuota,
-            resetDate: data.resetDate || resetDate
+            currentUsage: data.currentUsage ?? data.used ?? currentUsage,
+            limit: data.limit ?? data.totalQuota ?? data.quota ?? totalQuota,
+            resetDate: data.resetDate ?? data.reset_date ?? resetDate
           };
           
-          console.log("🚀 Showing upsell modal with data:", quotaData);
+          console.log("🚀 Setting quota error data:", quotaData);
           setQuotaErrorData(quotaData);
           setShowUpsellModal(true);
           return;
         }
         
-        // For other errors, show generic error
+        // For other errors, throw with appropriate message
         throw new Error(data.error || data.message || 'Failed to generate post');
       }
+
+      // ALWAYS parse the response as JSON
+      const data = await response.json();
+      
+      console.log("📊 Success response:", data);
 
       // Success case
       console.log("✅ Generation successful!");
