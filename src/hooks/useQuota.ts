@@ -49,31 +49,40 @@ export const useQuota = (): UseQuotaReturn => {
       setLoading(true);
       setError(null);
 
-      const { data, error: functionError } = await supabase.functions.invoke('checkQuota', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      console.log('🔄 Calling check_user_quota RPC directly...');
+      
+      // Call the database function directly instead of the edge function
+      const { data: quotaResult, error: rpcError } = await supabase
+        .rpc('check_user_quota', { user_uuid: user.id });
 
-      if (functionError) {
-        throw functionError;
+      console.log('📊 Quota RPC result:', { data: quotaResult, error: rpcError });
+
+      if (rpcError) {
+        throw rpcError;
       }
 
-      if (data.error) {
-        throw new Error(data.error);
+      if (!quotaResult) {
+        throw new Error('No quota data returned');
       }
 
-      setQuotaData({
-        canGenerate: data.canGenerate || false,
-        remainingQuota: data.remainingQuota || 0,
-        totalQuota: data.totalQuota || 5,
-        plan: data.plan || 'free',
-        resetDate: data.resetDate || '',
-        currentUsage: data.currentUsage || 0,
-      });
+      // Format the response to match our interface
+      const canGenerate = quotaResult.remaining > 0 || quotaResult.remaining === -1;
+      const resetDate = new Date(quotaResult.reset_date).toISOString();
+
+      const formattedData = {
+        canGenerate,
+        remainingQuota: quotaResult.remaining === -1 ? 999 : quotaResult.remaining,
+        totalQuota: quotaResult.quota === -1 ? 999 : quotaResult.quota,
+        plan: quotaResult.tier || 'free',
+        resetDate,
+        currentUsage: quotaResult.used || 0,
+      };
+
+      console.log('✅ Quota data formatted:', formattedData);
+      setQuotaData(formattedData);
 
     } catch (err) {
-      console.error('Error fetching quota data:', err);
+      console.error('❌ Error fetching quota data:', err);
       setError('Failed to fetch quota information');
       
       // Set safe defaults on error
@@ -82,7 +91,7 @@ export const useQuota = (): UseQuotaReturn => {
         remainingQuota: 0,
         totalQuota: 5,
         plan: 'free',
-        resetDate: '',
+        resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString(),
         currentUsage: 0,
       });
     } finally {
@@ -91,6 +100,7 @@ export const useQuota = (): UseQuotaReturn => {
   };
 
   const refreshQuota = () => {
+    console.log('🔄 Refreshing quota data...');
     fetchQuotaData();
   };
 
