@@ -53,47 +53,32 @@ export const usePostGeneration = () => {
 
       console.log("🚀 Calling generate-post with payload:", payload);
 
-      // Get session for auth
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("Please sign in to generate posts");
-      }
-
-      // Use direct fetch instead of supabase.functions.invoke
-      const response = await fetch(`https://obmrbvozmozvvxirrils.supabase.co/functions/v1/generate-post`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+      // Use supabase.functions.invoke instead of direct fetch
+      const { data, error } = await supabase.functions.invoke('generate-post', {
+        body: payload
       });
 
-      console.log("📊 Direct fetch response status:", response.status);
+      console.log("📊 Supabase function response:", { data, error });
 
-      if (!response.ok) {
-        const data = await response.json();
-        
+      if (error) {
         console.log("📊 Error response:", {
-          status: response.status,
-          data: data,
-          quotaExceeded: data.quotaExceeded,
-          error: data.error
+          message: error.message,
+          details: error.details,
+          hint: error.hint
         });
         
-        // Check for quota exceeded - handle multiple possible error formats
-        if (response.status === 403 && 
-            (data.quotaExceeded || 
-             data.error?.toLowerCase().includes('quota') ||
-             data.error === 'Quota exceeded')) {
+        // Check for quota exceeded - the error might be in different formats
+        if (error.message?.toLowerCase().includes('quota') || 
+            error.details?.quotaExceeded ||
+            error.message === 'Quota exceeded') {
           
-          console.log("🎯 QUOTA EXCEEDED DETECTED!", data);
+          console.log("🎯 QUOTA EXCEEDED DETECTED!", error);
           
-          // Extract quota information from the error response
+          // Extract quota information from the error details
           const quotaData = {
-            currentUsage: data.currentUsage ?? data.used ?? currentUsage,
-            limit: data.limit ?? data.totalQuota ?? data.quota ?? totalQuota,
-            resetDate: data.resetDate ?? data.reset_date ?? resetDate
+            currentUsage: error.details?.currentUsage ?? currentUsage,
+            limit: error.details?.limit ?? totalQuota,
+            resetDate: error.details?.resetDate ?? resetDate
           };
           
           console.log("🚀 Setting quota error data:", quotaData);
@@ -103,16 +88,11 @@ export const usePostGeneration = () => {
         }
         
         // For other errors, throw with appropriate message
-        throw new Error(data.error || data.message || 'Failed to generate post');
+        throw new Error(error.message || 'Failed to generate post');
       }
 
-      // ALWAYS parse the response as JSON
-      const data = await response.json();
-      
-      console.log("📊 Success response:", data);
-
       // Success case
-      console.log("✅ Generation successful!");
+      console.log("✅ Generation successful!", data);
       setGeneratedPost(data.post || data.content);
       setShowPulse(true);
       setShowPostModal(true);
