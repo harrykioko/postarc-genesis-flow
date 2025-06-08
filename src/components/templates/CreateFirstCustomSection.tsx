@@ -29,7 +29,7 @@ export const CreateFirstCustomSection = ({ onCreateNew, isPro }: CreateFirstCust
       <p className="text-slate mb-6 max-w-md mx-auto">
         {isPro 
           ? "Design a template that perfectly matches your unique voice and industry expertise."
-          : "Upgrade to Pro to create custom templates tailored to your specific needs."
+          : "Upgrade to Pro or Legend to create custom templates tailored to your specific needs."
         }
       </p>
 
@@ -42,7 +42,7 @@ export const CreateFirstCustomSection = ({ onCreateNew, isPro }: CreateFirstCust
         }
       >
         <Plus className="w-4 h-4 mr-2" />
-        {isPro ? "Create Your First Template" : "Upgrade to Pro"}
+        {isPro ? "Create Your First Template" : "Upgrade to Pro or Legend"}
       </Button>
     </div>
   );

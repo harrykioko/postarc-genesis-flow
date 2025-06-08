@@ -10,6 +10,7 @@ interface CustomTemplateWizardProps {
   isOpen: boolean;
   onClose: () => void;
   onTemplateCreated: () => void;
+  onShowUpgrade?: () => void;
 }
 
 export interface TemplateWizardData {
@@ -20,7 +21,7 @@ export interface TemplateWizardData {
   name: string;
 }
 
-export const CustomTemplateWizard = ({ isOpen, onClose, onTemplateCreated }: CustomTemplateWizardProps) => {
+export const CustomTemplateWizard = ({ isOpen, onClose, onTemplateCreated, onShowUpgrade }: CustomTemplateWizardProps) => {
   const {
     currentStep,
     completedSteps,
@@ -89,6 +90,7 @@ export const CustomTemplateWizard = ({ isOpen, onClose, onTemplateCreated }: Cus
               wizardData={wizardData}
               updateWizardData={updateWizardData}
               onTemplateCreated={handleTemplateCreated}
+              onShowUpgrade={onShowUpgrade}
             />
           </div>
 

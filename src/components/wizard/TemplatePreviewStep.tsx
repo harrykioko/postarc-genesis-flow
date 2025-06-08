@@ -14,9 +14,10 @@ interface TemplatePreviewStepProps {
   wizardData: TemplateWizardData;
   onNameChange: (name: string) => void;
   onTemplateCreated: () => void;
+  onShowUpgrade?: () => void;
 }
 
-export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreated }: TemplatePreviewStepProps) => {
+export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreated, onShowUpgrade }: TemplatePreviewStepProps) => {
   const { toast } = useToast();
   const { session } = useAuth();
   const [testTopic, setTestTopic] = useState("Customer retention strategies for SaaS companies");
@@ -184,19 +185,32 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
         const errorText = await response.text();
         console.error('❌ HTTP Error:', response.status, errorText);
         
-        // Try to parse JSON error if possible
-        let errorMessage = "Failed to create template. Please try again.";
+        // Check for tier/quota related errors
+        let errorData;
         try {
-          const errorData = JSON.parse(errorText);
-          if (errorData.error?.includes("quota") || errorData.error?.includes("upgrade")) {
-            errorMessage = "Please upgrade to Pro to create custom templates.";
-          } else if (errorData.error?.includes("authentication")) {
-            errorMessage = "Please sign in again and try saving your template.";
-          } else if (errorData.error?.includes("validation")) {
-            errorMessage = "Please check that all fields are properly filled out.";
-          }
+          errorData = JSON.parse(errorText);
         } catch (parseError) {
-          // Use default error message if parsing fails
+          errorData = { error: errorText };
+        }
+        
+        if (errorData.error?.includes("quota") || 
+            errorData.error?.includes("upgrade") || 
+            errorData.error?.includes("Pro") ||
+            errorData.error?.includes("Legend") ||
+            response.status === 403) {
+          // This is a tier restriction - show upgrade modal
+          if (onShowUpgrade) {
+            onShowUpgrade();
+            return;
+          }
+        }
+        
+        // Handle other errors with appropriate messaging
+        let errorMessage = "Failed to create template. Please try again.";
+        if (errorData.error?.includes("authentication")) {
+          errorMessage = "Please sign in again and try saving your template.";
+        } else if (errorData.error?.includes("validation")) {
+          errorMessage = "Please check that all fields are properly filled out.";
         }
         
         toast({
@@ -219,10 +233,19 @@ export const TemplatePreviewStep = ({ wizardData, onNameChange, onTemplateCreate
     } catch (error: any) {
       console.error('❌ Error creating template:', error);
       
+      // Check if this is a tier-related error
+      if (error.message?.includes("quota") || 
+          error.message?.includes("upgrade") || 
+          error.message?.includes("Pro") ||
+          error.message?.includes("Legend")) {
+        if (onShowUpgrade) {
+          onShowUpgrade();
+          return;
+        }
+      }
+      
       let errorMessage = "Failed to create template. Please try again.";
-      if (error.message?.includes("quota") || error.message?.includes("upgrade")) {
-        errorMessage = "Please upgrade to Pro to create custom templates.";
-      } else if (error.message?.includes("authentication")) {
+      if (error.message?.includes("authentication")) {
         errorMessage = "Please sign in again and try saving your template.";
       } else if (error.message?.includes("validation")) {
         errorMessage = "Please check that all fields are properly filled out.";

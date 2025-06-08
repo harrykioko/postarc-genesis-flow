@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CustomTemplateCard } from "@/components/CustomTemplateCard";
-import { Plus } from "lucide-react";
+import { Plus, Lock } from "lucide-react";
 
 interface CustomTemplate {
   id: string;
@@ -19,6 +19,7 @@ interface CustomTemplateSectionProps {
   onDelete: (templateId: string) => void;
   onCreateNew: () => void;
   loading?: boolean;
+  isPro: boolean;
 }
 
 export const CustomTemplateSection = ({ 
@@ -27,7 +28,8 @@ export const CustomTemplateSection = ({
   onSelect, 
   onDelete, 
   onCreateNew,
-  loading 
+  loading,
+  isPro
 }: CustomTemplateSectionProps) => {
   const selectedCustomTemplateId = selectedTemplate.startsWith('custom-') 
     ? selectedTemplate.replace('custom-', '') 
@@ -40,10 +42,18 @@ export const CustomTemplateSection = ({
           <h3 className="text-lg font-semibold text-midnight">Your Custom Templates</h3>
           <Button 
             onClick={onCreateNew}
-            className="bg-neon text-midnight hover:bg-neon/90"
+            disabled={!isPro}
+            className={isPro 
+              ? "bg-neon text-midnight hover:bg-neon/90" 
+              : "bg-slate/20 text-slate cursor-not-allowed"
+            }
             size="sm"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            {isPro ? (
+              <Plus className="w-4 h-4 mr-2" />
+            ) : (
+              <Lock className="w-4 h-4 mr-2" />
+            )}
             Create New Template
           </Button>
         </div>
@@ -69,14 +79,29 @@ export const CustomTemplateSection = ({
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-midnight">Your Custom Templates</h3>
-        <Button 
-          onClick={onCreateNew}
-          className="bg-neon text-midnight hover:bg-neon/90"
-          size="sm"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create New Template
-        </Button>
+        <div className="text-right">
+          <Button 
+            onClick={onCreateNew}
+            disabled={!isPro}
+            className={isPro 
+              ? "bg-neon text-midnight hover:bg-neon/90" 
+              : "bg-slate/20 text-slate cursor-not-allowed"
+            }
+            size="sm"
+          >
+            {isPro ? (
+              <Plus className="w-4 h-4 mr-2" />
+            ) : (
+              <Lock className="w-4 h-4 mr-2" />
+            )}
+            Create New Template
+          </Button>
+          {!isPro && (
+            <p className="text-xs text-slate mt-1">
+              Upgrade to Pro or Legend for custom templates
+            </p>
+          )}
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {templates.map((template) => (

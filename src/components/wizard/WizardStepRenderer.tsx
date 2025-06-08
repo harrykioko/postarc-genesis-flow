@@ -11,13 +11,15 @@ interface WizardStepRendererProps {
   wizardData: TemplateWizardData;
   updateWizardData: (field: keyof TemplateWizardData, value: any) => void;
   onTemplateCreated: () => void;
+  onShowUpgrade?: () => void;
 }
 
 export const WizardStepRenderer = ({ 
   currentStep, 
   wizardData, 
   updateWizardData, 
-  onTemplateCreated 
+  onTemplateCreated,
+  onShowUpgrade
 }: WizardStepRendererProps) => {
   switch (currentStep) {
     case 1:
@@ -54,6 +56,7 @@ export const WizardStepRenderer = ({
           wizardData={wizardData}
           onNameChange={(name) => updateWizardData("name", name)}
           onTemplateCreated={onTemplateCreated}
+          onShowUpgrade={onShowUpgrade}
         />
       );
     default:

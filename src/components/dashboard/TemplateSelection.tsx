@@ -4,7 +4,9 @@ import { CustomTemplateWizard } from "@/components/CustomTemplateWizard";
 import { BuiltInTemplateGrid } from "@/components/templates/BuiltInTemplateGrid";
 import { CustomTemplateSection } from "@/components/templates/CustomTemplateSection";
 import { CreateFirstCustomSection } from "@/components/templates/CreateFirstCustomSection";
+import { PricingModal } from "@/components/PricingModal";
 import { useCustomTemplates } from "@/hooks/useCustomTemplates";
+import { useQuota } from "@/hooks/useQuota";
 
 interface Template {
   id: string;
@@ -30,17 +32,18 @@ export const TemplateSelection = ({
   setSelectedTemplate
 }: TemplateSelectionProps) => {
   const [showCustomWizard, setShowCustomWizard] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { templates: customTemplates, loading: loadingTemplates, deleteTemplate, refreshTemplates } = useCustomTemplates();
+  const { plan, currentUsage, totalQuota, resetDate } = useQuota();
 
-  // For now, assuming Pro status - in real app, get from user context
-  const isPro = true; // This should come from user subscription status
+  // Check if user has access to custom templates (Pro or Legend)
+  const isPro = plan === 'pro' || plan === 'legend';
 
   const handleCreateCustomClick = () => {
     if (isPro) {
       setShowCustomWizard(true);
     } else {
-      // Show upgrade modal - implementation depends on existing upgrade flow
-      console.log("Show upgrade modal");
+      setShowUpgradeModal(true);
     }
   };
 
@@ -50,6 +53,10 @@ export const TemplateSelection = ({
 
   const handleTemplateCreated = () => {
     refreshTemplates();
+  };
+
+  const handleUpgradeModalClose = () => {
+    setShowUpgradeModal(false);
   };
 
   return (
@@ -71,6 +78,7 @@ export const TemplateSelection = ({
             onDelete={deleteTemplate}
             onCreateNew={handleCreateCustomClick}
             loading={loadingTemplates}
+            isPro={isPro}
           />
         ) : !loadingTemplates ? (
           <CreateFirstCustomSection
@@ -80,11 +88,23 @@ export const TemplateSelection = ({
         ) : null}
       </div>
 
-      {/* Custom Template Wizard */}
-      <CustomTemplateWizard
-        isOpen={showCustomWizard}
-        onClose={() => setShowCustomWizard(false)}
-        onTemplateCreated={handleTemplateCreated}
+      {/* Custom Template Wizard - Only for Pro/Legend users */}
+      {isPro && (
+        <CustomTemplateWizard
+          isOpen={showCustomWizard}
+          onClose={() => setShowCustomWizard(false)}
+          onTemplateCreated={handleTemplateCreated}
+          onShowUpgrade={() => setShowUpgradeModal(true)}
+        />
+      )}
+
+      {/* Upgrade Modal */}
+      <PricingModal
+        isOpen={showUpgradeModal}
+        onClose={handleUpgradeModalClose}
+        currentUsage={currentUsage}
+        limit={totalQuota}
+        resetDate={resetDate}
       />
     </>
   );
