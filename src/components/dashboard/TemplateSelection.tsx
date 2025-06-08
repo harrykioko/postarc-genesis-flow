@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CustomTemplateWizard } from "@/components/CustomTemplateWizard";
 import { BuiltInTemplateGrid } from "@/components/templates/BuiltInTemplateGrid";
@@ -47,6 +46,10 @@ export const TemplateSelection = ({
     }
   };
 
+  const handleUpgradeClick = () => {
+    setShowUpgradeModal(true);
+  };
+
   const handleCustomTemplateSelect = (templateId: string) => {
     setSelectedTemplate(`custom-${templateId}`);
   };
@@ -77,12 +80,14 @@ export const TemplateSelection = ({
             onSelect={handleCustomTemplateSelect}
             onDelete={deleteTemplate}
             onCreateNew={handleCreateCustomClick}
+            onUpgrade={handleUpgradeClick}
             loading={loadingTemplates}
             isPro={isPro}
           />
         ) : !loadingTemplates ? (
           <CreateFirstCustomSection
             onCreateNew={handleCreateCustomClick}
+            onUpgrade={handleUpgradeClick}
             isPro={isPro}
           />
         ) : null}

@@ -18,6 +18,7 @@ interface CustomTemplateSectionProps {
   onSelect: (templateId: string) => void;
   onDelete: (templateId: string) => void;
   onCreateNew: () => void;
+  onUpgrade?: () => void;
   loading?: boolean;
   isPro: boolean;
 }
@@ -28,6 +29,7 @@ export const CustomTemplateSection = ({
   onSelect, 
   onDelete, 
   onCreateNew,
+  onUpgrade,
   loading,
   isPro
 }: CustomTemplateSectionProps) => {
@@ -35,18 +37,22 @@ export const CustomTemplateSection = ({
     ? selectedTemplate.replace('custom-', '') 
     : '';
 
+  const handleCreateClick = () => {
+    if (isPro) {
+      onCreateNew();
+    } else {
+      onUpgrade?.();
+    }
+  };
+
   if (loading) {
     return (
-      <div>
+      <div className={isPro ? '' : 'opacity-75'}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-midnight">Your Custom Templates</h3>
           <Button 
-            onClick={onCreateNew}
-            disabled={!isPro}
-            className={isPro 
-              ? "bg-neon text-midnight hover:bg-neon/90" 
-              : "bg-slate/20 text-slate cursor-not-allowed"
-            }
+            onClick={handleCreateClick}
+            className="bg-neon text-midnight hover:bg-neon/90"
             size="sm"
           >
             {isPro ? (
@@ -76,17 +82,13 @@ export const CustomTemplateSection = ({
   }
 
   return (
-    <div>
+    <div className={isPro ? '' : 'opacity-75'}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-midnight">Your Custom Templates</h3>
         <div className="text-right">
           <Button 
-            onClick={onCreateNew}
-            disabled={!isPro}
-            className={isPro 
-              ? "bg-neon text-midnight hover:bg-neon/90" 
-              : "bg-slate/20 text-slate cursor-not-allowed"
-            }
+            onClick={handleCreateClick}
+            className="bg-neon text-midnight hover:bg-neon/90"
             size="sm"
           >
             {isPro ? (
