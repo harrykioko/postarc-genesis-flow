@@ -20,6 +20,9 @@ interface PostGeneratorProps {
   quota: { used: number; total: number };
   showSpark: boolean;
   onGenerate: () => void;
+  onCreateCustom: () => void;
+  onShowUpgrade?: () => void;
+  isPro: boolean;
 }
 
 export const PostGenerator = ({
@@ -36,7 +39,10 @@ export const PostGenerator = ({
   isGenerating,
   quota,
   showSpark,
-  onGenerate
+  onGenerate,
+  onCreateCustom,
+  onShowUpgrade,
+  isPro
 }: PostGeneratorProps) => {
   return (
     <div className="space-y-6">
@@ -53,6 +59,9 @@ export const PostGenerator = ({
               <TemplateDropdown
                 selectedTemplate={selectedTemplate}
                 setSelectedTemplate={setSelectedTemplate}
+                onCreateCustom={onCreateCustom}
+                onShowUpgrade={onShowUpgrade}
+                isPro={isPro}
               />
             </div>
             

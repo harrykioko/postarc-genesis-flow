@@ -8,6 +8,9 @@ import { useCustomTemplates } from "@/hooks/useCustomTemplates";
 interface TemplateDropdownProps {
   selectedTemplate: string;
   setSelectedTemplate: (value: string) => void;
+  onCreateCustom: () => void;
+  onShowUpgrade?: () => void;
+  isPro: boolean;
 }
 
 const builtInTemplates = [
@@ -18,7 +21,13 @@ const builtInTemplates = [
   { id: "hr", name: "HR", icon: Users, description: "People-focused and empathetic" }
 ];
 
-export const TemplateDropdown = ({ selectedTemplate, setSelectedTemplate }: TemplateDropdownProps) => {
+export const TemplateDropdown = ({ 
+  selectedTemplate, 
+  setSelectedTemplate, 
+  onCreateCustom, 
+  onShowUpgrade, 
+  isPro 
+}: TemplateDropdownProps) => {
   const { templates: customTemplates } = useCustomTemplates();
 
   // Find the selected template (built-in or custom)
@@ -44,6 +53,14 @@ export const TemplateDropdown = ({ selectedTemplate, setSelectedTemplate }: Temp
       );
     }
     return "Select a template";
+  };
+
+  const handleCreateCustom = () => {
+    if (isPro) {
+      onCreateCustom();
+    } else {
+      onShowUpgrade?.();
+    }
   };
 
   return (
@@ -104,6 +121,22 @@ export const TemplateDropdown = ({ selectedTemplate, setSelectedTemplate }: Temp
               ))}
             </>
           )}
+          
+          {/* Create Custom Template Option */}
+          <div className="border-t border-slate/10 mt-1">
+            <div 
+              onClick={handleCreateCustom}
+              className="flex items-center space-x-3 py-2 px-2 cursor-pointer hover:bg-mint/10 focus:bg-mint/10 rounded-sm"
+            >
+              <Plus className="w-4 h-4 text-neon" />
+              <div className="flex flex-col">
+                <span className="font-medium text-neon">Create Custom Template</span>
+                <span className="text-xs text-slate/70">
+                  {isPro ? "Build your own template" : "Upgrade to Pro"}
+                </span>
+              </div>
+            </div>
+          </div>
         </SelectContent>
       </Select>
     </div>
