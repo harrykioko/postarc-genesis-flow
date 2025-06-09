@@ -1,4 +1,4 @@
-
+// src/pages/LinkedInCallback.tsx
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -62,21 +62,25 @@ const LinkedInCallback = () => {
       
       await Promise.race([callbackPromise, timeoutPromise]);
       
-      setMessage('LinkedIn connected successfully!');
+      setMessage('LinkedIn connected successfully! Updating your profile...');
       setStatus('success');
       
-      // Refresh the connection status
+      // IMPORTANT: Force refresh the LinkedIn connection status
+      console.log('Refreshing LinkedIn connection status...');
       await checkLinkedInConnection();
+      
+      // Add a small delay to ensure the state is updated
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
         title: "LinkedIn Connected",
         description: "Your LinkedIn account has been successfully connected.",
       });
 
-      // Redirect after success
+      // Redirect after success with a slight delay to ensure state updates
       setTimeout(() => {
         navigate('/settings?tab=connections', { replace: true });
-      }, 2000);
+      }, 1500);
 
     } catch (error: any) {
       console.error('LinkedIn callback error:', error);
@@ -174,7 +178,7 @@ const LinkedInCallback = () => {
         
         {status !== 'error' && (
           <p className="text-xs text-slate mt-4">
-            {status === 'loading' ? 'Please wait...' : 'Redirecting you back to settings...'}
+            {status === 'loading' ? 'Please wait...' : 'Updating your settings...'}
           </p>
         )}
       </div>
