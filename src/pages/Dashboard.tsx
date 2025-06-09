@@ -1,6 +1,6 @@
 
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { PostGenerator } from "@/components/dashboard/PostGenerator";
 import { GeneratedPostModal } from "@/components/dashboard/GeneratedPostModal";
@@ -8,8 +8,11 @@ import { PlanActivitySection } from "@/components/dashboard/PlanActivitySection"
 import { PostHistory } from "@/components/dashboard/PostHistory";
 import { ProfileSetupWizard } from "@/components/ProfileSetupWizard";
 import { PricingModal } from "@/components/PricingModal";
+import { CustomTemplateWizard } from "@/components/CustomTemplateWizard";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuota } from "@/hooks/useQuota";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useCustomTemplates } from "@/hooks/useCustomTemplates";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { usePostGeneration } from "@/hooks/usePostGeneration";
 import { useRecentPosts } from "@/hooks/useRecentPosts";
@@ -20,6 +23,11 @@ const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { profile, loading: profileLoading, refreshProfile } = useUserProfile();
   const { canGenerate, remainingQuota, totalQuota, plan, currentUsage, resetDate, refreshQuota } = useQuota();
+  const { subscription, loading: subscriptionLoading } = useSubscription();
+  const { refreshTemplates } = useCustomTemplates();
+  
+  // Custom template wizard state
+  const [showCustomTemplateWizard, setShowCustomTemplateWizard] = useState(false);
   
   const {
     input,
@@ -61,6 +69,9 @@ const Dashboard = () => {
   );
 
   const { handleCopy, handleShare } = useDashboardActions();
+
+  // Determine if user is Pro
+  const isPro = subscription?.tier === 'pro' || subscription?.tier === 'legend' || profile?.role === 'pro' || profile?.role === 'legend';
 
   // Check for upgrade parameter and open pricing modal
   useEffect(() => {
@@ -106,6 +117,15 @@ const Dashboard = () => {
     );
   };
 
+  const handleCreateCustom = () => {
+    setShowCustomTemplateWizard(true);
+  };
+
+  const handleTemplateCreated = () => {
+    refreshTemplates();
+    setShowCustomTemplateWizard(false);
+  };
+
   const handlePricingModalClose = () => {
     setShowUpsellModal(false);
     setQuotaErrorData(null);
@@ -145,6 +165,9 @@ const Dashboard = () => {
               quota={{ used: currentUsage, total: totalQuota }}
               showSpark={showSpark}
               onGenerate={handleGenerate}
+              onCreateCustom={handleCreateCustom}
+              onShowUpgrade={() => setShowUpsellModal(true)}
+              isPro={isPro}
             />
           </div>
 
@@ -173,6 +196,14 @@ const Dashboard = () => {
         onClose={handlePostModalClose}
         originalContent={generatedPost}
         onCopy={handleCopy}
+      />
+
+      {/* Custom Template Wizard */}
+      <CustomTemplateWizard
+        isOpen={showCustomTemplateWizard}
+        onClose={() => setShowCustomTemplateWizard(false)}
+        onTemplateCreated={handleTemplateCreated}
+        onShowUpgrade={() => setShowUpsellModal(true)}
       />
 
       {/* Pricing Modal */}
