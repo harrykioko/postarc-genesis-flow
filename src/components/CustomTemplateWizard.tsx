@@ -15,6 +15,11 @@ interface CustomTemplateWizardProps {
 
 export interface TemplateWizardData {
   foundation_type: string;
+  company_name: string;
+  company_description: string;
+  company_industry: string;
+  company_goals: string;
+  target_audience: string;
   tone_attributes: string[];
   structure_type: string;
   industry_context: string;
@@ -55,15 +60,30 @@ export const CustomTemplateWizard = ({ isOpen, onClose, onTemplateCreated, onSho
   };
 
   const getStepTitle = () => {
-    const titles = [
-      "",
-      "Choose Foundation",
-      "Select Tone",
-      "Pick Structure", 
-      "Add Industry Context",
-      "Preview & Save"
-    ];
-    return titles[currentStep] || "";
+    const isBusinessRep = wizardData.foundation_type === "business_representative";
+    
+    if (!isBusinessRep) {
+      const titles = [
+        "",
+        "Choose Foundation",
+        "Select Tone",
+        "Pick Structure", 
+        "Add Industry Context",
+        "Preview & Save"
+      ];
+      return titles[currentStep] || "";
+    } else {
+      const titles = [
+        "",
+        "Choose Foundation",
+        "Business Details",
+        "Select Tone",
+        "Pick Structure", 
+        "Add Industry Context",
+        "Preview & Save"
+      ];
+      return titles[currentStep] || "";
+    }
   };
 
   return (
@@ -101,7 +121,7 @@ export const CustomTemplateWizard = ({ isOpen, onClose, onTemplateCreated, onSho
             onBack={handleBack}
             onNext={handleNext}
             onSkip={handleSkip}
-            showSkip={currentStep === 4}
+            showSkip={currentStep === (wizardData.foundation_type === "business_representative" ? 5 : 4)}
           />
         </div>
       </DialogContent>
