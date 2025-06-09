@@ -1,4 +1,4 @@
-
+// src/utils/linkedinApi.ts
 import { supabase } from '@/integrations/supabase/client';
 
 export interface LinkedInPostResponse {
@@ -29,12 +29,19 @@ export const initiateLinkedInOAuth = async (): Promise<{ auth_url: string; state
   try {
     console.log('Initiating LinkedIn OAuth...');
     
+    // Get the current session to ensure we have a valid token
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.error('No active session:', sessionError);
+      throw new Error('You must be logged in to connect LinkedIn');
+    }
+    
+    console.log('Session found, invoking edge function...');
+    
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
       body: { action: 'initiate' },
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
+      method: 'POST'
     });
     
     console.log('OAuth initiation response:', { data, error });
@@ -72,12 +79,17 @@ export const handleLinkedInCallback = async (code: string, state: string): Promi
       throw new Error('Missing required OAuth parameters');
     }
     
+    // Get the current session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.error('No active session:', sessionError);
+      throw new Error('You must be logged in to complete LinkedIn connection');
+    }
+    
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
       body: { action: 'callback', code, state },
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
+      method: 'POST'
     });
     
     console.log('Callback response:', { data, error });
@@ -110,12 +122,21 @@ export const checkLinkedInConnectionStatus = async (): Promise<LinkedInConnectio
   try {
     console.log('Checking LinkedIn connection status...');
     
+    // Get the current session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.log('No active session for LinkedIn status check');
+      return {
+        success: false,
+        connection_status: 'disconnected',
+        error: 'No active session'
+      };
+    }
+    
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
       body: { action: 'status' },
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
+      method: 'POST'
     });
     
     if (error) {
@@ -144,12 +165,17 @@ export const disconnectLinkedIn = async (): Promise<{ success: boolean; error?: 
   try {
     console.log('Disconnecting LinkedIn...');
     
+    // Get the current session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.error('No active session:', sessionError);
+      return { success: false, error: 'You must be logged in to disconnect LinkedIn' };
+    }
+    
     const { data, error } = await supabase.functions.invoke('linkedin-oauth-connect', {
       body: { action: 'disconnect' },
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
+      method: 'POST'
     });
     
     if (error) {
@@ -170,15 +196,23 @@ export const postToLinkedIn = async (postId: string, content: string): Promise<L
   try {
     console.log('Posting to LinkedIn:', { postId, contentLength: content?.length });
     
+    // Get the current session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.error('No active session:', sessionError);
+      return { 
+        success: false, 
+        error: 'You must be logged in to post to LinkedIn' 
+      };
+    }
+    
     const { data, error } = await supabase.functions.invoke('post-to-linkedin', {
       body: { 
         post_id: postId, 
         content: content 
       },
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
+      method: 'POST'
     });
     
     if (error) {
