@@ -35,16 +35,6 @@ serve(async (req) => {
   try {
     console.log('🚀 LinkedIn OAuth function called');
     
-    // Log request details for debugging
-    const contentType = req.headers.get('Content-Type');
-    const contentLength = req.headers.get('Content-Length');
-    console.log('📊 Request details:', {
-      method: req.method,
-      contentType,
-      contentLength,
-      hasBody: contentLength && parseInt(contentLength) > 0
-    });
-    
     // Check for auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -118,64 +108,16 @@ serve(async (req) => {
 
     console.log('✅ User authenticated successfully via JWT:', user.email);
 
-    // Parse JSON body safely with enhanced validation
+    // Parse JSON body with simplified validation
     let requestBody;
     try {
-      // Check if request has content
-      if (!contentLength || parseInt(contentLength) === 0) {
-        console.error('❌ Request has no content');
-        return new Response(JSON.stringify({ 
-          success: false,
-          error: 'Request body is required' 
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      // Check content type
-      if (!contentType || !contentType.includes('application/json')) {
-        console.error('❌ Invalid content type:', contentType);
-        return new Response(JSON.stringify({ 
-          success: false,
-          error: 'Content-Type must be application/json' 
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      // Get raw text first for debugging
-      const rawBody = await req.text();
-      console.log('📄 Raw body received:', rawBody.substring(0, 100) + (rawBody.length > 100 ? '...' : ''));
-      
-      if (!rawBody || rawBody.trim() === '') {
-        console.error('❌ Empty request body');
-        return new Response(JSON.stringify({ 
-          success: false,
-          error: 'Request body cannot be empty' 
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      // Parse the JSON from the raw text
-      requestBody = JSON.parse(rawBody);
+      requestBody = await req.json();
       console.log('✅ JSON parsed successfully');
-      
     } catch (jsonError) {
       console.error('❌ Failed to parse JSON body:', jsonError);
-      console.error('❌ Error details:', {
-        name: jsonError.name,
-        message: jsonError.message,
-        contentLength,
-        contentType
-      });
-      
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'Invalid JSON in request body',
+        error: 'Invalid or missing JSON in request body',
         details: jsonError.message
       }), {
         status: 400,
