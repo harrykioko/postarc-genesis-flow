@@ -351,7 +351,7 @@ serve(async (req) => {
           linkedin_access_token: tokenData.access_token,
           linkedin_refresh_token: tokenData.refresh_token || null,
           linkedin_token_expires_at: expiresAt.toISOString(),
-          linkedin_profile_url: `https://www.linkedin.com/in/${profileData.sub}`,
+          linkedin_profile_url: null,
           linkedin_profile_image_url: profileData.picture || null,
           linkedin_connected_at: new Date().toISOString(),
           // Clear OAuth state
@@ -369,7 +369,7 @@ serve(async (req) => {
             profile: {
               linkedin_member_id: profileData.sub,
               name: profileData.name || profileData.given_name,
-              profile_url: `https://www.linkedin.com/in/${profileData.sub}`,
+              profile_url: null,
               profile_image_url: profileData.picture || null,
               connected_at: new Date().toISOString()
             }

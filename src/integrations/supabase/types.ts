@@ -293,11 +293,11 @@ export type Database = {
     }
     Functions: {
       check_user_quota: {
-        Args: { user_uuid: string }
+        Args: { user_uuid?: string }
         Returns: Json
       }
       get_user_monthly_usage: {
-        Args: { user_uuid: string }
+        Args: { user_uuid?: string }
         Returns: number
       }
       is_profile_complete: {
