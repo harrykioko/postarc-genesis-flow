@@ -1,10 +1,13 @@
 
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, User, Link, Shield, CreditCard } from "lucide-react";
 import { Link as RouterLink } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useAuth } from "@/contexts/AuthContext";
 import { ProfileTab } from "@/components/settings/ProfileTab";
 import { ConnectionsTab } from "@/components/settings/ConnectionsTab";
 import { AccountTab } from "@/components/settings/AccountTab";
@@ -12,6 +15,16 @@ import { PrivacyTab } from "@/components/settings/PrivacyTab";
 
 const Settings = () => {
   const { loading: profileLoading } = useUserProfile();
+  const [searchParams] = useSearchParams();
+  const { checkLinkedInConnection } = useAuth();
+  const activeTab = searchParams.get('tab') || 'profile';
+
+  useEffect(() => {
+    // Check LinkedIn connection when connections tab is active
+    if (activeTab === 'connections') {
+      checkLinkedInConnection();
+    }
+  }, [activeTab, checkLinkedInConnection]);
 
   if (profileLoading) {
     return (
@@ -59,7 +72,7 @@ const Settings = () => {
             <p className="text-slate">Manage your profile, connections, and account settings</p>
           </div>
 
-          <Tabs defaultValue="profile" className="space-y-6">
+          <Tabs value={activeTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm">
               <TabsTrigger value="profile" className="flex items-center space-x-2 data-[state=active]:bg-neon/10 data-[state=active]:text-midnight">
                 <User className="w-4 h-4" />
