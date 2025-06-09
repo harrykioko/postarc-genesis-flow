@@ -26,12 +26,14 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
     setIsGenerating,
     generatedPost,
     setGeneratedPost,
+    clearGeneratedPost,
     demoUsage,
     updateDemoUsage,
     getDemoSessionId,
   } = useDemoState(open);
 
   const handleGenerate = () => {
+    console.log('🎯 Generate button clicked');
     handleDemoGeneration(
       input,
       selectedTemplate,
@@ -39,7 +41,8 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
       demoUsage,
       setIsGenerating,
       setGeneratedPost,
-      updateDemoUsage
+      updateDemoUsage,
+      clearGeneratedPost
     );
   };
 
@@ -47,6 +50,10 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
   const safeUsage = demoUsage || { used: 0, limit: 3, remaining: 3 };
   const canGenerate = safeUsage.remaining > 0;
   const isAtLimit = safeUsage.remaining === 0;
+
+  console.log('🎭 Demo modal render - generatedPost length:', generatedPost?.length || 0);
+  console.log('🎭 Demo modal render - isGenerating:', isGenerating);
+  console.log('🎭 Demo modal render - usage:', safeUsage);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -93,6 +100,7 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
             <DemoGeneratedPost
               generatedPost={generatedPost}
               demoUsageUsed={safeUsage.used}
+              isGenerating={isGenerating}
             />
           </div>
         </div>

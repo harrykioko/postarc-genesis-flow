@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Copy, Linkedin, Sparkles } from "lucide-react";
+import { Copy, Linkedin, Sparkles, Loader2 } from "lucide-react";
 
 // Fallback toast function if not available
 const toast = (params: any) => {
@@ -10,9 +10,10 @@ const toast = (params: any) => {
 interface DemoGeneratedPostProps {
   generatedPost: string;
   demoUsageUsed: number;
+  isGenerating?: boolean;
 }
 
-export const DemoGeneratedPost = ({ generatedPost, demoUsageUsed }: DemoGeneratedPostProps) => {
+export const DemoGeneratedPost = ({ generatedPost, demoUsageUsed, isGenerating = false }: DemoGeneratedPostProps) => {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(generatedPost);
@@ -40,7 +41,21 @@ export const DemoGeneratedPost = ({ generatedPost, demoUsageUsed }: DemoGenerate
     });
   };
 
-  if (!generatedPost) {
+  // Show loading state during generation
+  if (isGenerating) {
+    return (
+      <div className="glass-card p-8 rounded-xl text-center">
+        <div className="w-16 h-16 bg-neon/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Loader2 className="w-8 h-8 text-neon animate-spin" />
+        </div>
+        <h4 className="font-semibold text-midnight mb-2">Generating your post...</h4>
+        <p className="text-slate text-sm">This usually takes a few seconds</p>
+      </div>
+    );
+  }
+
+  // Show empty state when no post is generated
+  if (!generatedPost || generatedPost.trim() === '') {
     return (
       <div className="glass-card p-8 rounded-xl text-center">
         <div className="w-16 h-16 bg-neon/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -60,6 +75,7 @@ export const DemoGeneratedPost = ({ generatedPost, demoUsageUsed }: DemoGenerate
     );
   }
 
+  // Show the generated post
   return (
     <div className="glass-card-strong p-6 rounded-xl">
       <div className="flex items-center justify-between mb-4">

@@ -53,12 +53,21 @@ export const useDemoState = (open: boolean) => {
   const [generatedPost, setGeneratedPost] = useState("");
   const [demoUsage, setDemoUsage] = useState(() => getDemoUsage());
 
-  // Load demo usage when modal opens
+  // Reset and load demo usage when modal opens/closes
   useEffect(() => {
     if (open) {
+      console.log('🔄 Demo modal opened - loading usage and clearing previous post');
       const usage = getDemoUsage();
       console.log('Loading demo usage:', usage);
       setDemoUsage(usage);
+      // Clear any previous generated post when opening
+      setGeneratedPost("");
+      setIsGenerating(false);
+    } else {
+      console.log('🔄 Demo modal closed - clearing state');
+      // Clear state when modal closes
+      setGeneratedPost("");
+      setIsGenerating(false);
     }
   }, [open]);
 
@@ -66,6 +75,11 @@ export const useDemoState = (open: boolean) => {
     console.log('Updating demo usage to:', newUsage);
     setDemoUsage(newUsage);
     saveDemoUsage(newUsage);
+  };
+
+  const clearGeneratedPost = () => {
+    console.log('🧹 Clearing generated post');
+    setGeneratedPost("");
   };
 
   return {
@@ -77,6 +91,7 @@ export const useDemoState = (open: boolean) => {
     setIsGenerating,
     generatedPost,
     setGeneratedPost,
+    clearGeneratedPost,
     demoUsage,
     updateDemoUsage,
     getDemoSessionId,
