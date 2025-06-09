@@ -345,7 +345,7 @@ serve(async (req) => {
         const expiresAt = new Date()
         expiresAt.setSeconds(expiresAt.getSeconds() + tokenData.expires_in)
 
-        // Update user record with LinkedIn data
+        // Update user record with LinkedIn data (FIXED: changed linkedin_headline to linkedin_head)
         await updateDatabase('users', user.id, {
           linkedin_member_id: profileData.sub,
           linkedin_access_token: tokenData.access_token,
@@ -357,7 +357,7 @@ serve(async (req) => {
           // Clear OAuth state
           linkedin_oauth_state: null,
           linkedin_oauth_initiated_at: null,
-          // Update profile fields if not already set
+          // Update profile fields if not already set (FIXED: changed linkedin_headline to linkedin_head)
           name: userData.name || profileData.name || profileData.given_name,
           linkedin_head: userData.linkedin_head || profileData.locale?.country || null
         })
