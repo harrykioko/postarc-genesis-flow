@@ -21,6 +21,7 @@ export const handleDemoGeneration = async (
   clearGeneratedPost?: () => void
 ) => {
   if (!input.trim()) {
+    console.log('❌ Empty input provided');
     toast({
       title: "Input required",
       description: "Please enter a topic or paste a URL",
@@ -31,6 +32,7 @@ export const handleDemoGeneration = async (
 
   console.log('🚀 Starting demo generation with input:', input.trim());
   console.log('📊 Current demo usage:', demoUsage);
+  console.log('🎭 Selected template:', selectedTemplate);
   
   // Clear any previous post before starting generation
   if (clearGeneratedPost) {
@@ -41,10 +43,12 @@ export const handleDemoGeneration = async (
   
   // Create AbortController for timeout handling
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+  const timeoutId = setTimeout(() => {
+    console.log('⏰ Request timeout after 30 seconds');
+    controller.abort();
+  }, 30000); // 30 second timeout
   
   try {
-    console.log('🔗 Making API call to demoGenerate...');
     const sessionId = getDemoSessionId();
     console.log('📝 Using session ID:', sessionId);
     
@@ -54,25 +58,43 @@ export const handleDemoGeneration = async (
     };
     console.log('📤 Request body:', requestBody);
 
-    const response = await fetch('https://obmrbvozmozvvxirrils.supabase.co/functions/v1/demoGenerate', {
+    // Construct the full URL for the edge function
+    const functionUrl = 'https://obmrbvozmozvvxirrils.supabase.co/functions/v1/demoGenerate';
+    console.log('🔗 Making API call to:', functionUrl);
+
+    const requestHeaders = {
+      'Content-Type': 'application/json',
+      'x-demo-session': sessionId
+    };
+    console.log('📋 Request headers:', requestHeaders);
+
+    console.log('📡 Sending fetch request...');
+    const response = await fetch(functionUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-demo-session': sessionId
-      },
+      headers: requestHeaders,
       body: JSON.stringify(requestBody),
       signal: controller.signal
     });
 
     clearTimeout(timeoutId);
-    console.log('📥 API response status:', response.status);
+    console.log('📥 API response received');
+    console.log('📊 Response status:', response.status);
+    console.log('📊 Response ok:', response.ok);
+    console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
 
-    const data = await response.json();
-    console.log('📊 API response data:', data);
+    let data;
+    try {
+      const responseText = await response.text();
+      console.log('📄 Raw response text:', responseText);
+      data = JSON.parse(responseText);
+      console.log('📊 Parsed response data:', data);
+    } catch (parseError) {
+      console.error('❌ Failed to parse response as JSON:', parseError);
+      throw new Error('Invalid response format from server');
+    }
 
     if (data.error === 'demo_limit_exceeded') {
       console.log('🚫 Demo limit exceeded');
-      // Handle limit exceeded
       toast({
         title: "Demo limit reached! 🎉",
         description: data.message,
@@ -86,9 +108,10 @@ export const handleDemoGeneration = async (
 
     if (data.error || !response.ok) {
       console.error('❌ API returned error:', data);
+      console.error('❌ Response status:', response.status);
       toast({
         title: "Generation failed",
-        description: data.message || "Please try again",
+        description: data.message || `Server error: ${response.status}`,
         variant: "destructive"
       });
       return;
@@ -106,7 +129,8 @@ export const handleDemoGeneration = async (
     }
 
     // Success!
-    console.log('✅ Successfully generated post:', data.post);
+    console.log('✅ Successfully generated post of length:', data.post.length);
+    console.log('✅ Post content preview:', data.post.substring(0, 100) + '...');
     setGeneratedPost(data.post);
     
     // Update usage tracking - ensure we have valid demo_usage data
@@ -142,22 +166,35 @@ export const handleDemoGeneration = async (
 
   } catch (error: any) {
     clearTimeout(timeoutId);
-    console.error('🚨 Generation error:', error);
+    console.error('🚨 Generation error details:', error);
+    console.error('🚨 Error name:', error.name);
+    console.error('🚨 Error message:', error.message);
+    console.error('🚨 Error stack:', error.stack);
     
     if (error.name === 'AbortError') {
+      console.log('⏰ Request was aborted due to timeout');
       toast({
         title: "Request timeout",
         description: "The request took too long. Please try again.",
         variant: "destructive"
       });
-    } else {
+    } else if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+      console.log('🌐 Network error detected');
       toast({
         title: "Network error",
-        description: "Please check your connection and try again",
+        description: "Unable to connect to the server. Please check your connection and try again.",
+        variant: "destructive"
+      });
+    } else {
+      console.log('🚨 Unknown error occurred');
+      toast({
+        title: "Generation failed",
+        description: error.message || "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
     }
   } finally {
+    console.log('🏁 Generation process completed, setting isGenerating to false');
     setIsGenerating(false);
   }
 };

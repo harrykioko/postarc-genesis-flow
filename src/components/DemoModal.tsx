@@ -32,9 +32,17 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
     getDemoSessionId,
   } = useDemoState(open);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     console.log('🎯 Generate button clicked');
-    handleDemoGeneration(
+    console.log('🎯 Current state before generation:', {
+      input: input.substring(0, 50) + '...',
+      selectedTemplate,
+      isGenerating,
+      generatedPost: generatedPost.length > 0 ? `${generatedPost.length} chars` : 'empty',
+      demoUsage
+    });
+
+    await handleDemoGeneration(
       input,
       selectedTemplate,
       getDemoSessionId,
@@ -51,9 +59,14 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
   const canGenerate = safeUsage.remaining > 0;
   const isAtLimit = safeUsage.remaining === 0;
 
-  console.log('🎭 Demo modal render - generatedPost length:', generatedPost?.length || 0);
-  console.log('🎭 Demo modal render - isGenerating:', isGenerating);
-  console.log('🎭 Demo modal render - usage:', safeUsage);
+  console.log('🎭 Demo modal render state:', {
+    open,
+    generatedPostLength: generatedPost?.length || 0,
+    isGenerating,
+    usage: safeUsage,
+    canGenerate,
+    isAtLimit
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
