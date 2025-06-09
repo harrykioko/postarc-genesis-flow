@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -15,9 +15,14 @@ import { PrivacyTab } from "@/components/settings/PrivacyTab";
 
 const Settings = () => {
   const { loading: profileLoading } = useUserProfile();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { checkLinkedInConnection } = useAuth();
   const activeTab = searchParams.get('tab') || 'profile';
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
 
   useEffect(() => {
     // Check LinkedIn connection when connections tab is active
@@ -72,7 +77,7 @@ const Settings = () => {
             <p className="text-slate">Manage your profile, connections, and account settings</p>
           </div>
 
-          <Tabs value={activeTab} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm">
               <TabsTrigger value="profile" className="flex items-center space-x-2 data-[state=active]:bg-neon/10 data-[state=active]:text-midnight">
                 <User className="w-4 h-4" />
