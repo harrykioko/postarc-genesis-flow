@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,16 +49,20 @@ export const useQuota = (): UseQuotaReturn => {
       setLoading(true);
       setError(null);
 
-      // Call the RPC function directly with proper typing
+      console.log('🔄 Fetching quota data for user:', user.id);
+
+      // Call the updated RPC function
       const { data: quotaResult, error: quotaError } = await supabase
         .rpc('check_user_quota', { user_uuid: user.id });
 
+      console.log('📊 Quota RPC result:', { data: quotaResult, error: quotaError });
+
       if (quotaError) {
-        console.error('Quota check error:', quotaError);
+        console.error('❌ Quota check error:', quotaError);
         throw quotaError;
       }
 
-      // Type assertion since we know the structure of the returned JSON
+      // Parse the response from the updated function
       const quota = quotaResult as {
         tier: string;
         used: number;
@@ -70,17 +75,20 @@ export const useQuota = (): UseQuotaReturn => {
       const canGenerate = quota.remaining > 0 || quota.remaining === -1;
       const resetDate = new Date(quota.reset_date).toISOString();
 
-      setQuotaData({
+      const formattedData = {
         canGenerate,
         remainingQuota: quota.remaining === -1 ? 999 : quota.remaining,
         totalQuota: quota.quota === -1 ? 999 : quota.quota,
         plan: quota.tier || 'free',
         resetDate,
         currentUsage: quota.used,
-      });
+      };
+
+      console.log('✅ Formatted quota data:', formattedData);
+      setQuotaData(formattedData);
 
     } catch (err: any) {
-      console.error('Error fetching quota data:', err);
+      console.error('💥 Error fetching quota data:', err);
       setError('Failed to fetch quota information');
       
       // Set safe defaults on error
@@ -98,6 +106,7 @@ export const useQuota = (): UseQuotaReturn => {
   };
 
   const refreshQuota = () => {
+    console.log('🔄 Manually refreshing quota data...');
     fetchQuotaData();
   };
 

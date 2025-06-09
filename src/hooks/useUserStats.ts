@@ -33,13 +33,15 @@ export const useUserStats = () => {
   });
 
   const fetchUserStats = async () => {
-    if (!user || !profile?.profile_complete) {
+    if (!user) {
+      console.log('❌ No user found, setting default stats');
       setStats(prev => ({ ...prev, loading: false }));
       return;
     }
 
     try {
       setStats(prev => ({ ...prev, loading: true, error: null }));
+      console.log('📊 Fetching user stats for:', user.id);
 
       // Fetch all user posts
       const { data: posts, error: postsError } = await supabase
@@ -48,7 +50,12 @@ export const useUserStats = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (postsError) throw postsError;
+      if (postsError) {
+        console.error('❌ Posts fetch error:', postsError);
+        throw postsError;
+      }
+
+      console.log('📝 Found posts:', posts?.length || 0);
 
       const now = new Date();
       const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -85,19 +92,26 @@ export const useUserStats = () => {
         : 'Never';
 
       // Member since
-      const memberSince = profile.created_at
+      const memberSince = profile?.created_at
         ? new Date(profile.created_at).toLocaleDateString('en-US', { 
+            month: 'short', 
+            year: 'numeric' 
+          })
+        : user.created_at
+        ? new Date(user.created_at).toLocaleDateString('en-US', { 
             month: 'short', 
             year: 'numeric' 
           })
         : 'Unknown';
 
-      // Get quota limit from profile/subscription
-      const monthlyLimit = profile.role === 'pro' || profile.role === 'legend' 
+      // Get quota limit from user role
+      const monthlyLimit = profile?.role === 'pro' 
+        ? 15
+        : profile?.role === 'legend' 
         ? 'unlimited' as const
         : 5;
 
-      setStats({
+      const formattedStats = {
         totalPosts,
         monthlyUsage,
         monthlyLimit,
@@ -107,10 +121,13 @@ export const useUserStats = () => {
         memberSince,
         loading: false,
         error: null,
-      });
+      };
+
+      console.log('✅ Calculated user stats:', formattedStats);
+      setStats(formattedStats);
 
     } catch (error) {
-      console.error('Error fetching user stats:', error);
+      console.error('💥 Error fetching user stats:', error);
       setStats(prev => ({
         ...prev,
         loading: false,
@@ -121,9 +138,10 @@ export const useUserStats = () => {
 
   useEffect(() => {
     fetchUserStats();
-  }, [user, profile?.profile_complete]);
+  }, [user, profile]);
 
   const refreshStats = () => {
+    console.log('🔄 Manually refreshing user stats...');
     fetchUserStats();
   };
 
