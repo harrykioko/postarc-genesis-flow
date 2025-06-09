@@ -62,13 +62,14 @@ export const handleDemoGeneration = async (
     const functionUrl = 'https://obmrbvozmozvvxirrils.supabase.co/functions/v1/demoGenerate';
     console.log('🔗 Making API call to:', functionUrl);
 
+    // Remove authentication headers since this is now a public function
     const requestHeaders = {
       'Content-Type': 'application/json',
       'x-demo-session': sessionId
     };
     console.log('📋 Request headers:', requestHeaders);
 
-    console.log('📡 Sending fetch request...');
+    console.log('📡 Sending fetch request to public endpoint...');
     const response = await fetch(functionUrl, {
       method: 'POST',
       headers: requestHeaders,
@@ -81,6 +82,17 @@ export const handleDemoGeneration = async (
     console.log('📊 Response status:', response.status);
     console.log('📊 Response ok:', response.ok);
     console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
+
+    // Check for 401 specifically to catch auth issues
+    if (response.status === 401) {
+      console.error('🚫 Authentication error - function may still require auth');
+      toast({
+        title: "Configuration Error",
+        description: "Demo function requires configuration update. Please try again in a moment.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     let data;
     try {
