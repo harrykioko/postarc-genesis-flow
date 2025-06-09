@@ -1,6 +1,5 @@
 // supabase/functions/linkedin-oauth-connect/index.ts
-import { serve } from 'https://deno.land/std@0.190.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4'
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,8 +19,78 @@ const LINKEDIN_AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization'
 const LINKEDIN_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken'
 const LINKEDIN_PROFILE_URL = 'https://api.linkedin.com/v2/userinfo'
 
-// Create Supabase client
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+interface User {
+  id: string
+  email?: string
+}
+
+// Helper function to get user from JWT without using Supabase client
+async function getUserFromToken(token: string): Promise<User | null> {
+  try {
+    // Decode JWT to get user info
+    const parts = token.split('.')
+    if (parts.length !== 3) {
+      console.error('Invalid JWT format')
+      return null
+    }
+    
+    // Decode the payload
+    const payload = JSON.parse(atob(parts[1]))
+    
+    if (!payload.sub) {
+      console.error('No user ID in token')
+      return null
+    }
+    
+    return {
+      id: payload.sub,
+      email: payload.email
+    }
+  } catch (error) {
+    console.error('Failed to decode JWT:', error)
+    return null
+  }
+}
+
+// Helper function to query database
+async function queryDatabase(query: string, params: any = {}) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${query}`, {
+    method: 'GET',
+    headers: {
+      'apikey': SUPABASE_SERVICE_ROLE_KEY,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    }
+  })
+  
+  if (!response.ok) {
+    throw new Error(`Database query failed: ${response.statusText}`)
+  }
+  
+  return await response.json()
+}
+
+// Helper function to update database
+async function updateDatabase(table: string, userId: string, data: any) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${userId}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_SERVICE_ROLE_KEY,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  })
+  
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Database update failed: ${error}`)
+  }
+  
+  return await response.json()
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -44,11 +113,10 @@ serve(async (req) => {
   }
 
   try {
-    // Get the authorization header - Supabase sends it as 'Authorization'
-    const authHeader = req.headers.get('authorization') || req.headers.get('Authorization')
+    // Get the authorization header
+    const authHeader = req.headers.get('authorization')
     if (!authHeader) {
       console.error('❌ No authorization header provided')
-      console.log('Available headers:', Array.from(req.headers.keys()))
       return new Response(
         JSON.stringify({ error: 'No authorization header' }),
         { 
@@ -62,12 +130,12 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '').trim()
     console.log(`🔑 Token received (first 20 chars): ${token.substring(0, 20)}...`)
     
-    // Use the service role client to verify the user's token
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      console.error('❌ Failed to get user from token:', authError)
+    // Get user from token
+    const user = await getUserFromToken(token)
+    if (!user) {
+      console.error('❌ Failed to get user from token')
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication token', details: authError?.message }),
+        JSON.stringify({ error: 'Invalid authentication token' }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -75,7 +143,7 @@ serve(async (req) => {
       )
     }
 
-    console.log(`👤 User authenticated: ${user.id} (${user.email})`)
+    console.log(`👤 User authenticated: ${user.id}`)
 
     // Parse request body safely
     let body: any = {}
@@ -114,19 +182,11 @@ serve(async (req) => {
         // Generate a unique state for CSRF protection
         const state = crypto.randomUUID()
         
-        // Store the state in the user's database record
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ 
-            linkedin_oauth_state: state,
-            linkedin_oauth_initiated_at: new Date().toISOString()
-          })
-          .eq('id', user.id)
-
-        if (updateError) {
-          console.error('❌ Failed to update user state:', updateError)
-          throw new Error('Failed to initiate OAuth flow')
-        }
+        // Update user record with state
+        await updateDatabase('users', user.id, {
+          linkedin_oauth_state: state,
+          linkedin_oauth_initiated_at: new Date().toISOString()
+        })
 
         // Construct the LinkedIn authorization URL
         const params = new URLSearchParams({
@@ -168,19 +228,16 @@ serve(async (req) => {
           )
         }
 
-        // Verify state matches what we stored
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('linkedin_oauth_state, linkedin_oauth_initiated_at')
-          .eq('id', user.id)
-          .single()
+        // Get user data to verify state
+        const userDataResponse = await queryDatabase(`users?id=eq.${user.id}&select=linkedin_oauth_state,linkedin_oauth_initiated_at`)
+        const userData = userDataResponse[0]
 
-        if (userError || !userData) {
-          console.error('❌ Failed to fetch user data:', userError)
+        if (!userData) {
+          console.error('❌ User data not found')
           return new Response(
             JSON.stringify({ 
               success: false, 
-              error: 'Failed to verify OAuth state' 
+              error: 'User data not found' 
             }),
             { 
               status: 400,
@@ -289,38 +346,21 @@ serve(async (req) => {
         expiresAt.setSeconds(expiresAt.getSeconds() + tokenData.expires_in)
 
         // Update user record with LinkedIn data
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({
-            linkedin_member_id: profileData.sub,
-            linkedin_access_token: tokenData.access_token,
-            linkedin_refresh_token: tokenData.refresh_token || null,
-            linkedin_token_expires_at: expiresAt.toISOString(),
-            linkedin_profile_url: `https://www.linkedin.com/in/${profileData.sub}`,
-            linkedin_profile_image_url: profileData.picture || null,
-            linkedin_connected_at: new Date().toISOString(),
-            // Clear OAuth state
-            linkedin_oauth_state: null,
-            linkedin_oauth_initiated_at: null,
-            // Update profile fields if not already set
-            name: userData.name || profileData.name || profileData.given_name,
-            linkedin_head: userData.linkedin_head || profileData.locale?.country || null
-          })
-          .eq('id', user.id)
-
-        if (updateError) {
-          console.error('❌ Failed to update user record:', updateError)
-          return new Response(
-            JSON.stringify({ 
-              success: false, 
-              error: 'Failed to save LinkedIn connection' 
-            }),
-            { 
-              status: 500,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          )
-        }
+        await updateDatabase('users', user.id, {
+          linkedin_member_id: profileData.sub,
+          linkedin_access_token: tokenData.access_token,
+          linkedin_refresh_token: tokenData.refresh_token || null,
+          linkedin_token_expires_at: expiresAt.toISOString(),
+          linkedin_profile_url: `https://www.linkedin.com/in/${profileData.sub}`,
+          linkedin_profile_image_url: profileData.picture || null,
+          linkedin_connected_at: new Date().toISOString(),
+          // Clear OAuth state
+          linkedin_oauth_state: null,
+          linkedin_oauth_initiated_at: null,
+          // Update profile fields if not already set
+          name: userData.name || profileData.name || profileData.given_name,
+          linkedin_head: userData.linkedin_head || profileData.locale?.country || null
+        })
 
         console.log('✅ LinkedIn connection saved successfully')
         return new Response(
@@ -342,19 +382,16 @@ serve(async (req) => {
 
       case 'status': {
         // Check LinkedIn connection status
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('linkedin_member_id, linkedin_access_token, linkedin_token_expires_at, name, linkedin_profile_url, linkedin_profile_image_url, linkedin_connected_at')
-          .eq('id', user.id)
-          .single()
+        const userDataResponse = await queryDatabase(`users?id=eq.${user.id}&select=linkedin_member_id,linkedin_access_token,linkedin_token_expires_at,name,linkedin_profile_url,linkedin_profile_image_url,linkedin_connected_at`)
+        const userData = userDataResponse[0]
 
-        if (userError || !userData) {
-          console.error('❌ Failed to fetch user data:', userError)
+        if (!userData) {
+          console.error('❌ User data not found')
           return new Response(
             JSON.stringify({ 
               success: false,
               connection_status: 'disconnected',
-              error: 'Failed to check connection status' 
+              error: 'User not found' 
             }),
             { 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -400,34 +437,17 @@ serve(async (req) => {
 
       case 'disconnect': {
         // Clear LinkedIn connection data
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({
-            linkedin_member_id: null,
-            linkedin_access_token: null,
-            linkedin_refresh_token: null,
-            linkedin_token_expires_at: null,
-            linkedin_profile_url: null,
-            linkedin_profile_image_url: null,
-            linkedin_connected_at: null,
-            linkedin_oauth_state: null,
-            linkedin_oauth_initiated_at: null
-          })
-          .eq('id', user.id)
-
-        if (updateError) {
-          console.error('❌ Failed to disconnect LinkedIn:', updateError)
-          return new Response(
-            JSON.stringify({ 
-              success: false, 
-              error: 'Failed to disconnect LinkedIn' 
-            }),
-            { 
-              status: 500,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          )
-        }
+        await updateDatabase('users', user.id, {
+          linkedin_member_id: null,
+          linkedin_access_token: null,
+          linkedin_refresh_token: null,
+          linkedin_token_expires_at: null,
+          linkedin_profile_url: null,
+          linkedin_profile_image_url: null,
+          linkedin_connected_at: null,
+          linkedin_oauth_state: null,
+          linkedin_oauth_initiated_at: null
+        })
 
         console.log('✅ LinkedIn disconnected successfully')
         return new Response(
