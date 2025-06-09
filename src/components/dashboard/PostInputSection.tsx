@@ -9,16 +9,16 @@ interface PostInputSectionProps {
 
 export const PostInputSection = ({ input, setInput }: PostInputSectionProps) => {
   return (
-    <div>
-      <Label htmlFor="post-input" className="text-base font-semibold">
-        Enter a topic or paste a URL
+    <div className="space-y-3">
+      <Label htmlFor="post-input" className="text-lg font-semibold text-midnight">
+        What would you like to write about?
       </Label>
       <Input
         id="post-input"
-        placeholder="e.g., 'AI in professional services' or paste an article URL"
+        placeholder="Enter a topic like 'AI in professional services' or paste an article URL..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        className="mt-2 border-slate/20 focus:ring-mint/40"
+        className="h-14 text-lg px-4 border-2 border-slate/20 focus:border-mint focus:ring-mint/40 bg-white/90 placeholder:text-slate/50"
         aria-label="Post topic input"
       />
     </div>

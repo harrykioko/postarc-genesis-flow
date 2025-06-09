@@ -20,7 +20,7 @@ export const GenerateButton = ({
       <Button
         onClick={onGenerate}
         disabled={disabled}
-        className="bg-neon text-midnight hover:bg-neon/90 px-6 transform hover:scale-105 active:scale-110 transition-transform duration-100"
+        className="h-12 bg-gradient-to-r from-neon to-mint text-midnight hover:from-neon/90 hover:to-mint/90 px-8 font-semibold transform hover:scale-105 active:scale-110 transition-all duration-200 shadow-lg"
         aria-label="Generate post content"
       >
         {isGenerating ? (
