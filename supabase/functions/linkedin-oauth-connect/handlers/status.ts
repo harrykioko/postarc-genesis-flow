@@ -1,11 +1,10 @@
 
-import { queryDatabase } from '../utils/database.ts'
+import { fetchUserData } from '../utils/database.ts'
 import { createSuccessResponse } from '../utils/cors.ts'
 
 export async function handleStatus(userId: string) {
   // Check LinkedIn connection status
-  const userDataResponse = await queryDatabase(`users?id=eq.${userId}&select=linkedin_member_id,linkedin_access_token,linkedin_token_expires_at,name,linkedin_profile_url,linkedin_profile_image_url,linkedin_connected_at`)
-  const userData = userDataResponse[0]
+  const userData = await fetchUserData(userId, 'linkedin_member_id,linkedin_access_token,linkedin_token_expires_at,name,linkedin_profile_url,linkedin_profile_image_url,linkedin_connected_at')
 
   if (!userData) {
     console.error('❌ User data not found')

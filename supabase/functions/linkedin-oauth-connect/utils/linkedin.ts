@@ -31,40 +31,74 @@ export async function exchangeCodeForToken(code: string): Promise<any> {
   })
 
   console.log('🔄 Exchanging code for access token...')
-  const tokenResponse = await fetch(LINKEDIN_TOKEN_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: tokenParams.toString()
-  })
+  
+  // Add timeout protection
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 25000) // 25 second timeout
+  
+  try {
+    const tokenResponse = await fetch(LINKEDIN_TOKEN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: tokenParams.toString(),
+      signal: controller.signal
+    })
 
-  if (!tokenResponse.ok) {
-    const errorText = await tokenResponse.text()
-    console.error('❌ Token exchange failed:', errorText)
-    throw new Error('Failed to exchange code for token')
+    clearTimeout(timeoutId)
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text()
+      console.error('❌ Token exchange failed:', errorText)
+      throw new Error('Failed to exchange code for token')
+    }
+
+    const tokenData = await tokenResponse.json()
+    console.log('✅ Access token received')
+    return tokenData
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error.name === 'AbortError') {
+      console.error('❌ Token exchange timed out')
+      throw new Error('Token exchange timed out')
+    }
+    throw error
   }
-
-  const tokenData = await tokenResponse.json()
-  console.log('✅ Access token received')
-  return tokenData
 }
 
 export async function fetchLinkedInProfile(accessToken: string): Promise<any> {
   console.log('🔄 Fetching LinkedIn profile...')
-  const profileResponse = await fetch(LINKEDIN_PROFILE_URL, {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`
+  
+  // Add timeout protection
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 25000) // 25 second timeout
+  
+  try {
+    const profileResponse = await fetch(LINKEDIN_PROFILE_URL, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      },
+      signal: controller.signal
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!profileResponse.ok) {
+      const errorText = await profileResponse.text()
+      console.error('❌ Profile fetch failed:', errorText)
+      throw new Error('Failed to fetch LinkedIn profile')
     }
-  })
 
-  if (!profileResponse.ok) {
-    const errorText = await profileResponse.text()
-    console.error('❌ Profile fetch failed:', errorText)
-    throw new Error('Failed to fetch LinkedIn profile')
+    const profileData = await profileResponse.json()
+    console.log('✅ LinkedIn profile fetched:', profileData.sub)
+    return profileData
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error.name === 'AbortError') {
+      console.error('❌ Profile fetch timed out')
+      throw new Error('Profile fetch timed out')
+    }
+    throw error
   }
-
-  const profileData = await profileResponse.json()
-  console.log('✅ LinkedIn profile fetched:', profileData.sub)
-  return profileData
 }

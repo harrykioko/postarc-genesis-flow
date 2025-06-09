@@ -1,43 +1,29 @@
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+import { supabase } from './auth.ts'
 
-// Helper function to query database
-export async function queryDatabase(query: string, params: any = {}) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${query}`, {
-    method: 'GET',
-    headers: {
-      'apikey': SUPABASE_SERVICE_ROLE_KEY,
-      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    }
-  })
-  
-  if (!response.ok) {
-    throw new Error(`Database query failed: ${response.statusText}`)
+export async function updateDatabase(table: string, userId: string, updates: Record<string, any>) {
+  const { error } = await supabase
+    .from(table)
+    .update(updates)
+    .eq('id', userId)
+
+  if (error) {
+    console.error(`❌ Failed to update ${table}:`, error)
+    throw new Error(`Failed to update ${table}`)
   }
-  
-  return await response.json()
 }
 
-// Helper function to update database
-export async function updateDatabase(table: string, userId: string, data: any) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${userId}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_SERVICE_ROLE_KEY,
-      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify(data)
-  })
-  
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Database update failed: ${error}`)
+export async function fetchUserData(userId: string, columns: string) {
+  const { data, error } = await supabase
+    .from('users')
+    .select(columns)
+    .eq('id', userId)
+    .single()
+
+  if (error) {
+    console.error('❌ Failed to fetch user data:', error)
+    throw new Error('Failed to fetch user data')
   }
-  
-  return await response.json()
+
+  return data
 }

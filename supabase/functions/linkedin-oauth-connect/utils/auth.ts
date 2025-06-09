@@ -1,40 +1,25 @@
 
-interface User {
-  id: string
-  email?: string
-}
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4'
 
-// Helper function to get user from JWT without using Supabase client
-export async function getUserFromToken(token: string): Promise<User | null> {
-  try {
-    // Decode JWT to get user info
-    const parts = token.split('.')
-    if (parts.length !== 3) {
-      console.error('Invalid JWT format')
-      return null
-    }
-    
-    // Decode the payload
-    const payload = JSON.parse(atob(parts[1]))
-    
-    if (!payload.sub) {
-      console.error('No user ID in token')
-      return null
-    }
-    
-    return {
-      id: payload.sub,
-      email: payload.email
-    }
-  } catch (error) {
-    console.error('Failed to decode JWT:', error)
-    return null
-  }
-}
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-export function extractTokenFromHeader(authHeader: string | null): string | null {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+export async function authenticateUser(authHeader: string | null) {
   if (!authHeader) {
-    return null
+    console.error('❌ No authorization header provided')
+    throw new Error('No authorization header')
   }
-  return authHeader.replace('Bearer ', '').trim()
+
+  const token = authHeader.replace('Bearer ', '')
+  
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+  if (authError || !user) {
+    console.error('❌ Invalid authentication token:', authError)
+    throw new Error('Invalid authentication token')
+  }
+
+  console.log(`👤 User authenticated: ${user.id} (${user.email})`)
+  return user
 }

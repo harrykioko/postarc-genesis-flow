@@ -1,5 +1,5 @@
 
-import { queryDatabase, updateDatabase } from '../utils/database.ts'
+import { fetchUserData, updateDatabase } from '../utils/database.ts'
 import { exchangeCodeForToken, fetchLinkedInProfile } from '../utils/linkedin.ts'
 import { createErrorResponse, createSuccessResponse } from '../utils/cors.ts'
 
@@ -9,8 +9,7 @@ export async function handleCallback(userId: string, code: string, state: string
   }
 
   // Get user data to verify state
-  const userDataResponse = await queryDatabase(`users?id=eq.${userId}&select=linkedin_oauth_state,linkedin_oauth_initiated_at`)
-  const userData = userDataResponse[0]
+  const userData = await fetchUserData(userId, 'linkedin_oauth_state,linkedin_oauth_initiated_at,name,linkedin_head')
 
   if (!userData) {
     console.error('❌ User data not found')
