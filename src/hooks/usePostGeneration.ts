@@ -46,7 +46,9 @@ export const usePostGeneration = () => {
       const payload = {
         topic: isUrl ? undefined : input.trim(),
         url: isUrl ? input.trim() : undefined,
-        template: templateMapping[options.selectedTemplate] || "Consultant",
+        template: options.selectedTemplate.startsWith('custom-') 
+          ? options.selectedTemplate 
+          : (templateMapping[options.selectedTemplate] || "Consultant"),
         hasEmojis: options.useEmojis,
         hasHashtags: options.useHashtags
       };
