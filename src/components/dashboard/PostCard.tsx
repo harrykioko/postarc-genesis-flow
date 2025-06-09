@@ -24,9 +24,24 @@ const getTemplateColor = (template: string) => {
     vc: "bg-green-500 text-white border-green-500",
     sales: "bg-orange-500 text-white border-orange-500",
     hr: "bg-pink-500 text-white border-pink-500",
+    business_representative: "bg-indigo-500 text-white border-indigo-500",
+    custom: "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-purple-500",
   };
   
+  // Handle custom templates
+  if (template.startsWith('custom-')) {
+    return colorMap.custom;
+  }
+  
   return colorMap[template.toLowerCase()] || "bg-neon/10 text-neon border-neon/30";
+};
+
+const formatTemplateName = (template: string) => {
+  if (template.startsWith('custom-')) {
+    return 'Custom Template';
+  }
+  // Capitalize first letter for built-in templates
+  return template.charAt(0).toUpperCase() + template.slice(1);
 };
 
 const truncateText = (text: string, maxLength = 200) => {
@@ -57,7 +72,7 @@ export const PostCard = ({ post, index, showAllPosts, onPostClick }: PostCardPro
           <div className="flex items-center space-x-2">
             {post.template && (
               <Badge variant="outline" className={`text-xs ${getTemplateColor(post.template)}`}>
-                {post.template}
+                {formatTemplateName(post.template)}
               </Badge>
             )}
           </div>
