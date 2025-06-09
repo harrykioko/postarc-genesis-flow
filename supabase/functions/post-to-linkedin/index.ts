@@ -1,221 +1,467 @@
-
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+// supabase/functions/linkedin-oauth-connect/index.ts
+import { serve } from 'https://deno.land/std@0.190.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+// LinkedIn OAuth Configuration
+const LINKEDIN_CLIENT_ID = Deno.env.get('LINKEDIN_CLIENT_ID')!
+const LINKEDIN_CLIENT_SECRET = Deno.env.get('LINKEDIN_CLIENT_SECRET')!
+const LINKEDIN_REDIRECT_URI = Deno.env.get('LINKEDIN_REDIRECT_URI')!
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+// LinkedIn OAuth URLs
+const LINKEDIN_AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization'
+const LINKEDIN_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken'
+const LINKEDIN_PROFILE_URL = 'https://api.linkedin.com/v2/userinfo'
+
+// Create Supabase client
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      status: 200, 
+      headers: corsHeaders 
+    })
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }), 
+      { 
+        status: 405, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
   }
 
   try {
-    console.log('🚀 Post to LinkedIn function called');
-    
-    // Check for auth header
-    const authHeader = req.headers.get('Authorization');
+    // Get the authorization header
+    const authHeader = req.headers.get('authorization')
     if (!authHeader) {
-      console.error('❌ No authorization header provided');
-      return new Response(JSON.stringify({ 
-        error: 'No authorization header provided' 
-      }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (!authHeader.startsWith('Bearer ')) {
-      console.error('❌ Invalid authorization header format');
-      return new Response(JSON.stringify({ 
-        error: 'Invalid authorization header format' 
-      }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('✅ Authorization header found');
-
-    // Extract JWT token
-    const token = authHeader.replace('Bearer ', '');
-    console.log('🔑 JWT token extracted, length:', token.length);
-
-    // Create supabase admin client with SERVICE ROLE KEY for admin operations
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
-    );
-
-    // Manually verify the JWT token using service role client
-    console.log('🔐 Verifying JWT token with service role client...');
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    
-    console.log('🔍 JWT verification result:', {
-      userFound: !!user,
-      userId: user?.id,
-      userEmail: user?.email,
-      authError: authError?.message
-    });
-    
-    if (authError) {
-      console.error('❌ JWT verification failed:', authError);
-      return new Response(JSON.stringify({ 
-        error: 'Invalid or expired token',
-        details: authError.message 
-      }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (!user) {
-      console.error('❌ No user found from JWT token');
-      return new Response(JSON.stringify({ 
-        error: 'Invalid token - no user found' 
-      }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('✅ User authenticated successfully via JWT:', user.email);
-
-    const { post_id, content } = await req.json();
-    console.log('📝 Processing LinkedIn post:', { post_id, contentLength: content?.length });
-
-    if (!post_id || !content) {
-      console.error('❌ Missing required fields');
-      return new Response(JSON.stringify({ 
-        error: 'Missing required fields: post_id and content' 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Get user's LinkedIn token using admin client
-    console.log('🔍 Fetching user LinkedIn tokens...');
-    const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('linkedin_access_token, linkedin_token_expires_at, linkedin_member_id')
-      .eq('id', user.id)
-      .single();
-
-    if (userError || !userData.linkedin_access_token) {
-      console.error('❌ LinkedIn not connected:', userError);
-      return new Response(JSON.stringify({ 
-        error: 'LinkedIn not connected' 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Check if token is expired
-    if (userData.linkedin_token_expires_at && 
-        new Date(userData.linkedin_token_expires_at) < new Date()) {
-      console.error('⏰ LinkedIn token expired');
-      return new Response(JSON.stringify({ 
-        error: 'LinkedIn token expired. Please reconnect your account.' 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('🔗 Posting to LinkedIn using Share API v2...');
-
-    // Post to LinkedIn using the updated Share API v2
-    const linkedInResponse = await fetch('https://api.linkedin.com/v2/shares', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${userData.linkedin_access_token}`,
-        'Content-Type': 'application/json',
-        'X-Restli-Protocol-Version': '2.0.0',
-      },
-      body: JSON.stringify({
-        distribution: {
-          linkedInDistributionTarget: {}
-        },
-        owner: `urn:li:person:${userData.linkedin_member_id}`,
-        text: {
-          text: content
+      console.error('❌ No authorization header provided')
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
-      }),
-    });
-
-    if (!linkedInResponse.ok) {
-      const errorData = await linkedInResponse.json();
-      console.error('❌ LinkedIn posting failed:', errorData);
-      
-      let errorMessage = 'Failed to post to LinkedIn';
-      if (errorData.message?.includes('token')) {
-        errorMessage = 'LinkedIn token expired. Please reconnect your account.';
-      } else if (errorData.message?.includes('forbidden')) {
-        errorMessage = 'LinkedIn posting not authorized. Please check your LinkedIn app permissions.';
-      }
-      
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        details: errorData
-      }), {
-        status: linkedInResponse.status,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      )
     }
 
-    const linkedInData = await linkedInResponse.json();
-    const linkedInPostId = linkedInData.id;
+    // Extract the token from the header
+    const token = authHeader.replace('Bearer ', '')
     
-    // Generate LinkedIn post URL (approximate format for Share API)
-    const linkedInPostUrl = `https://www.linkedin.com/feed/update/${linkedInPostId}`;
-
-    console.log('✅ LinkedIn post successful:', { linkedInPostId, linkedInPostUrl });
-
-    // Update the post record with LinkedIn info using admin client
-    console.log('📝 Updating post record with LinkedIn info...');
-    const { error: updateError } = await supabaseAdmin
-      .from('posts')
-      .update({
-        posted_to_linkedin: true,
-        linkedin_post_id: linkedInPostId,
-        linkedin_post_url: linkedInPostUrl
-      })
-      .eq('id', post_id);
-
-    if (updateError) {
-      console.error('❌ Failed to update post record:', updateError);
-      // Note: LinkedIn post was successful, but we couldn't update our database
-      // Still return success but log the error
+    // Verify the user from the token
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user) {
+      console.error('❌ Invalid authentication token:', authError)
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
-    console.log('✅ Successfully posted to LinkedIn and updated database:', {
-      userId: user.id,
-      postId: post_id,
-      linkedInPostId
-    });
+    console.log(`👤 User authenticated: ${user.id} (${user.email})`)
 
-    return new Response(JSON.stringify({
-      success: true,
-      linkedin_post_id: linkedInPostId,
-      linkedin_post_url: linkedInPostUrl
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    // Parse request body safely
+    let body: any = {}
+    
+    // Check if request has a body
+    const contentType = req.headers.get('content-type')
+    if (contentType && contentType.includes('application/json')) {
+      const bodyText = await req.text()
+      console.log(`📦 Request body length: ${bodyText.length}`)
+      
+      if (bodyText.length > 0) {
+        try {
+          body = JSON.parse(bodyText)
+          console.log(`✅ Parsed body:`, JSON.stringify(body))
+        } catch (parseError) {
+          console.error('❌ Failed to parse JSON body:', parseError)
+          return new Response(
+            JSON.stringify({ error: 'Invalid JSON body' }),
+            { 
+              status: 400, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+      } else {
+        console.log('⚠️ Empty request body received')
+      }
+    }
 
-  } catch (error: any) {
-    console.error('💥 LinkedIn posting error:', error);
-    return new Response(JSON.stringify({
-      error: 'Failed to post to LinkedIn',
-      message: error.message
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    const { action } = body
+
+    console.log(`🔄 Processing action: ${action || 'undefined'}`)
+
+    switch (action) {
+      case 'initiate': {
+        // Generate a unique state for CSRF protection
+        const state = crypto.randomUUID()
+        
+        // Store the state in the user's database record
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ 
+            linkedin_oauth_state: state,
+            linkedin_oauth_initiated_at: new Date().toISOString()
+          })
+          .eq('id', user.id)
+
+        if (updateError) {
+          console.error('❌ Failed to update user state:', updateError)
+          throw new Error('Failed to initiate OAuth flow')
+        }
+
+        // Construct the LinkedIn authorization URL
+        const params = new URLSearchParams({
+          response_type: 'code',
+          client_id: LINKEDIN_CLIENT_ID,
+          redirect_uri: LINKEDIN_REDIRECT_URI,
+          state: state,
+          scope: 'openid profile email w_member_social'
+        })
+
+        const authUrl = `${LINKEDIN_AUTH_URL}?${params.toString()}`
+        
+        console.log('✅ LinkedIn OAuth URL generated')
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            auth_url: authUrl,
+            state: state 
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      case 'callback': {
+        const { code, state } = body
+
+        if (!code || !state) {
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'Missing code or state parameter' 
+            }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        // Verify state matches what we stored
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('linkedin_oauth_state, linkedin_oauth_initiated_at')
+          .eq('id', user.id)
+          .single()
+
+        if (userError || !userData) {
+          console.error('❌ Failed to fetch user data:', userError)
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'Failed to verify OAuth state' 
+            }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        if (userData.linkedin_oauth_state !== state) {
+          console.error('❌ State mismatch')
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'Invalid OAuth state' 
+            }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        // Check if OAuth was initiated recently (within 10 minutes)
+        const initiatedAt = new Date(userData.linkedin_oauth_initiated_at)
+        const now = new Date()
+        const diffMinutes = (now.getTime() - initiatedAt.getTime()) / 1000 / 60
+        
+        if (diffMinutes > 10) {
+          console.error('❌ OAuth state expired')
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'OAuth session expired. Please try again.' 
+            }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        // Exchange code for access token
+        const tokenParams = new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: code,
+          client_id: LINKEDIN_CLIENT_ID,
+          client_secret: LINKEDIN_CLIENT_SECRET,
+          redirect_uri: LINKEDIN_REDIRECT_URI
+        })
+
+        console.log('🔄 Exchanging code for access token...')
+        const tokenResponse = await fetch(LINKEDIN_TOKEN_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: tokenParams.toString()
+        })
+
+        if (!tokenResponse.ok) {
+          const errorText = await tokenResponse.text()
+          console.error('❌ Token exchange failed:', errorText)
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'Failed to exchange code for token' 
+            }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        const tokenData = await tokenResponse.json()
+        console.log('✅ Access token received')
+
+        // Get user profile
+        console.log('🔄 Fetching LinkedIn profile...')
+        const profileResponse = await fetch(LINKEDIN_PROFILE_URL, {
+          headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`
+          }
+        })
+
+        if (!profileResponse.ok) {
+          const errorText = await profileResponse.text()
+          console.error('❌ Profile fetch failed:', errorText)
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'Failed to fetch LinkedIn profile' 
+            }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        const profileData = await profileResponse.json()
+        console.log('✅ LinkedIn profile fetched:', profileData.sub)
+
+        // Calculate token expiration
+        const expiresAt = new Date()
+        expiresAt.setSeconds(expiresAt.getSeconds() + tokenData.expires_in)
+
+        // Update user record with LinkedIn data
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({
+            linkedin_member_id: profileData.sub,
+            linkedin_access_token: tokenData.access_token,
+            linkedin_refresh_token: tokenData.refresh_token || null,
+            linkedin_token_expires_at: expiresAt.toISOString(),
+            linkedin_profile_url: `https://www.linkedin.com/in/${profileData.sub}`,
+            linkedin_profile_image_url: profileData.picture || null,
+            linkedin_connected_at: new Date().toISOString(),
+            // Clear OAuth state
+            linkedin_oauth_state: null,
+            linkedin_oauth_initiated_at: null,
+            // Update profile fields if not already set
+            name: userData.name || profileData.name || profileData.given_name,
+            linkedin_head: userData.linkedin_head || profileData.locale?.country || null
+          })
+          .eq('id', user.id)
+
+        if (updateError) {
+          console.error('❌ Failed to update user record:', updateError)
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'Failed to save LinkedIn connection' 
+            }),
+            { 
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        console.log('✅ LinkedIn connection saved successfully')
+        return new Response(
+          JSON.stringify({ 
+            success: true,
+            profile: {
+              linkedin_member_id: profileData.sub,
+              name: profileData.name || profileData.given_name,
+              profile_url: `https://www.linkedin.com/in/${profileData.sub}`,
+              profile_image_url: profileData.picture || null,
+              connected_at: new Date().toISOString()
+            }
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      case 'status': {
+        // Check LinkedIn connection status
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('linkedin_member_id, linkedin_access_token, linkedin_token_expires_at, name, linkedin_profile_url, linkedin_profile_image_url, linkedin_connected_at')
+          .eq('id', user.id)
+          .single()
+
+        if (userError || !userData) {
+          console.error('❌ Failed to fetch user data:', userError)
+          return new Response(
+            JSON.stringify({ 
+              success: false,
+              connection_status: 'disconnected',
+              error: 'Failed to check connection status' 
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        // Check if LinkedIn is connected
+        if (!userData.linkedin_access_token || !userData.linkedin_member_id) {
+          return new Response(
+            JSON.stringify({ 
+              success: true,
+              connection_status: 'disconnected'
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        // Check if token is expired
+        const tokenExpiry = new Date(userData.linkedin_token_expires_at)
+        const isExpired = tokenExpiry < new Date()
+
+        return new Response(
+          JSON.stringify({ 
+            success: true,
+            connection_status: isExpired ? 'expired' : 'connected',
+            profile: isExpired ? undefined : {
+              linkedin_member_id: userData.linkedin_member_id,
+              name: userData.name,
+              profile_url: userData.linkedin_profile_url,
+              profile_image_url: userData.linkedin_profile_image_url,
+              connected_at: userData.linkedin_connected_at
+            },
+            token_expires_at: userData.linkedin_token_expires_at
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      case 'disconnect': {
+        // Clear LinkedIn connection data
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({
+            linkedin_member_id: null,
+            linkedin_access_token: null,
+            linkedin_refresh_token: null,
+            linkedin_token_expires_at: null,
+            linkedin_profile_url: null,
+            linkedin_profile_image_url: null,
+            linkedin_connected_at: null,
+            linkedin_oauth_state: null,
+            linkedin_oauth_initiated_at: null
+          })
+          .eq('id', user.id)
+
+        if (updateError) {
+          console.error('❌ Failed to disconnect LinkedIn:', updateError)
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'Failed to disconnect LinkedIn' 
+            }),
+            { 
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        console.log('✅ LinkedIn disconnected successfully')
+        return new Response(
+          JSON.stringify({ success: true }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      default: {
+        console.error(`❌ Unknown action: ${action}`)
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Invalid action' 
+          }),
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+    }
+
+  } catch (error) {
+    console.error('❌ Unexpected error:', error)
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || 'Internal server error' 
+      }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
   }
-});
+})
