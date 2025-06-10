@@ -2,153 +2,231 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from "@/components/ui/badge";
-import { Building2, Clock } from 'lucide-react';
+import { Building2, Clock, TrendingUp, Eye, Heart } from 'lucide-react';
 
 interface ExamplePost {
   id: number;
   template: string;
   preview: string;
-  hoursAgo: number;
   author: string;
   company: string;
+  views: string;
+  reactions: string;
+  isNew?: boolean;
+  height: string;
 }
 
 const examplePosts: ExamplePost[] = [
   {
     id: 1,
     template: "Consultant",
-    preview: "After 15 years in consulting, I've seen countless digital transformations fail. Here's what actually works when implementing AI in enterprise organizations...",
-    hoursAgo: 2,
+    preview: "After 15 years in consulting, I've seen countless digital transformations fail. Here's what actually works when implementing AI in enterprise...",
     author: "Sarah Chen",
-    company: "McKinsey & Company"
+    company: "McKinsey & Company",
+    views: "2.3k",
+    reactions: "147",
+    isNew: true,
+    height: "h-72"
   },
   {
     id: 2,
     template: "Founder",
     preview: "We went from 0 to $1M ARR in 8 months. Here are the 3 brutal lessons that made the difference (and why most startups ignore them)...",
-    hoursAgo: 4,
     author: "Marcus Rodriguez",
-    company: "TechFlow"
+    company: "TechFlow",
+    views: "5.1k",
+    reactions: "312",
+    height: "h-80"
   },
   {
     id: 3,
     template: "Sales",
     preview: "The client said 'This is exactly what we needed.' It wasn't luck. Here's my proven framework for consultative selling that closes 85% of qualified leads...",
-    hoursAgo: 6,
     author: "Jennifer Walsh",
-    company: "Salesforce"
+    company: "Salesforce",
+    views: "1.8k",
+    reactions: "89",
+    height: "h-64"
+  },
+  {
+    id: 4,
+    template: "VC",
+    preview: "I've reviewed 10,000+ pitches. The best founders all do this one thing differently. It's not what you think...",
+    author: "David Park",
+    company: "Andreessen Horowitz",
+    views: "3.7k",
+    reactions: "203",
+    height: "h-76"
+  },
+  {
+    id: 5,
+    template: "HR",
+    preview: "We reduced employee turnover by 40% with one simple change. No fancy perks, no salary increases. Just this...",
+    author: "Lisa Thompson",
+    company: "Google",
+    views: "4.2k",
+    reactions: "278",
+    height: "h-68"
+  },
+  {
+    id: 6,
+    template: "Consultant",
+    preview: "My biggest client just saved $2M annually with this process optimization. The solution was hiding in plain sight...",
+    author: "Ahmed Hassan",
+    company: "Deloitte",
+    views: "2.9k",
+    reactions: "156",
+    height: "h-72"
   }
 ];
 
-const liveTickerData = [
-  { name: "David Kim", company: "Google" },
-  { name: "Lisa Thompson", company: "Microsoft" },
-  { name: "Ahmed Hassan", company: "Amazon" },
-  { name: "Maria Santos", company: "Meta" },
-  { name: "James Wilson", company: "Apple" }
+const successMessages = [
+  "Sarah just got 500+ reactions!",
+  "Marcus's post reached 10K views",
+  "Jennifer landed 3 new clients",
+  "David's insight went viral",
+  "Lisa's post trending in HR"
 ];
 
+const templateColors = {
+  "Consultant": "from-blue-500 to-blue-600",
+  "Founder": "from-purple-500 to-purple-600",
+  "Sales": "from-green-500 to-green-600",
+  "VC": "from-orange-500 to-orange-600",
+  "HR": "from-pink-500 to-pink-600"
+};
+
 export const PostShowcase = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [tickerIndex, setTickerIndex] = useState(0);
+  const [postsCreated, setPostsCreated] = useState(237);
+  const [successIndex, setSuccessIndex] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % examplePosts.length);
+    const postsInterval = setInterval(() => {
+      setPostsCreated(prev => prev + Math.floor(Math.random() * 3));
     }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
-  useEffect(() => {
-    const tickerInterval = setInterval(() => {
-      setTickerIndex((prev) => (prev + 1) % liveTickerData.length);
+    const successInterval = setInterval(() => {
+      setSuccessIndex(prev => (prev + 1) % successMessages.length);
     }, 3000);
-    return () => clearInterval(tickerInterval);
+
+    return () => {
+      clearInterval(postsInterval);
+      clearInterval(successInterval);
+    };
   }, []);
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
+    <section className="py-24 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-midnight">
-            See What Professionals Are Creating
-          </h2>
+          <div className="flex justify-center items-center mb-8">
+            <h2 className="text-4xl md:text-5xl font-heading font-bold text-midnight">
+              See What Professionals Are Creating
+            </h2>
+            <div className="ml-8 flex items-center space-x-2 glass-card px-4 py-2 rounded-full">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <motion.span
+                key={postsCreated}
+                initial={{ scale: 1.2 }}
+                animate={{ scale: 1 }}
+                className="text-sm font-medium text-midnight"
+              >
+                {postsCreated} posts created today
+              </motion.span>
+            </div>
+          </div>
           <p className="text-xl text-slate max-w-2xl mx-auto">
             Real posts generated by AI, shared by industry leaders
           </p>
         </div>
 
-        {/* Post Carousel */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="relative h-80">
-            <AnimatePresence mode="wait">
+        {/* Masonry Grid */}
+        <div className="max-w-6xl mx-auto mb-12">
+          <div className="grid md:grid-cols-3 gap-6">
+            {examplePosts.map((post, index) => (
               <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.5 }}
-                className="absolute inset-0"
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ scale: 1.02, y: -5 }}
+                className={`glass-card p-6 rounded-xl ${post.height} relative overflow-hidden group cursor-pointer`}
               >
-                <div className="glass-card p-8 rounded-xl h-full">
-                  <div className="flex items-center justify-between mb-6">
-                    <Badge className="bg-neon/20 text-midnight border-neon/30">
-                      {examplePosts[currentIndex].template} Template
+                {/* NEW Badge */}
+                {post.isNew && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <Badge className="bg-neon text-midnight font-bold animate-pulse">
+                      NEW
                     </Badge>
-                    <div className="flex items-center text-slate text-sm">
-                      <Clock className="w-4 h-4 mr-1" />
-                      Created {examplePosts[currentIndex].hoursAgo}h ago
+                  </div>
+                )}
+                
+                {/* Template Badge */}
+                <div className="mb-4">
+                  <Badge className={`bg-gradient-to-r ${templateColors[post.template]} text-white border-0`}>
+                    {post.template} Template
+                  </Badge>
+                </div>
+                
+                {/* Post Preview */}
+                <div className="bg-white rounded-lg p-4 mb-4 flex-1">
+                  <p className="text-midnight leading-relaxed text-sm">
+                    {post.preview}
+                  </p>
+                </div>
+                
+                {/* Author Info */}
+                <div className="flex items-center justify-between text-sm mb-3">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-midnight to-slate rounded-full mr-2 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">
+                        {post.author.split(' ').map(n => n[0]).join('')}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="font-medium text-midnight">{post.author}</div>
+                      <div className="text-slate text-xs">{post.company}</div>
                     </div>
                   </div>
-                  
-                  <div className="bg-white rounded-lg p-6 mb-6">
-                    <p className="text-midnight leading-relaxed">
-                      {examplePosts[currentIndex].preview}
-                    </p>
+                </div>
+                
+                {/* Engagement Metrics */}
+                <div className="flex items-center space-x-4 text-slate text-xs">
+                  <div className="flex items-center">
+                    <Eye className="w-3 h-3 mr-1" />
+                    <span>{post.views} views</span>
                   </div>
-                  
-                  <div className="flex items-center text-sm text-slate">
-                    <Building2 className="w-4 h-4 mr-2" />
-                    <span className="font-medium">{examplePosts[currentIndex].author}</span>
-                    <span className="mx-2">•</span>
-                    <span>{examplePosts[currentIndex].company}</span>
+                  <div className="flex items-center">
+                    <Heart className="w-3 h-3 mr-1" />
+                    <span>{post.reactions} reactions</span>
                   </div>
                 </div>
+                
+                {/* Hover Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-neon/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </motion.div>
-            </AnimatePresence>
-          </div>
-          
-          {/* Carousel Indicators */}
-          <div className="flex justify-center space-x-2 mt-6">
-            {examplePosts.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentIndex ? 'bg-neon' : 'bg-slate/30'
-                }`}
-              />
             ))}
           </div>
         </div>
 
-        {/* Live Ticker */}
+        {/* Rotating Success Messages */}
         <div className="text-center">
           <div className="inline-flex items-center space-x-2 glass-card px-6 py-3 rounded-full">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <TrendingUp className="w-4 h-4 text-neon" />
             <AnimatePresence mode="wait">
               <motion.span
-                key={tickerIndex}
+                key={successIndex}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="text-sm text-midnight"
+                className="text-sm font-medium text-midnight"
               >
-                <span className="font-medium">{liveTickerData[tickerIndex].name}</span> from{" "}
-                <span className="font-medium">{liveTickerData[tickerIndex].company}</span> just created a post
+                {successMessages[successIndex]}
               </motion.span>
             </AnimatePresence>
+            <div className="w-2 h-2 bg-neon rounded-full animate-pulse" />
           </div>
         </div>
       </div>
