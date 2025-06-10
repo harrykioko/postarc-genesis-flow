@@ -42,13 +42,16 @@ export const Hero = () => {
             Generate expert-level posts in seconds with AI. Share confidently, grow your influence.
           </p>
           
-          <div className="flex justify-center items-center mb-12">
-            <Button
+          <div className="flex flex-col items-center mb-12">
+            <button
               onClick={() => setShowDemo(true)}
-              className="btn-neon px-8 py-3 text-lg rounded-lg"
+              className="btn-neon px-8 py-4 text-lg font-semibold rounded-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
-              Try it now - Free
-            </Button>
+              Try It Now
+            </button>
+            <p className="text-sm text-slate mt-3">
+              3 free posts • No signup required
+            </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">

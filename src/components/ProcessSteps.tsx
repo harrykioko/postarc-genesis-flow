@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -195,12 +194,12 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
         <div className="text-center mt-16">
           <button 
             onClick={onTryNowClick}
-            className="bg-gradient-to-r from-neon to-mint text-midnight font-bold text-lg px-10 py-5 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+            className="btn-neon px-8 py-4 text-lg font-semibold rounded-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
           >
-            Try It Now - 3 Free Posts
+            Try It Now
           </button>
-          <p className="text-sm text-gray-500 mt-4">
-            No signup required • See results instantly • Cancel anytime
+          <p className="text-sm text-slate mt-3">
+            3 free posts • No signup required
           </p>
           
           {/* Trust indicators */}
