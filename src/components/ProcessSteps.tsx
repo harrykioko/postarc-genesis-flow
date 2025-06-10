@@ -7,24 +7,6 @@ interface ProcessStepsProps {
 }
 
 export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
-  const steps = [
-    {
-      icon: Lightbulb,
-      title: "Drop Your Idea",
-      description: "Any topic, article URL, or random thought that sparks inspiration"
-    },
-    {
-      icon: Sparkles,
-      title: "AI Works Its Magic",
-      description: "Analyzes trends, crafts hooks, and optimizes for maximum engagement"
-    },
-    {
-      icon: Share2,
-      title: "Share & Shine",
-      description: "Copy, edit, or post directly to LinkedIn with one click"
-    }
-  ];
-
   return (
     <section className="py-20">
       <div className="container mx-auto px-6">
@@ -37,39 +19,123 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 md:gap-4">
-            {steps.map((step, index) => {
-              const IconComponent = step.icon;
-              return (
-                <div key={index} className="flex flex-col items-center">
-                  <div className="text-center max-w-xs mx-auto">
-                    <div className="relative">
-                      <div className="w-20 h-20 bg-white rounded-full shadow-lg border-2 border-neon/20 flex items-center justify-center">
-                        <IconComponent className="w-10 h-10 text-midnight" />
-                      </div>
-                      <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-midnight text-white rounded-full flex items-center justify-center font-bold text-sm">
-                        {index + 1}
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-xl font-heading font-semibold text-midnight mt-6 mb-2">
-                      {step.title}
-                    </h3>
-                    <p className="text-slate text-sm">
-                      {step.description}
-                    </p>
+        <div className="max-w-5xl mx-auto">
+          {/* Desktop: horizontal layout */}
+          <div className="hidden md:flex items-center justify-between">
+            {/* Step 1 */}
+            <div className="flex-1">
+              <div className="flex flex-col items-center">
+                <div className="relative mb-4">
+                  <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center">
+                    <Lightbulb className="w-12 h-12 text-white" />
                   </div>
-
-                  {/* Connecting line - only show between steps on desktop */}
-                  {index < steps.length - 1 && (
-                    <div className="hidden md:flex items-center flex-1 px-4 absolute top-10 left-1/2 w-full">
-                      <div className="h-0.5 w-full bg-slate/20"></div>
-                    </div>
-                  )}
+                  <div className="absolute -top-2 -right-2 w-10 h-10 bg-midnight text-white rounded-full flex items-center justify-center font-bold">
+                    1
+                  </div>
                 </div>
-              );
-            })}
+                <h3 className="text-xl font-heading font-bold text-midnight mb-2">Drop Your Idea</h3>
+                <p className="text-slate text-center max-w-xs">
+                  Any topic, article URL, or random thought that sparks inspiration
+                </p>
+              </div>
+            </div>
+
+            {/* Connecting Line */}
+            <div className="flex-shrink-0 w-32 px-4">
+              <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex-1">
+              <div className="flex flex-col items-center">
+                <div className="relative mb-4">
+                  <div className="w-24 h-24 bg-purple-500 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-12 h-12 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-10 h-10 bg-midnight text-white rounded-full flex items-center justify-center font-bold">
+                    2
+                  </div>
+                </div>
+                <h3 className="text-xl font-heading font-bold text-midnight mb-2">AI Works Its Magic</h3>
+                <p className="text-slate text-center max-w-xs">
+                  Analyzes trends, crafts hooks, and optimizes for maximum engagement
+                </p>
+              </div>
+            </div>
+
+            {/* Connecting Line */}
+            <div className="flex-shrink-0 w-32 px-4">
+              <div className="h-1 bg-gradient-to-r from-purple-500 to-neon rounded-full"></div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex-1">
+              <div className="flex flex-col items-center">
+                <div className="relative mb-4">
+                  <div className="w-24 h-24 bg-neon rounded-full flex items-center justify-center">
+                    <Share2 className="w-12 h-12 text-midnight" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-10 h-10 bg-midnight text-white rounded-full flex items-center justify-center font-bold">
+                    3
+                  </div>
+                </div>
+                <h3 className="text-xl font-heading font-bold text-midnight mb-2">Share & Shine</h3>
+                <p className="text-slate text-center max-w-xs">
+                  Copy, edit, or post directly to LinkedIn with one click
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile: vertical layout */}
+          <div className="md:hidden space-y-12">
+            {/* Step 1 */}
+            <div className="flex flex-col items-center">
+              <div className="relative mb-4">
+                <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center">
+                  <Lightbulb className="w-12 h-12 text-white" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-10 h-10 bg-midnight text-white rounded-full flex items-center justify-center font-bold">
+                  1
+                </div>
+              </div>
+              <h3 className="text-xl font-heading font-bold text-midnight mb-2">Drop Your Idea</h3>
+              <p className="text-slate text-center max-w-xs">
+                Any topic, article URL, or random thought that sparks inspiration
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col items-center">
+              <div className="relative mb-4">
+                <div className="w-24 h-24 bg-purple-500 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-12 h-12 text-white" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-10 h-10 bg-midnight text-white rounded-full flex items-center justify-center font-bold">
+                  2
+                </div>
+              </div>
+              <h3 className="text-xl font-heading font-bold text-midnight mb-2">AI Works Its Magic</h3>
+              <p className="text-slate text-center max-w-xs">
+                Analyzes trends, crafts hooks, and optimizes for maximum engagement
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col items-center">
+              <div className="relative mb-4">
+                <div className="w-24 h-24 bg-neon rounded-full flex items-center justify-center">
+                  <Share2 className="w-12 h-12 text-midnight" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-10 h-10 bg-midnight text-white rounded-full flex items-center justify-center font-bold">
+                  3
+                </div>
+              </div>
+              <h3 className="text-xl font-heading font-bold text-midnight mb-2">Share & Shine</h3>
+              <p className="text-slate text-center max-w-xs">
+                Copy, edit, or post directly to LinkedIn with one click
+              </p>
+            </div>
           </div>
         </div>
 
@@ -80,7 +146,7 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
           >
             Try It Now
           </Button>
-          <p className="text-sm text-slate mt-2">
+          <p className="text-sm text-slate mt-3">
             3 free posts • No signup required
           </p>
         </div>
