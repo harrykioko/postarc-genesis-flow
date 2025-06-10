@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowDown, Edit, Share } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { DemoModal } from "./DemoModal";
 import { AuthModal } from "./AuthModal";
@@ -42,7 +42,7 @@ export const Hero = () => {
             Generate expert-level posts in seconds with AI. Share confidently, grow your influence.
           </p>
           
-          <div className="flex flex-col items-center mb-12">
+          <div className="flex flex-col items-center mb-16">
             <button
               onClick={() => setShowDemo(true)}
               className="btn-neon px-8 py-4 text-lg font-semibold rounded-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
@@ -53,32 +53,13 @@ export const Hero = () => {
               3 free posts • No signup required
             </p>
           </div>
-          
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="glass-card p-6 rounded-xl text-center">
-              <div className="w-12 h-12 bg-neon/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Edit className="w-6 h-6 text-neon" />
-              </div>
-              <h3 className="text-lg font-heading font-semibold mb-2">AI-Powered Writing</h3>
-              <p className="text-slate">Generate engaging posts from topics or URLs in under 10 seconds</p>
-            </div>
-            
-            <div className="glass-card p-6 rounded-xl text-center">
-              <div className="w-12 h-12 bg-neon/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Share className="w-6 h-6 text-neon" />
-              </div>
-              <h3 className="text-lg font-heading font-semibold mb-2">One-Click Sharing</h3>
-              <p className="text-slate">Share directly to LinkedIn with pre-filled, optimized content</p>
-            </div>
-            
-            <div className="glass-card p-6 rounded-xl text-center">
-              <div className="w-12 h-12 bg-neon/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <ArrowDown className="w-6 h-6 text-neon" />
-              </div>
-              <h3 className="text-lg font-heading font-semibold mb-2">Professional Templates</h3>
-              <p className="text-slate">Choose from Consultant, Founder, VC, Sales, and HR styles</p>
-            </div>
-          </div>
+        </div>
+      </div>
+
+      {/* Bounce Animation to Guide Users Down */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <div className="w-8 h-8 bg-neon/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-neon/30">
+          <ChevronDown className="w-4 h-4 text-neon" />
         </div>
       </div>
       
