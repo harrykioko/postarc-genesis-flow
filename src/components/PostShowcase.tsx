@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from "@/components/ui/badge";
-import { Building2, Clock, TrendingUp, Eye, Heart } from 'lucide-react';
+import { Eye, Heart } from 'lucide-react';
 
 interface ExamplePost {
   id: number;
@@ -84,67 +84,57 @@ const examplePosts: ExamplePost[] = [
 
 const templateColors = {
   "Consultant": {
-    gradient: "from-blue-500 to-blue-600",
-    border: "border-l-blue-500",
-    badge: "bg-blue-100 text-blue-700 border-blue-200",
-    avatar: "from-blue-400 to-blue-600"
+    topBar: "from-blue-500 to-blue-600",
+    avatar: "from-blue-500 to-blue-600",
+    badge: "bg-blue-100 text-blue-700"
   },
   "Founder": {
-    gradient: "from-purple-500 to-purple-600",
-    border: "border-l-purple-500",
-    badge: "bg-purple-100 text-purple-700 border-purple-200",
-    avatar: "from-purple-400 to-purple-600"
+    topBar: "from-purple-500 to-purple-600",
+    avatar: "from-purple-500 to-purple-600",
+    badge: "bg-purple-100 text-purple-700"
   },
   "Sales": {
-    gradient: "from-green-500 to-green-600",
-    border: "border-l-green-500",
-    badge: "bg-green-100 text-green-700 border-green-200",
-    avatar: "from-green-400 to-green-600"
+    topBar: "from-green-500 to-green-600",
+    avatar: "from-green-500 to-green-600",
+    badge: "bg-green-100 text-green-700"
   },
   "VC": {
-    gradient: "from-orange-500 to-orange-600",
-    border: "border-l-orange-500",
-    badge: "bg-orange-100 text-orange-700 border-orange-200",
-    avatar: "from-orange-400 to-orange-600"
+    topBar: "from-orange-500 to-orange-600",
+    avatar: "from-orange-500 to-orange-600",
+    badge: "bg-orange-100 text-orange-700"
   },
   "HR": {
-    gradient: "from-pink-500 to-pink-600",
-    border: "border-l-pink-500",
-    badge: "bg-pink-100 text-pink-700 border-pink-200",
-    avatar: "from-pink-400 to-pink-600"
+    topBar: "from-pink-500 to-pink-600",
+    avatar: "from-pink-500 to-pink-600",
+    badge: "bg-pink-100 text-pink-700"
   }
 };
 
+const activities = [
+  "Jessica L. in Miami just created a Sales post",
+  "Michael R. in Seattle just created a Founder post",
+  "Amanda K. in Boston just created a Consultant post",
+  "James P. in Austin just created a VC post",
+  "Rachel M. in Denver just created an HR post"
+];
+
 export const PostShowcase = () => {
-  const [postsCreated, setPostsCreated] = useState(237);
-  const [randomPulseId, setRandomPulseId] = useState<number | null>(null);
+  const [currentActivity, setCurrentActivity] = useState(0);
 
   useEffect(() => {
-    const postsInterval = setInterval(() => {
-      setPostsCreated(prev => prev + Math.floor(Math.random() * 3));
-    }, 5000);
+    const activityInterval = setInterval(() => {
+      setCurrentActivity(prev => (prev + 1) % activities.length);
+    }, 4000);
 
-    // Random pulse effect
-    const pulseInterval = setInterval(() => {
-      const randomPost = examplePosts[Math.floor(Math.random() * examplePosts.length)];
-      setRandomPulseId(randomPost.id);
-      setTimeout(() => setRandomPulseId(null), 2000);
-    }, 8000);
-
-    return () => {
-      clearInterval(postsInterval);
-      clearInterval(pulseInterval);
-    };
+    return () => clearInterval(activityInterval);
   }, []);
 
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-50 to-white overflow-hidden relative">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgb(148 163 184) 1px, transparent 0)`,
-          backgroundSize: '20px 20px'
-        }} />
+    <section className="py-20 relative bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      {/* Subtle Background Effects */}
+      <div className="absolute inset-0 opacity-[0.02]">
+        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-400 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-400 rounded-full blur-3xl"></div>
       </div>
       
       <div className="container mx-auto px-6 relative">
@@ -157,136 +147,111 @@ export const PostShowcase = () => {
           </p>
         </div>
 
-        {/* Enhanced Masonry Grid */}
-        <div className="max-w-6xl mx-auto mb-12">
-          <div className="grid md:grid-cols-3 gap-8">
-            {examplePosts.map((post, index) => {
-              const colors = templateColors[post.template];
-              const isFeatured = post.isFeatured;
-              const hasRandomPulse = randomPulseId === post.id;
-              
-              return (
-                <motion.div
-                  key={post.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ 
-                    y: -8,
-                    boxShadow: "0 25px 50px rgba(0,0,0,0.15)"
-                  }}
-                  className={`
-                    bg-white rounded-2xl border-l-4 ${colors.border} shadow-lg 
-                    hover:shadow-xl transition-all duration-300 cursor-pointer group relative
-                    ${isFeatured ? 'md:scale-110 md:z-10' : ''}
-                    ${hasRandomPulse ? 'animate-pulse-ring' : ''}
-                  `}
-                >
-                  {/* Card Content */}
-                  <div className="p-6">
-                    {/* Header - Badge and Time */}
-                    <div className="flex items-center justify-between mb-4">
-                      <Badge className={`text-xs px-2 py-1 ${colors.badge} border`}>
-                        {post.template}
-                      </Badge>
-                      <div className="flex items-center text-xs text-slate">
-                        <Clock className="w-3 h-3 mr-1" />
-                        <span>{post.timeAgo}</span>
-                      </div>
-                    </div>
-
-                    {/* NEW Badge */}
-                    {post.isNew && (
-                      <div className="absolute top-4 right-4">
-                        <Badge className="bg-neon text-midnight font-bold">
-                          <motion.span
-                            animate={{ 
-                              scale: [1, 1.05, 1],
-                              opacity: [1, 0.8, 1]
-                            }}
-                            transition={{ 
-                              duration: 2, 
-                              repeat: Infinity,
-                              ease: "easeInOut"
-                            }}
-                          >
-                            NEW
-                          </motion.span>
-                        </Badge>
-                      </div>
-                    )}
-                    
-                    {/* Profile Section */}
-                    <div className="flex items-center mb-4">
-                      <div className={`w-12 h-12 bg-gradient-to-br ${colors.avatar} rounded-full mr-3 flex items-center justify-center shadow-md`}>
-                        <span className="text-white text-sm font-bold">
-                          {post.author.split(' ')[0][0]}{post.author.split(' ')[1][0]}
-                        </span>
+        {/* Cards Grid */}
+        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-12">
+          {examplePosts.map((post, index) => {
+            const colors = templateColors[post.template];
+            const initials = post.author.split(' ').map(name => name[0]).join('');
+            
+            return (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="group relative bg-white rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-1"
+              >
+                {/* Colored Top Bar */}
+                <div className={`h-1 bg-gradient-to-r ${colors.topBar}`}></div>
+                
+                {/* Card Content */}
+                <div className="p-6">
+                  {/* Header Row */}
+                  <div className="flex items-start justify-between mb-4">
+                    {/* Left: Avatar + Author */}
+                    <div className="flex items-center gap-3">
+                      {/* Gradient Avatar */}
+                      <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${colors.avatar} flex items-center justify-center text-white font-bold shadow-md`}>
+                        {initials}
                       </div>
                       <div>
-                        <div className="font-semibold text-midnight text-sm">{post.author}</div>
-                        <div className="text-slate text-xs">{post.location}</div>
+                        <h4 className="font-semibold text-gray-900">{post.author}</h4>
+                        <p className="text-sm text-gray-500">{post.location}</p>
                       </div>
                     </div>
                     
-                    {/* Post Preview */}
-                    <div className="mb-4">
-                      <p className="text-base text-gray-900 leading-relaxed font-medium">
-                        {post.preview}
-                      </p>
-                    </div>
-                    
-                    {/* Engagement Metrics */}
-                    <div className="flex items-center space-x-4 text-slate text-sm mb-4">
-                      <div className="flex items-center">
-                        <span className="mr-1">👁️</span>
-                        <span>{post.views} views</span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="mr-1">❤️</span>
-                        <span>{post.reactions} reactions</span>
-                      </div>
-                    </div>
-
-                    {/* Hover Read More Button */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      whileHover={{ opacity: 1, y: 0 }}
-                      className="opacity-0 group-hover:opacity-100 transition-all duration-200"
-                    >
-                      <button className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center">
-                        Read full post
-                        <motion.span
-                          initial={{ x: 0 }}
-                          whileHover={{ x: 4 }}
-                          className="ml-1"
-                        >
-                          →
-                        </motion.span>
-                      </button>
-                    </motion.div>
+                    {/* Right: Time */}
+                    <span className="text-xs text-gray-400">{post.timeAgo}</span>
                   </div>
+                  
+                  {/* Template Badge */}
+                  <span className={`inline-block px-3 py-1 ${colors.badge} text-xs font-medium rounded-full mb-3`}>
+                    {post.template} Template
+                  </span>
+                  
+                  {/* NEW Badge */}
+                  {post.isNew && (
+                    <div className="absolute top-4 right-4">
+                      <Badge className="bg-neon text-midnight font-bold">
+                        <motion.span
+                          animate={{ 
+                            scale: [1, 1.05, 1],
+                            opacity: [1, 0.8, 1]
+                          }}
+                          transition={{ 
+                            duration: 2, 
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        >
+                          NEW
+                        </motion.span>
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  {/* Post Preview - LARGER TEXT */}
+                  <p className="text-gray-900 text-lg font-medium leading-relaxed mb-4 line-clamp-3">
+                    {post.preview}
+                  </p>
+                  
+                  {/* Engagement Metrics with REAL ICONS */}
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span className="flex items-center gap-1.5">
+                      <Eye className="w-4 h-4" />
+                      {post.views} views
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Heart className="w-4 h-4 text-red-500 fill-current" />
+                      {post.reactions} reactions
+                    </span>
+                  </div>
+                </div>
 
-                  {/* Bottom Gradient Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white/80 to-transparent rounded-b-2xl pointer-events-none" />
-                </motion.div>
-              );
-            })}
-          </div>
+                {/* Hover Overlay with Read More Button */}
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button className="w-full bg-white text-gray-900 py-2 rounded-lg font-semibold">
+                    Read Full Post →
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
-        {/* Live Posts Counter */}
-        <div className="text-center">
-          <div className="inline-flex items-center space-x-2 bg-white/60 backdrop-blur-sm border border-white/30 px-6 py-3 rounded-full shadow-lg">
+        {/* Activity Ticker */}
+        <div className="mt-12 text-center">
+          <div className="inline-flex items-center gap-2 bg-white px-5 py-3 rounded-full shadow-lg">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <motion.span
-              key={postsCreated}
-              initial={{ scale: 1.2 }}
-              animate={{ scale: 1 }}
-              className="text-sm font-medium text-midnight"
+              key={currentActivity}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="text-sm font-medium"
             >
-              {postsCreated} posts created today
+              {activities[currentActivity]}
             </motion.span>
           </div>
         </div>
