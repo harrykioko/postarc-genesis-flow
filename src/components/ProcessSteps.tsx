@@ -12,10 +12,10 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-midnight">
-            How It Works: From Blank Page to LinkedIn Post in Seconds
+            How it works
           </h2>
           <p className="text-xl text-slate max-w-2xl mx-auto">
-            Watch how AI transforms your ideas into LinkedIn gold
+            From Blank page to Linkedin post in seconds
           </p>
         </div>
 
