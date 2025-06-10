@@ -1,146 +1,16 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Badge } from "@/components/ui/badge";
-import { Eye, Heart, TrendingUp, Sparkles } from 'lucide-react';
 
-interface ExamplePost {
-  id: number;
-  template: string;
-  preview: string;
-  author: string;
-  location: string;
-  views: string;
-  reactions: string;
-  timeAgo: string;
-  isNew?: boolean;
-  isFeatured?: boolean;
-}
+import { PostsCreatedCounter } from './postShowcase/PostsCreatedCounter';
+import { PostsGrid } from './postShowcase/PostsGrid';
+import { ActivityTicker } from './postShowcase/ActivityTicker';
+import { PostShowcaseCTA } from './postShowcase/PostShowcaseCTA';
+import { usePostShowcaseState } from './postShowcase/hooks/usePostShowcaseState';
 
 interface PostShowcaseProps {
   onTryNowClick?: () => void;
 }
 
-const examplePosts: ExamplePost[] = [
-  {
-    id: 1,
-    template: "Consultant",
-    preview: "Ever wonder why 70% of digital transformations fail? After implementing AI solutions for Fortune 500s, I've identified the real culprit. It's not the technology - it's the people side that gets overlooked every single time.",
-    author: "Sarah C.",
-    location: "Marketing Director, NYC",
-    views: "1.2k",
-    reactions: "89",
-    timeAgo: "2 hours ago",
-    isNew: true,
-    isFeatured: true
-  },
-  {
-    id: 2,
-    template: "Founder",
-    preview: "We went from 0 to $1M ARR in 8 months. Here are the 3 brutal lessons that made the difference (and why most startups ignore them).",
-    author: "Marcus R.",
-    location: "Founder, Austin",
-    views: "2.8k",
-    reactions: "147",
-    timeAgo: "4 hours ago"
-  },
-  {
-    id: 3,
-    template: "Sales",
-    preview: "Last week, a client said 'This is exactly what we needed.' It wasn't luck. Here's my proven framework for consultative selling that closes 40% more deals.",
-    author: "Jennifer W.",
-    location: "Sales Leader, Chicago",
-    views: "847",
-    reactions: "52",
-    timeAgo: "Yesterday"
-  },
-  {
-    id: 4,
-    template: "VC",
-    preview: "I've reviewed 10,000+ pitches. The best founders all do this one thing differently. It's not what you think.",
-    author: "David P.",
-    location: "VC Partner, SF",
-    views: "3.1k",
-    reactions: "203",
-    timeAgo: "12 min ago"
-  },
-  {
-    id: 5,
-    template: "HR",
-    preview: "Question: What's the #1 reason top talent leaves? It's not salary. We reduced employee turnover by 40% with one simple change that costs nothing.",
-    author: "Lisa T.",
-    location: "HR Director, Boston",
-    views: "1.6k",
-    reactions: "94",
-    timeAgo: "6 hours ago"
-  },
-  {
-    id: 6,
-    template: "Consultant",
-    preview: "My biggest client just saved $2M annually. The solution was hiding in plain sight, but everyone missed it.",
-    author: "Ahmed H.",
-    location: "Consultant, London",
-    views: "423",
-    reactions: "31",
-    timeAgo: "1 day ago"
-  }
-];
-
-const templateColors = {
-  "Consultant": {
-    topBar: "from-blue-500 to-blue-600",
-    avatar: "from-blue-500 to-blue-600",
-    badge: "bg-blue-100 text-blue-700"
-  },
-  "Founder": {
-    topBar: "from-purple-500 to-purple-600",
-    avatar: "from-purple-500 to-purple-600",
-    badge: "bg-purple-100 text-purple-700"
-  },
-  "Sales": {
-    topBar: "from-green-500 to-green-600",
-    avatar: "from-green-500 to-green-600",
-    badge: "bg-green-100 text-green-700"
-  },
-  "VC": {
-    topBar: "from-orange-500 to-orange-600",
-    avatar: "from-orange-500 to-orange-600",
-    badge: "bg-orange-100 text-orange-700"
-  },
-  "HR": {
-    topBar: "from-pink-500 to-pink-600",
-    avatar: "from-pink-500 to-pink-600",
-    badge: "bg-pink-100 text-pink-700"
-  }
-};
-
-const activities = [
-  "Jessica L. in Miami just created a Sales post",
-  "Michael R. in Seattle just created a Founder post",
-  "Amanda K. in Boston just created a Consultant post",
-  "James P. in Austin just created a VC post",
-  "Rachel M. in Denver just created an HR post"
-];
-
 export const PostShowcase = ({ onTryNowClick }: PostShowcaseProps) => {
-  const [currentActivity, setCurrentActivity] = useState(0);
-  const [postsCreated, setPostsCreated] = useState(247);
-
-  useEffect(() => {
-    const activityInterval = setInterval(() => {
-      setCurrentActivity(prev => (prev + 1) % activities.length);
-    }, 4000);
-
-    return () => clearInterval(activityInterval);
-  }, []);
-
-  useEffect(() => {
-    // Simulate live counter for posts created
-    const postsInterval = setInterval(() => {
-      setPostsCreated(prev => prev + Math.floor(Math.random() * 3));
-    }, 5000);
-
-    return () => clearInterval(postsInterval);
-  }, []);
+  const { currentActivity, postsCreated } = usePostShowcaseState();
 
   return (
     <section className="py-20 relative bg-gradient-to-b from-slate-50 via-white to-slate-50">
@@ -151,26 +21,7 @@ export const PostShowcase = ({ onTryNowClick }: PostShowcaseProps) => {
       </div>
       
       <div className="container mx-auto px-6 relative">
-        {/* Posts Created Today Counter */}
-        <div className="text-center mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-lg border border-neon/20"
-          >
-            <TrendingUp className="w-4 h-4 text-neon" />
-            <motion.span
-              key={postsCreated}
-              initial={{ scale: 1.2 }}
-              animate={{ scale: 1 }}
-              className="font-bold text-neon text-lg"
-            >
-              {postsCreated}
-            </motion.span>
-            <span className="text-midnight font-medium">posts created today</span>
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          </motion.div>
-        </div>
+        <PostsCreatedCounter postsCreated={postsCreated} />
 
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-heading font-bold text-midnight mb-8">
@@ -181,136 +32,11 @@ export const PostShowcase = ({ onTryNowClick }: PostShowcaseProps) => {
           </p>
         </div>
 
-        {/* Cards Grid */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-12">
-          {examplePosts.map((post, index) => {
-            const colors = templateColors[post.template];
-            const initials = post.author.split(' ').map(name => name[0]).join('');
-            
-            return (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="group relative bg-white rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-1"
-              >
-                {/* Colored Top Bar */}
-                <div className={`h-1 bg-gradient-to-r ${colors.topBar}`}></div>
-                
-                {/* Card Content */}
-                <div className="p-6">
-                  {/* Header Row */}
-                  <div className="flex items-start justify-between mb-4">
-                    {/* Left: Avatar + Author */}
-                    <div className="flex items-center gap-3">
-                      {/* Gradient Avatar */}
-                      <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${colors.avatar} flex items-center justify-center text-white font-bold shadow-md`}>
-                        {initials}
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{post.author}</h4>
-                        <p className="text-sm text-gray-500">{post.location}</p>
-                      </div>
-                    </div>
-                    
-                    {/* Right: Time */}
-                    <span className="text-xs text-gray-400">{post.timeAgo}</span>
-                  </div>
-                  
-                  {/* Template Badge */}
-                  <span className={`inline-block px-3 py-1 ${colors.badge} text-xs font-medium rounded-full mb-3`}>
-                    {post.template} Template
-                  </span>
-                  
-                  {/* NEW Badge */}
-                  {post.isNew && (
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-neon text-midnight font-bold">
-                        <motion.span
-                          animate={{ 
-                            scale: [1, 1.05, 1],
-                            opacity: [1, 0.8, 1]
-                          }}
-                          transition={{ 
-                            duration: 2, 
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                        >
-                          NEW
-                        </motion.span>
-                      </Badge>
-                    </div>
-                  )}
-                  
-                  {/* Post Preview - LARGER TEXT */}
-                  <p className="text-gray-900 text-lg font-medium leading-relaxed mb-4 line-clamp-3">
-                    {post.preview}
-                  </p>
-                  
-                  {/* Engagement Metrics with REAL ICONS */}
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span className="flex items-center gap-1.5">
-                      <Eye className="w-4 h-4" />
-                      {post.views} views
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Heart className="w-4 h-4 text-red-500 fill-current" />
-                      {post.reactions} reactions
-                    </span>
-                  </div>
-                </div>
+        <PostsGrid />
 
-                {/* Hover Overlay with Read More Button */}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="w-full bg-white text-gray-900 py-2 rounded-lg font-semibold">
-                    Read Full Post →
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+        <ActivityTicker currentActivity={currentActivity} />
 
-        {/* Activity Ticker */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-white px-5 py-3 rounded-full shadow-lg">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <motion.span
-              key={currentActivity}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="text-sm font-medium"
-            >
-              {activities[currentActivity]}
-            </motion.span>
-          </div>
-        </div>
-
-        {/* CTA Button */}
-        <div className="text-center">
-          <motion.button
-            onClick={onTryNowClick}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-neon to-green-400 text-midnight px-8 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300"
-          >
-            <Sparkles className="w-6 h-6" />
-            Try It Free - No Card Required
-            <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            >
-              <Sparkles className="w-5 h-5" />
-            </motion.div>
-          </motion.button>
-          <p className="text-sm text-slate mt-3">
-            Generate your first viral post in under 30 seconds
-          </p>
-        </div>
+        <PostShowcaseCTA onTryNowClick={onTryNowClick} />
       </div>
     </section>
   );
