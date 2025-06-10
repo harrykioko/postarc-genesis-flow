@@ -5,7 +5,6 @@ import { useDemoState } from "@/hooks/useDemoState";
 import { DemoInputSection } from "./demo/DemoInputSection";
 import { EnhancedTemplateCards } from "./demo/EnhancedTemplateCards";
 import { DemoGenerateButton } from "./demo/DemoGenerateButton";
-import { ExamplePostCarousel } from "./demo/ExamplePostCarousel";
 import { AIGenerationAnimator } from "./demo/AIGenerationAnimator";
 import { PostRevealCelebration } from "./demo/PostRevealCelebration";
 import { ProgressiveEngagement } from "./demo/ProgressiveEngagement";
@@ -74,7 +73,7 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-heading">Experience PostArc Magic ✨</DialogTitle>
@@ -84,61 +83,60 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
           </div>
         </DialogHeader>
         
-        {/* Social Proof Section */}
+        {/* Simplified Social Proof Section */}
         <div className="mb-6">
           <SocialProofTicker />
         </div>
         
-        <div className="grid lg:grid-cols-2 gap-8 mt-6">
-          <div className="space-y-6">
-            <DemoInputSection 
-              input={input}
-              onInputChange={setInput}
-            />
-            
-            <EnhancedTemplateCards
-              selectedTemplate={selectedTemplate}
-              onTemplateSelect={setSelectedTemplate}
-            />
-            
-            <ProgressiveEngagement demoUsage={safeUsage} />
-            
-            <DemoGenerateButton
-              input={input}
-              isGenerating={isGenerating}
-              canGenerate={canGenerate}
-              remaining={safeUsage.remaining}
-              onGenerate={handleGenerate}
-            />
-            
-            {isAtLimit && (
-              <DemoLimitReached
-                onClose={() => onOpenChange(false)}
-                onPricingClick={onPricingClick}
-                onSignUpClick={onSignUpClick}
-              />
-            )}
-          </div>
+        {/* Single Column Content Flow */}
+        <div className="space-y-6">
+          {/* Show AI Generation Animation when generating */}
+          {isGenerating && (
+            <AIGenerationAnimator isGenerating={isGenerating} />
+          )}
           
-          <div className="space-y-6">
-            {/* Show AI Generation Animation when generating */}
-            {isGenerating && (
-              <AIGenerationAnimator isGenerating={isGenerating} />
-            )}
-            
-            {/* Show Generated Post when available */}
-            {generatedPost && !isGenerating && (
-              <PostRevealCelebration
-                generatedPost={generatedPost}
-                isGenerating={isGenerating}
+          {/* Show Generated Post when available */}
+          {generatedPost && !isGenerating && (
+            <PostRevealCelebration
+              generatedPost={generatedPost}
+              isGenerating={isGenerating}
+            />
+          )}
+          
+          {/* Show Input Form when no post and not generating */}
+          {!generatedPost && !isGenerating && (
+            <>
+              <DemoInputSection 
+                input={input}
+                onInputChange={setInput}
               />
-            )}
-            
-            {/* Show Example Carousel when no post and not generating */}
-            {!generatedPost && !isGenerating && (
-              <ExamplePostCarousel />
-            )}
-          </div>
+              
+              <EnhancedTemplateCards
+                selectedTemplate={selectedTemplate}
+                onTemplateSelect={setSelectedTemplate}
+              />
+              
+              <DemoGenerateButton
+                input={input}
+                isGenerating={isGenerating}
+                canGenerate={canGenerate}
+                remaining={safeUsage.remaining}
+                onGenerate={handleGenerate}
+              />
+            </>
+          )}
+          
+          {/* Progressive Engagement */}
+          <ProgressiveEngagement demoUsage={safeUsage} />
+          
+          {/* Demo Limit Reached */}
+          {isAtLimit && (
+            <DemoLimitReached
+              onClose={() => onOpenChange(false)}
+              onPricingClick={onPricingClick}
+              onSignUpClick={onSignUpClick}
+            />
+          )}
         </div>
       </DialogContent>
     </Dialog>
