@@ -3,9 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { useDemoState } from "@/hooks/useDemoState";
 import { DemoInputSection } from "./demo/DemoInputSection";
-import { DemoTemplateSelection } from "./demo/DemoTemplateSelection";
+import { EnhancedTemplateCards } from "./demo/EnhancedTemplateCards";
 import { DemoGenerateButton } from "./demo/DemoGenerateButton";
-import { DemoGeneratedPost } from "./demo/DemoGeneratedPost";
+import { ExamplePostCarousel } from "./demo/ExamplePostCarousel";
+import { AIGenerationAnimator } from "./demo/AIGenerationAnimator";
+import { PostRevealCelebration } from "./demo/PostRevealCelebration";
+import { ProgressiveEngagement } from "./demo/ProgressiveEngagement";
+import { SocialProofTicker } from "./demo/SocialProofTicker";
 import { DemoLimitReached } from "./demo/DemoLimitReached";
 import { handleDemoGeneration } from "./demo/DemoGenerationLogic";
 
@@ -70,27 +74,34 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-heading">Try PostArc Demo</DialogTitle>
+            <DialogTitle className="text-2xl font-heading">Experience PostArc Magic ✨</DialogTitle>
             <Badge variant="secondary" className="bg-neon/20 text-midnight">
               {safeUsage.remaining} tries remaining
             </Badge>
           </div>
         </DialogHeader>
         
-        <div className="grid md:grid-cols-2 gap-6 mt-6">
+        {/* Social Proof Section */}
+        <div className="mb-6">
+          <SocialProofTicker />
+        </div>
+        
+        <div className="grid lg:grid-cols-2 gap-8 mt-6">
           <div className="space-y-6">
             <DemoInputSection 
               input={input}
               onInputChange={setInput}
             />
             
-            <DemoTemplateSelection
+            <EnhancedTemplateCards
               selectedTemplate={selectedTemplate}
               onTemplateSelect={setSelectedTemplate}
             />
+            
+            <ProgressiveEngagement demoUsage={safeUsage} />
             
             <DemoGenerateButton
               input={input}
@@ -109,12 +120,24 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
             )}
           </div>
           
-          <div className="space-y-4">
-            <DemoGeneratedPost
-              generatedPost={generatedPost}
-              demoUsageUsed={safeUsage.used}
-              isGenerating={isGenerating}
-            />
+          <div className="space-y-6">
+            {/* Show AI Generation Animation when generating */}
+            {isGenerating && (
+              <AIGenerationAnimator isGenerating={isGenerating} />
+            )}
+            
+            {/* Show Generated Post when available */}
+            {generatedPost && !isGenerating && (
+              <PostRevealCelebration
+                generatedPost={generatedPost}
+                isGenerating={isGenerating}
+              />
+            )}
+            
+            {/* Show Example Carousel when no post and not generating */}
+            {!generatedPost && !isGenerating && (
+              <ExamplePostCarousel />
+            )}
           </div>
         </div>
       </DialogContent>
