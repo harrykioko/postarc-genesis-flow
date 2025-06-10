@@ -31,7 +31,7 @@ export const TrustMetrics = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-r from-slate-50 to-white">
+    <section className="py-20">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-midnight">
@@ -52,7 +52,7 @@ export const TrustMetrics = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="text-center glass-card p-6 rounded-xl"
+                className="text-center card-float p-6"
               >
                 <div className="w-12 h-12 bg-neon/20 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <IconComponent className="w-6 h-6 text-neon" />

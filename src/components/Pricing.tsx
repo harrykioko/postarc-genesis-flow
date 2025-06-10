@@ -28,7 +28,7 @@ export const Pricing = () => {
   };
 
   return (
-    <section id="pricing" className="py-20 bg-white/50 overflow-hidden">
+    <section id="pricing" className="py-20 overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="text-center mb-24">
           <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-midnight">

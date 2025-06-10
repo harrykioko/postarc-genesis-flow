@@ -13,13 +13,7 @@ export const PostShowcase = ({ onTryNowClick }: PostShowcaseProps) => {
   const { currentActivity, postsCreated } = usePostShowcaseState();
 
   return (
-    <section className="py-20 relative bg-gradient-to-b from-slate-50 via-white to-slate-50">
-      {/* Subtle Background Effects */}
-      <div className="absolute inset-0 opacity-[0.02]">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-400 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-400 rounded-full blur-3xl"></div>
-      </div>
-      
+    <section className="py-20 relative">
       <div className="container mx-auto px-6 relative">
         <PostsCreatedCounter postsCreated={postsCreated} />
 

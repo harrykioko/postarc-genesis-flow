@@ -31,7 +31,7 @@ export const FAQ = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-slate-50 to-white">
+    <section className="py-20">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-midnight">
@@ -48,7 +48,7 @@ export const FAQ = () => {
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="glass-card rounded-xl px-6 border-0"
+                className="card-float px-6 border-0"
               >
                 <AccordionTrigger className="text-left text-lg font-semibold text-midnight hover:no-underline py-6">
                   {faq.question}

@@ -22,7 +22,7 @@ export const BeforeAfter = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-slate-50">
+    <section className="py-20">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6 text-midnight">
@@ -43,7 +43,7 @@ export const BeforeAfter = () => {
             viewport={{ once: true }}
             className="relative"
           >
-            <div className="glass-card p-8 rounded-2xl border-2 border-red-100 relative overflow-hidden bg-gradient-to-br from-red-50/50 to-white">
+            <div className="card-float p-8 border-slate-200 relative overflow-hidden bg-gradient-to-br from-red-50/50 to-white">
               {/* Enhanced visual effect */}
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-400 to-red-500"></div>
               
@@ -93,7 +93,7 @@ export const BeforeAfter = () => {
             viewport={{ once: true }}
             className="relative"
           >
-            <div className="glass-card p-8 rounded-2xl border-2 border-green-100 relative overflow-hidden bg-gradient-to-br from-green-50/50 to-white">
+            <div className="card-float p-8 border-neon/30 relative overflow-hidden bg-gradient-to-br from-green-50/50 to-white">
               {/* Enhanced visual effect */}
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-neon to-mint"></div>
               

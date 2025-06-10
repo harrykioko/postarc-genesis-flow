@@ -20,7 +20,7 @@ export const PostCard = ({ post, index, colors }: PostCardProps) => {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       viewport={{ once: true }}
-      className="group relative bg-white rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-1"
+      className="group relative card-float hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-1"
     >
       {/* Colored Top Bar */}
       <div className={`h-1 bg-gradient-to-r ${colors.topBar}`}></div>

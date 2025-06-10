@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
 @tailwind base;
 @tailwind components;
@@ -141,6 +142,48 @@
     .sidebar-mobile {
       @apply order-last animate-slide-up;
     }
+  }
+
+  /* Section backgrounds */
+  .section-white {
+    @apply bg-white;
+  }
+
+  .section-soft {
+    @apply bg-gradient-to-b from-[#F8FBFF] to-[#F5FAFF];
+  }
+
+  .section-feature {
+    @apply bg-gradient-to-br from-white via-[#F5FFFD] to-[#F0FFFB];
+  }
+
+  /* Subtle patterns */
+  .pattern-dots {
+    background-image: radial-gradient(circle, #00FFC2 0.5px, transparent 0.5px);
+    background-size: 20px 20px;
+    opacity: 0.03;
+  }
+
+  .pattern-grid {
+    background-image: 
+      linear-gradient(rgba(11, 28, 52, 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(11, 28, 52, 0.5) 1px, transparent 1px);
+    background-size: 50px 50px;
+    opacity: 0.02;
+  }
+
+  /* Enhanced floating cards */
+  .card-float {
+    @apply bg-white rounded-xl border border-slate-100;
+    box-shadow: 
+      0 4px 6px -1px rgb(0 0 0 / 0.05),
+      0 2px 4px -2px rgb(0 0 0 / 0.05),
+      0 20px 25px -5px rgb(0 0 0 / 0.03);
+  }
+
+  /* Section transitions */
+  .section-transition {
+    @apply relative transition-colors duration-700;
   }
 
   /* New animations for enhanced sections */
