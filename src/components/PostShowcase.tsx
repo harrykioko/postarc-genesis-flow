@@ -9,9 +9,10 @@ interface ExamplePost {
   template: string;
   preview: string;
   author: string;
-  company: string;
+  location: string;
   views: string;
   reactions: string;
+  timeAgo: string;
   isNew?: boolean;
   height: string;
 }
@@ -20,11 +21,12 @@ const examplePosts: ExamplePost[] = [
   {
     id: 1,
     template: "Consultant",
-    preview: "After 15 years in consulting, I've seen countless digital transformations fail. Here's what actually works when implementing AI in enterprise...",
-    author: "Sarah Chen",
-    company: "McKinsey & Company",
-    views: "2.3k",
-    reactions: "147",
+    preview: "Ever wonder why 70% of digital transformations fail? After implementing AI solutions for Fortune 500s, I've identified the real culprit. It's not the technology...",
+    author: "Sarah C.",
+    location: "Marketing Director, NYC",
+    views: "1.2k",
+    reactions: "89",
+    timeAgo: "2 hours ago",
     isNew: true,
     height: "h-72"
   },
@@ -32,50 +34,55 @@ const examplePosts: ExamplePost[] = [
     id: 2,
     template: "Founder",
     preview: "We went from 0 to $1M ARR in 8 months. Here are the 3 brutal lessons that made the difference (and why most startups ignore them)...",
-    author: "Marcus Rodriguez",
-    company: "TechFlow",
-    views: "5.1k",
-    reactions: "312",
+    author: "Marcus R.",
+    location: "Founder, Austin",
+    views: "2.8k",
+    reactions: "147",
+    timeAgo: "4 hours ago",
     height: "h-80"
   },
   {
     id: 3,
     template: "Sales",
-    preview: "The client said 'This is exactly what we needed.' It wasn't luck. Here's my proven framework for consultative selling that closes 85% of qualified leads...",
-    author: "Jennifer Walsh",
-    company: "Salesforce",
-    views: "1.8k",
-    reactions: "89",
+    preview: "Last week, a client said 'This is exactly what we needed.' It wasn't luck. Here's my proven framework for consultative selling...",
+    author: "Jennifer W.",
+    location: "Sales Leader, Chicago",
+    views: "847",
+    reactions: "52",
+    timeAgo: "Yesterday",
     height: "h-64"
   },
   {
     id: 4,
     template: "VC",
     preview: "I've reviewed 10,000+ pitches. The best founders all do this one thing differently. It's not what you think...",
-    author: "David Park",
-    company: "Andreessen Horowitz",
-    views: "3.7k",
+    author: "David P.",
+    location: "VC Partner, SF",
+    views: "3.1k",
     reactions: "203",
+    timeAgo: "12 min ago",
     height: "h-76"
   },
   {
     id: 5,
     template: "HR",
-    preview: "We reduced employee turnover by 40% with one simple change. No fancy perks, no salary increases. Just this...",
-    author: "Lisa Thompson",
-    company: "Google",
-    views: "4.2k",
-    reactions: "278",
+    preview: "Question: What's the #1 reason top talent leaves? It's not salary. We reduced employee turnover by 40% with one simple change...",
+    author: "Lisa T.",
+    location: "HR Director, Boston",
+    views: "1.6k",
+    reactions: "94",
+    timeAgo: "6 hours ago",
     height: "h-68"
   },
   {
     id: 6,
     template: "Consultant",
-    preview: "My biggest client just saved $2M annually with this process optimization. The solution was hiding in plain sight...",
-    author: "Ahmed Hassan",
-    company: "Deloitte",
-    views: "2.9k",
-    reactions: "156",
+    preview: "My biggest client just saved $2M annually. The solution was hiding in plain sight, but everyone missed it. Here's what we discovered...",
+    author: "Ahmed H.",
+    location: "Consultant, London",
+    views: "423",
+    reactions: "31",
+    timeAgo: "1 day ago",
     height: "h-72"
   }
 ];
@@ -123,14 +130,30 @@ export const PostShowcase = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.02, y: -5 }}
-                className={`glass-card p-6 rounded-xl ${post.height} relative overflow-hidden group cursor-pointer`}
+                whileHover={{ 
+                  scale: 1.02, 
+                  y: -8,
+                  boxShadow: "0 20px 40px rgba(0,0,0,0.1)"
+                }}
+                className={`glass-card p-6 rounded-xl ${post.height} relative overflow-hidden group cursor-pointer transition-all duration-300`}
               >
                 {/* NEW Badge */}
                 {post.isNew && (
                   <div className="absolute top-4 right-4 z-10">
-                    <Badge className="bg-neon text-midnight font-bold animate-pulse">
-                      NEW
+                    <Badge className="bg-neon text-midnight font-bold">
+                      <motion.span
+                        animate={{ 
+                          scale: [1, 1.05, 1],
+                          opacity: [1, 0.8, 1]
+                        }}
+                        transition={{ 
+                          duration: 2, 
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        NEW
+                      </motion.span>
                     </Badge>
                   </div>
                 )}
@@ -154,13 +177,17 @@ export const PostShowcase = () => {
                   <div className="flex items-center">
                     <div className="w-8 h-8 bg-gradient-to-br from-midnight to-slate rounded-full mr-2 flex items-center justify-center">
                       <span className="text-white text-xs font-bold">
-                        {post.author.split(' ').map(n => n[0]).join('')}
+                        {post.author.split(' ')[0][0]}{post.author.split(' ')[1][0]}
                       </span>
                     </div>
                     <div>
                       <div className="font-medium text-midnight">{post.author}</div>
-                      <div className="text-slate text-xs">{post.company}</div>
+                      <div className="text-slate text-xs">{post.location}</div>
                     </div>
+                  </div>
+                  <div className="flex items-center text-xs text-slate">
+                    <Clock className="w-3 h-3 mr-1" />
+                    <span>{post.timeAgo}</span>
                   </div>
                 </div>
                 
