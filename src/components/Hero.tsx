@@ -1,8 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ChevronDown, TrendingUp, Clock, ChevronRight, Heart, MessageCircle, Share2 } from "lucide-react";
+import { ArrowRight, ChevronDown, Star } from "lucide-react";
 import { useState } from "react";
 import { DemoModal } from "./DemoModal";
 import { AuthModal } from "./AuthModal";
@@ -27,159 +25,81 @@ export const Hero = () => {
   };
 
   return (
-    <section className="relative py-20 overflow-hidden">
-      <div className="container mx-auto px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Column - Text Content */}
-            <div className="text-center lg:text-left">
-              <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
-                <Badge className="bg-gradient-to-r from-neon/20 to-mint/20 text-midnight border-0 px-4 py-2">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  1,247 posts created today
-                </Badge>
-                <Badge variant="outline" className="border-slate-300">
-                  <Clock className="w-3 h-3 mr-1" />
-                  10 sec average
-                </Badge>
-              </div>
-              
-              <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 leading-tight">
+    <section className="relative min-h-[90vh] flex items-center">
+      {/* Background gradient mesh */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-neon/5 z-0">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-neon/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-midnight/5 rounded-full blur-3xl" />
+      </div>
+
+      {/* Subtle floating elements */}
+      <div className="absolute top-20 left-10 opacity-5 hidden lg:block">
+        <div className="w-20 h-20 border-2 border-midnight rounded-full animate-pulse" />
+      </div>
+      <div className="absolute bottom-40 right-20 opacity-5 animate-pulse animation-delay-1000 hidden lg:block">
+        <div className="w-32 h-32 border-2 border-neon rounded-full" />
+      </div>
+      <div className="absolute top-1/3 right-1/4 opacity-5 animate-pulse animation-delay-2000 hidden lg:block">
+        <div className="w-16 h-16 border-2 border-purple-600 rounded-full" />
+      </div>
+
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Enhanced tagline */}
+          <div className="mb-8">
+            <h1 className="text-4xl md:text-7xl font-heading font-bold text-midnight leading-tight">
+              <span className="block">Shape ideas.</span>
+              <span className="block">
+                Share{" "}
                 <span className="relative inline-block">
-                  Shape ideas
-                  <svg
-                    className="absolute -bottom-2 left-0 w-full h-3"
-                    viewBox="0 0 300 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5 6C5 6 50 2 150 6C250 10 295 6 295 6"
-                      stroke="#00FFC2"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    />
+                  <span className="bg-gradient-to-r from-midnight via-purple-600 to-neon bg-clip-text text-transparent">
+                    authority
+                  </span>
+                  <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 200 8">
+                    <path d="M1 5.5Q50 2 100 5.5T200 5.5" stroke="#00FFC2" strokeWidth="3" fill="none" className="animate-draw-line" />
                   </svg>
                 </span>
-                .{" "}
-                <span className="text-gradient">Share authority.</span>
-              </h1>
-              
-              <p className="text-xl md:text-2xl text-slate mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                Turn your expertise into LinkedIn posts that get 92% more engagement. No writing skills needed.
-              </p>
-              
-              <div className="flex flex-col items-center lg:items-start mb-8">
-                <button
-                  onClick={() => setShowDemo(true)}
-                  className="btn-neon px-10 py-5 text-xl font-semibold rounded-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-2 mb-4"
-                >
-                  Try It Now
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-                
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex -space-x-2">
-                    <Avatar className="w-8 h-8 border-2 border-white">
-                      <AvatarImage src="https://images.unsplash.com/photo-1494790108755-2616b612b1-5?w=32&h=32&fit=crop&crop=face" />
-                      <AvatarFallback>U1</AvatarFallback>
-                    </Avatar>
-                    <Avatar className="w-8 h-8 border-2 border-white">
-                      <AvatarImage src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face" />
-                      <AvatarFallback>U2</AvatarFallback>
-                    </Avatar>
-                    <Avatar className="w-8 h-8 border-2 border-white">
-                      <AvatarImage src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face" />
-                      <AvatarFallback>U3</AvatarFallback>
-                    </Avatar>
-                    <div className="w-8 h-8 bg-neon text-midnight rounded-full border-2 border-white flex items-center justify-center text-xs font-bold">
-                      +2K
-                    </div>
-                  </div>
-                  <span className="text-sm text-slate font-medium">+2,341 creating now</span>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-slate">
-                  <span className="flex items-center gap-1">✓ 3 free posts</span>
-                  <span className="flex items-center gap-1">✓ No credit card</span>
-                  <span className="flex items-center gap-1">✓ 30 seconds to start</span>
-                </div>
-              </div>
-            </div>
+                .
+              </span>
+            </h1>
+          </div>
 
-            {/* Right Column - LinkedIn Post Preview (Desktop Only) */}
-            <div className="hidden lg:flex justify-center">
-              <div className="relative">
-                <div className="w-96 bg-white rounded-lg border border-gray-200 shadow-lg p-6">
-                  {/* LinkedIn Post Header */}
-                  <div className="flex items-start gap-3 mb-4">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=48&h=48&fit=crop&crop=face" />
-                      <AvatarFallback>JS</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900">John Smith</h3>
-                        <span className="text-blue-600 text-sm">• 1st</span>
-                      </div>
-                      <p className="text-sm text-gray-600">Senior Marketing Director at TechCorp</p>
-                      <p className="text-xs text-gray-500">2m • 🌐</p>
-                    </div>
-                  </div>
+          {/* Value proposition */}
+          <p className="text-2xl md:text-3xl text-slate mb-12 max-w-3xl mx-auto font-body">
+            Generate expert-level LinkedIn posts in{" "}
+            <span className="font-semibold text-midnight">10 seconds</span>.
+            <br className="hidden md:block" />
+            AI trained on what actually gets engagement.
+          </p>
 
-                  {/* Post Content */}
-                  <div className="mb-4">
-                    <p className="text-gray-900 leading-relaxed">
-                      Just discovered the power of AI in content creation! 🚀
-                      <br /><br />
-                      What used to take me hours now takes seconds. The engagement on my posts has increased by 92% since I started using AI-generated content.
-                      <br /><br />
-                      The future of content is here, and it's incredible.
-                    </p>
-                  </div>
+          {/* Main CTA section */}
+          <div className="space-y-6">
+            <Button 
+              onClick={() => setShowDemo(true)}
+              className="btn-neon px-12 py-6 text-xl rounded-xl shadow-2xl hover:scale-105 transform transition-all duration-300 font-semibold group"
+            >
+              Try It Now
+              <ArrowRight className="ml-2 w-5 h-5 inline-block group-hover:translate-x-1 transition-transform" />
+            </Button>
+            
+            <p className="text-slate">
+              3 free posts • No signup required • Takes 30 seconds
+            </p>
+          </div>
 
-                  {/* Engagement */}
-                  <div className="border-t border-gray-100 pt-3">
-                    <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-                      <span>127 reactions</span>
-                      <span>24 comments • 8 reposts</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between border-t border-gray-100 pt-2">
-                      <button className="flex items-center gap-2 text-gray-600 hover:text-blue-600 py-1 px-2 rounded">
-                        <Heart className="w-4 h-4" />
-                        <span className="text-sm font-medium">Like</span>
-                      </button>
-                      <button className="flex items-center gap-2 text-gray-600 hover:text-blue-600 py-1 px-2 rounded">
-                        <MessageCircle className="w-4 h-4" />
-                        <span className="text-sm font-medium">Comment</span>
-                      </button>
-                      <button className="flex items-center gap-2 text-gray-600 hover:text-blue-600 py-1 px-2 rounded">
-                        <Share2 className="w-4 h-4" />
-                        <span className="text-sm font-medium">Repost</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Floating Badges */}
-                <div className="absolute -top-4 -right-4 bg-neon text-midnight px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-                  10 seconds
-                </div>
-                <div className="absolute -bottom-4 -left-4 bg-midnight text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
-                  AI Generated
-                </div>
-              </div>
-            </div>
+          {/* Simple trust indicator */}
+          <div className="mt-12 flex items-center justify-center gap-2">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+            ))}
+            <span className="text-slate ml-2">Trusted by 50,000+ professionals</span>
           </div>
         </div>
       </div>
 
-      {/* Bounce Animation to Guide Users Down */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="w-8 h-8 bg-neon/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-neon/30">
-          <ChevronDown className="w-4 h-4 text-neon" />
-        </div>
+      {/* Scroll indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <ChevronDown className="w-6 h-6 text-slate/30" />
       </div>
       
       <DemoModal 
