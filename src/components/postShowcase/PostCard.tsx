@@ -88,13 +88,6 @@ export const PostCard = ({ post, index, colors }: PostCardProps) => {
           </span>
         </div>
       </div>
-
-      {/* Hover Overlay with Read More Button */}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button className="w-full bg-white text-gray-900 py-2 rounded-lg font-semibold">
-          Read Full Post →
-        </button>
-      </div>
     </motion.div>
   );
 };
