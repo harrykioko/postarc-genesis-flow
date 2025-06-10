@@ -1,22 +1,16 @@
-
 import { Lightbulb, Sparkles, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 interface ProcessStepsProps {
   onTryNowClick: () => void;
 }
-
-export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
-  return (
-    <section className="py-20">
+export const ProcessSteps = ({
+  onTryNowClick
+}: ProcessStepsProps) => {
+  return <section className="py-20">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-midnight">
-            How it works
-          </h2>
-          <p className="text-xl text-slate max-w-2xl mx-auto">
-            From Blank page to Linkedin post in seconds
-          </p>
+          <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-midnight">How It Works</h2>
+          <p className="text-xl text-slate max-w-2xl mx-auto">From blank page to LinkedIn post in seconds</p>
         </div>
 
         <div className="max-w-5xl mx-auto">
@@ -140,10 +134,7 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
         </div>
 
         <div className="text-center mt-16">
-          <Button
-            onClick={onTryNowClick}
-            className="btn-neon px-8 py-3 text-lg rounded-lg"
-          >
+          <Button onClick={onTryNowClick} className="btn-neon px-8 py-3 text-lg rounded-lg">
             Try It Now
           </Button>
           <p className="text-sm text-slate mt-3">
@@ -151,6 +142,5 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
           </p>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
