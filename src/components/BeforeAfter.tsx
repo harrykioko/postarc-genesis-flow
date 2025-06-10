@@ -4,34 +4,37 @@ import { X, Check, AlertCircle, Sparkles } from 'lucide-react';
 
 export const BeforeAfter = () => {
   const beforeProblems = [
-    "Staring at blank page for 30+ minutes",
-    "Struggling to find the right tone",
-    "Posts get buried with low engagement",
-    "Inconsistent posting schedule",
-    "Content doesn't reflect expertise"
+    "Spending 45+ minutes crafting a single post",
+    "Struggling to find your authentic professional voice",
+    "Posts getting lost in the feed with minimal engagement",
+    "Inconsistent posting hurting your thought leadership",
+    "Content that doesn't showcase your true expertise",
+    "Fear of posting because it might not sound professional"
   ];
 
   const afterBenefits = [
-    "Generate posts in under 10 seconds",
-    "Perfect professional tone every time",
-    "Higher engagement with optimized content",
-    "Consistent, quality posting made easy",
-    "Content that showcases your expertise"
+    "Generate polished posts in under 10 seconds",
+    "AI matches your professional tone perfectly every time",
+    "Optimized content that drives 3x higher engagement",
+    "Consistent, quality posting builds your personal brand",
+    "Content that positions you as an industry thought leader",
+    "Confidence to share ideas and grow your influence daily"
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-gradient-to-b from-white to-slate-50">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-midnight">
+          <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6 text-midnight">
             Transform Your LinkedIn Presence
           </h2>
-          <p className="text-xl text-slate max-w-2xl mx-auto">
-            See the difference PostArc makes for professionals like you
+          <p className="text-xl text-slate max-w-3xl mx-auto mb-4">
+            See the dramatic difference PostArc makes for busy professionals
           </p>
+          <div className="w-24 h-1 bg-gradient-to-r from-neon to-mint mx-auto rounded-full"></div>
         </div>
 
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12">
           {/* Before - Problems */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -40,32 +43,42 @@ export const BeforeAfter = () => {
             viewport={{ once: true }}
             className="relative"
           >
-            <div className="glass-card p-8 rounded-xl border-2 border-red-100 relative overflow-hidden">
-              {/* Subtle red glow effect */}
-              <div className="absolute inset-0 bg-red-50/30 rounded-xl"></div>
+            <div className="glass-card p-8 rounded-2xl border-2 border-red-100 relative overflow-hidden bg-gradient-to-br from-red-50/50 to-white">
+              {/* Enhanced visual effect */}
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-400 to-red-500"></div>
               
               <div className="relative z-10">
-                <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4">
-                    <AlertCircle className="w-6 h-6 text-red-600" />
+                <div className="flex items-center mb-8">
+                  <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                    <AlertCircle className="w-7 h-7 text-red-600" />
                   </div>
-                  <h3 className="text-2xl font-heading font-semibold text-midnight">
-                    Without PostArc
-                  </h3>
+                  <div>
+                    <h3 className="text-2xl font-heading font-bold text-midnight mb-1">
+                      Without PostArc
+                    </h3>
+                    <p className="text-red-600 font-medium">The LinkedIn struggle is real</p>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {beforeProblems.map((problem, index) => (
-                    <div key={index} className="flex items-start">
-                      <X className="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate leading-relaxed">{problem}</span>
-                    </div>
+                    <motion.div 
+                      key={index} 
+                      className="flex items-start"
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                    >
+                      <X className="w-5 h-5 text-red-500 mr-4 mt-1 flex-shrink-0" />
+                      <span className="text-slate leading-relaxed font-medium">{problem}</span>
+                    </motion.div>
                   ))}
                 </div>
 
-                <div className="mt-6 p-4 bg-red-50 rounded-lg">
-                  <p className="text-sm text-red-800 font-medium">
-                    Result: Inconsistent posting, low engagement, missed opportunities
+                <div className="mt-8 p-5 bg-red-50 rounded-xl border border-red-100">
+                  <p className="text-red-800 font-semibold text-center">
+                    Result: Missed opportunities, inconsistent presence, declining influence
                   </p>
                 </div>
               </div>
@@ -80,36 +93,64 @@ export const BeforeAfter = () => {
             viewport={{ once: true }}
             className="relative"
           >
-            <div className="glass-card p-8 rounded-xl border-2 border-green-100 relative overflow-hidden">
-              {/* Subtle green glow effect */}
-              <div className="absolute inset-0 bg-green-50/30 rounded-xl"></div>
+            <div className="glass-card p-8 rounded-2xl border-2 border-green-100 relative overflow-hidden bg-gradient-to-br from-green-50/50 to-white">
+              {/* Enhanced visual effect */}
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-neon to-mint"></div>
               
               <div className="relative z-10">
-                <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-neon/20 rounded-lg flex items-center justify-center mr-4">
-                    <Sparkles className="w-6 h-6 text-neon" />
+                <div className="flex items-center mb-8">
+                  <div className="w-14 h-14 bg-neon/20 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                    <Sparkles className="w-7 h-7 text-neon" />
                   </div>
-                  <h3 className="text-2xl font-heading font-semibold text-midnight">
-                    With PostArc
-                  </h3>
+                  <div>
+                    <h3 className="text-2xl font-heading font-bold text-midnight mb-1">
+                      With PostArc
+                    </h3>
+                    <p className="text-neon font-medium">LinkedIn success made simple</p>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {afterBenefits.map((benefit, index) => (
-                    <div key={index} className="flex items-start">
-                      <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate leading-relaxed">{benefit}</span>
-                    </div>
+                    <motion.div 
+                      key={index} 
+                      className="flex items-start"
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                    >
+                      <Check className="w-5 h-5 text-green-500 mr-4 mt-1 flex-shrink-0" />
+                      <span className="text-slate leading-relaxed font-medium">{benefit}</span>
+                    </motion.div>
                   ))}
                 </div>
 
-                <div className="mt-6 p-4 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-800 font-medium">
-                    Result: Consistent thought leadership, higher engagement, growing influence
+                <div className="mt-8 p-5 bg-green-50 rounded-xl border border-green-100">
+                  <p className="text-green-800 font-semibold text-center">
+                    Result: Consistent thought leadership, exponential growth, industry recognition
                   </p>
                 </div>
               </div>
             </div>
+          </motion.div>
+        </div>
+
+        {/* Call to action */}
+        <div className="text-center mt-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            viewport={{ once: true }}
+            className="max-w-2xl mx-auto"
+          >
+            <h3 className="text-2xl font-heading font-bold text-midnight mb-4">
+              Ready to transform your LinkedIn presence?
+            </h3>
+            <p className="text-slate text-lg">
+              Join thousands of professionals who've already made the switch to effortless content creation.
+            </p>
           </motion.div>
         </div>
       </div>

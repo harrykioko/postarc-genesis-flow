@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
-import { PostShowcase } from "@/components/PostShowcase";
 import { ProcessSteps } from "@/components/ProcessSteps";
-import { TrustMetrics } from "@/components/TrustMetrics";
 import { BeforeAfter } from "@/components/BeforeAfter";
+import { TrustMetrics } from "@/components/TrustMetrics";
+import { PostShowcase } from "@/components/PostShowcase";
 import { Pricing } from "@/components/Pricing";
 import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
@@ -22,10 +22,10 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-brand">
       <Header />
       <Hero />
-      <PostShowcase onTryNowClick={handleTryNowClick} />
       <ProcessSteps onTryNowClick={handleTryNowClick} />
-      <TrustMetrics />
       <BeforeAfter />
+      <TrustMetrics />
+      <PostShowcase onTryNowClick={handleTryNowClick} />
       <Pricing />
       <FAQ />
       <Footer />

@@ -31,8 +31,17 @@ export const TrustMetrics = () => {
   ];
 
   return (
-    <section className="py-16 bg-gradient-to-r from-slate-50 to-white">
+    <section className="py-20 bg-gradient-to-r from-slate-50 to-white">
       <div className="container mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-midnight">
+            Trusted by Professionals
+          </h2>
+          <p className="text-xl text-slate max-w-2xl mx-auto">
+            Join thousands of professionals who trust PostArc for their LinkedIn success
+          </p>
+        </div>
+        
         <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
           {metrics.map((metric, index) => {
             const IconComponent = metric.icon;

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-            From Blank Page to Viral Post in{' '}
+            How It Works: From Blank Page to Viral Post in{' '}
             <span className="bg-gradient-to-r from-neon to-mint bg-clip-text text-transparent">
               60 Seconds
             </span>
