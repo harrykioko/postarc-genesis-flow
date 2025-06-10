@@ -22,7 +22,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-brand">
       <Header />
       <Hero />
-      <PostShowcase />
+      <PostShowcase onTryNowClick={handleTryNowClick} />
       <ProcessSteps onTryNowClick={handleTryNowClick} />
       <TrustMetrics />
       <BeforeAfter />

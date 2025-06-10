@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from "@/components/ui/badge";
-import { Eye, Heart } from 'lucide-react';
+import { Eye, Heart, TrendingUp, Sparkles } from 'lucide-react';
 
 interface ExamplePost {
   id: number;
@@ -15,6 +14,10 @@ interface ExamplePost {
   timeAgo: string;
   isNew?: boolean;
   isFeatured?: boolean;
+}
+
+interface PostShowcaseProps {
+  onTryNowClick?: () => void;
 }
 
 const examplePosts: ExamplePost[] = [
@@ -118,8 +121,9 @@ const activities = [
   "Rachel M. in Denver just created an HR post"
 ];
 
-export const PostShowcase = () => {
+export const PostShowcase = ({ onTryNowClick }: PostShowcaseProps) => {
   const [currentActivity, setCurrentActivity] = useState(0);
+  const [postsCreated, setPostsCreated] = useState(247);
 
   useEffect(() => {
     const activityInterval = setInterval(() => {
@@ -127,6 +131,15 @@ export const PostShowcase = () => {
     }, 4000);
 
     return () => clearInterval(activityInterval);
+  }, []);
+
+  useEffect(() => {
+    // Simulate live counter for posts created
+    const postsInterval = setInterval(() => {
+      setPostsCreated(prev => prev + Math.floor(Math.random() * 3));
+    }, 5000);
+
+    return () => clearInterval(postsInterval);
   }, []);
 
   return (
@@ -138,6 +151,27 @@ export const PostShowcase = () => {
       </div>
       
       <div className="container mx-auto px-6 relative">
+        {/* Posts Created Today Counter */}
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-lg border border-neon/20"
+          >
+            <TrendingUp className="w-4 h-4 text-neon" />
+            <motion.span
+              key={postsCreated}
+              initial={{ scale: 1.2 }}
+              animate={{ scale: 1 }}
+              className="font-bold text-neon text-lg"
+            >
+              {postsCreated}
+            </motion.span>
+            <span className="text-midnight font-medium">posts created today</span>
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          </motion.div>
+        </div>
+
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-heading font-bold text-midnight mb-8">
             See What Professionals Are Creating
@@ -241,7 +275,7 @@ export const PostShowcase = () => {
         </div>
 
         {/* Activity Ticker */}
-        <div className="mt-12 text-center">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-white px-5 py-3 rounded-full shadow-lg">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <motion.span
@@ -254,6 +288,28 @@ export const PostShowcase = () => {
               {activities[currentActivity]}
             </motion.span>
           </div>
+        </div>
+
+        {/* CTA Button */}
+        <div className="text-center">
+          <motion.button
+            onClick={onTryNowClick}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-neon to-green-400 text-midnight px-8 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300"
+          >
+            <Sparkles className="w-6 h-6" />
+            Try It Free - No Card Required
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            >
+              <Sparkles className="w-5 h-5" />
+            </motion.div>
+          </motion.button>
+          <p className="text-sm text-slate mt-3">
+            Generate your first viral post in under 30 seconds
+          </p>
         </div>
       </div>
     </section>
