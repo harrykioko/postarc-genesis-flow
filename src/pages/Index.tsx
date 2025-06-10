@@ -6,8 +6,8 @@ import { PostShowcase } from "@/components/PostShowcase";
 import { ProcessSteps } from "@/components/ProcessSteps";
 import { TrustMetrics } from "@/components/TrustMetrics";
 import { BeforeAfter } from "@/components/BeforeAfter";
-import { FAQ } from "@/components/FAQ";
 import { Pricing } from "@/components/Pricing";
+import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
 import { DemoModal } from "@/components/DemoModal";
 
@@ -26,8 +26,8 @@ const Index = () => {
       <ProcessSteps onTryNowClick={handleTryNowClick} />
       <TrustMetrics />
       <BeforeAfter />
-      <FAQ />
       <Pricing />
+      <FAQ />
       <Footer />
       
       <DemoModal 
