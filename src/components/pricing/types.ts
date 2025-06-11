@@ -14,4 +14,5 @@ export interface PricingTier {
   popular: boolean;
   disabled?: boolean;
   stripeTier?: string;
+  description?: string;
 }
