@@ -45,52 +45,58 @@ export const Hero = () => {
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Enhanced tagline */}
-          <div className="mb-8">
-            <h1 className="text-4xl md:text-7xl font-heading font-bold text-midnight leading-tight">
-              <span className="block">Shape ideas.</span>
-              <span className="block">
-                Share{" "}
-                <span className="relative inline-block">
-                  <span className="bg-gradient-to-r from-midnight via-purple-600 to-neon bg-clip-text text-transparent">
-                    authority
+        {/* Two-column layout on desktop, single column on mobile */}
+        <div className="grid lg:grid-cols-2 lg:gap-12 items-center">
+          {/* Left column: Hero text content */}
+          <div className="lg:text-left text-center">
+            {/* Enhanced tagline */}
+            <div className="mb-8">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold text-midnight leading-tight">
+                <span className="block">Shape ideas.</span>
+                <span className="block">
+                  Share{" "}
+                  <span className="relative inline-block">
+                    <span className="bg-gradient-to-r from-midnight via-purple-600 to-neon bg-clip-text text-transparent">
+                      authority
+                    </span>
+                    <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 200 8">
+                      <path d="M1 5.5Q50 2 100 5.5T200 5.5" stroke="#00FFC2" strokeWidth="3" fill="none" className="animate-draw-line" />
+                    </svg>
                   </span>
-                  <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 200 8">
-                    <path d="M1 5.5Q50 2 100 5.5T200 5.5" stroke="#00FFC2" strokeWidth="3" fill="none" className="animate-draw-line" />
-                  </svg>
+                  .
                 </span>
-                .
-              </span>
-            </h1>
+              </h1>
+            </div>
+
+            {/* Value proposition */}
+            <p className="text-xl md:text-2xl lg:text-3xl text-slate mb-12 font-body">
+              Generate expert-level LinkedIn posts in{" "}
+              <span className="font-semibold text-midnight">10 seconds</span>.
+              <br className="hidden md:block" />
+              AI trained on what actually gets engagement.
+            </p>
+
+            {/* Main CTA section */}
+            <DemoCTA 
+              variant="primary" 
+              onClick={() => setShowDemo(true)} 
+            />
+
+            {/* Simple trust indicator */}
+            <div className="mt-12 flex items-center lg:justify-start justify-center gap-2">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+              ))}
+              <span className="text-slate ml-2">Trusted by 50,000+ professionals</span>
+            </div>
           </div>
 
-          {/* Value proposition */}
-          <p className="text-2xl md:text-3xl text-slate mb-12 max-w-3xl mx-auto font-body">
-            Generate expert-level LinkedIn posts in{" "}
-            <span className="font-semibold text-midnight">10 seconds</span>.
-            <br className="hidden md:block" />
-            AI trained on what actually gets engagement.
-          </p>
-
-          {/* Main CTA section */}
-          <DemoCTA 
-            variant="primary" 
-            onClick={() => setShowDemo(true)} 
-          />
-
-          {/* Simple trust indicator */}
-          <div className="mt-12 flex items-center justify-center gap-2">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-            ))}
-            <span className="text-slate ml-2">Trusted by 50,000+ professionals</span>
+          {/* Right column: Mini Demo Animation (hidden on mobile) */}
+          <div className="hidden lg:flex justify-center items-center">
+            <MiniDemoAnimation />
           </div>
         </div>
       </div>
-
-      {/* Mini Demo Animation */}
-      <MiniDemoAnimation />
 
       {/* Scroll indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
