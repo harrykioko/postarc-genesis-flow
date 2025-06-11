@@ -1,4 +1,4 @@
-import { Lightbulb, Sparkles, Share2, X, Check } from "lucide-react";
+import { Lightbulb, Sparkles, Share2, Check, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DemoCTA } from "./ui/DemoCTA";
@@ -174,14 +174,6 @@ const StepMockup = ({ stepId }: { stepId: number }) => {
             </p>
           </div>
 
-          <div className="flex justify-between items-center text-sm text-gray-500">
-            <div className="flex space-x-4">
-              <span>179 words</span>
-              <span>1 min read</span>
-              <span>LinkedIn Optimized</span>
-            </div>
-          </div>
-
           <div className="flex items-center space-x-4 text-sm">
             {["SEO Optimized", "Engagement Ready", "Professional Tone"].map((badge) => (
               <div key={badge} className="flex items-center space-x-1">
@@ -189,12 +181,6 @@ const StepMockup = ({ stepId }: { stepId: number }) => {
                 <span className="text-gray-600">{badge}</span>
               </div>
             ))}
-          </div>
-
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <p className="text-green-800 text-sm font-medium">
-              🎉 This post is ready to drive engagement on LinkedIn!
-            </p>
           </div>
         </div>
       </div>
@@ -205,24 +191,8 @@ const StepMockup = ({ stepId }: { stepId: number }) => {
 };
 
 export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
-  const [expandedCard, setExpandedCard] = useState<number | null>(null);
-
-  const getCardPosition = (stepId: number, expanded: number | null) => {
-    if (expanded === null) {
-      // Collapsed state - stacked positioning
-      return { top: (stepId - 1) * 140, zIndex: 25 - stepId };
-    }
-    
-    if (stepId === expanded) {
-      // Expanded card goes to top
-      return { top: 0, zIndex: 30 };
-    }
-    
-    // Other cards stack below expanded card
-    const otherCards = steps.filter(s => s.id !== expanded);
-    const indexInOthers = otherCards.findIndex(s => s.id === stepId);
-    return { top: 420 + (indexInOthers * 60), zIndex: 20 - indexInOthers };
-  };
+  const [selectedStep, setSelectedStep] = useState<number | null>(null);
+  const [hoveredStep, setHoveredStep] = useState<number | null>(null);
 
   return (
     <section className="py-20">
@@ -232,105 +202,180 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
           <p className="text-xl text-slate max-w-2xl mx-auto">From blank page to LinkedIn post in seconds</p>
         </div>
 
-        {/* Desktop: Interactive Stacked Cards */}
-        <div className="hidden md:block">
-          <div className="max-w-3xl mx-auto relative" style={{ height: expandedCard ? '480px' : '480px' }}>
-            {steps.map((step) => {
-              const position = getCardPosition(step.id, expandedCard);
-              const isExpanded = expandedCard === step.id;
-              
-              return (
-                <motion.div
+        {/* Desktop: Interactive Cards Grid */}
+        <div className="hidden md:block max-w-7xl mx-auto">
+          {/* Progress Line */}
+          <div className="relative mb-12">
+            <div className="absolute top-8 left-0 right-0 h-0.5 bg-gray-200"></div>
+            <div className="absolute top-8 left-0 h-0.5 bg-neon transition-all duration-500" style={{ 
+              width: selectedStep ? `${(selectedStep / 3) * 100}%` : '0%' 
+            }}></div>
+            
+            {/* Step Indicators */}
+            <div className="relative flex justify-between">
+              {steps.map((step) => (
+                <button
                   key={step.id}
-                  layout
-                  className={`absolute left-0 right-0 bg-gradient-to-br ${step.theme.bg} ${step.theme.border} border-2 rounded-2xl shadow-xl cursor-pointer overflow-hidden`}
-                  style={{ top: position.top, zIndex: position.zIndex }}
-                  animate={{ 
-                    height: isExpanded ? 400 : 180,
-                  }}
-                  whileHover={!isExpanded ? { scale: 1.02, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" } : {}}
-                  onClick={() => setExpandedCard(isExpanded ? null : step.id)}
-                  transition={{ type: "spring", damping: 20, stiffness: 100 }}
+                  onClick={() => setSelectedStep(step.id)}
+                  onMouseEnter={() => setHoveredStep(step.id)}
+                  onMouseLeave={() => setHoveredStep(null)}
+                  className="group relative z-10"
                 >
-                  {/* Header - Always Visible */}
-                  <div className="p-6 flex items-center space-x-4">
-                    <div className={`w-16 h-16 ${step.theme.iconBg} rounded-2xl flex items-center justify-center relative`}>
-                      <step.icon className={`w-8 h-8 ${step.theme.iconColor}`} />
-                      <div className={`absolute -top-2 -right-2 w-8 h-8 bg-midnight text-white rounded-full flex items-center justify-center text-sm font-bold`}>
-                        {step.id}
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-heading font-bold text-midnight mb-1">{step.title}</h3>
-                      <p className="text-slate">{step.subtitle}</p>
-                    </div>
-                    {!isExpanded && (
-                      <div className="text-slate text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                        Click to expand →
-                      </div>
-                    )}
-                    {isExpanded && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedCard(null);
-                        }}
-                        className="w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-colors"
-                      >
-                        <X className="w-4 h-4 text-gray-600" />
-                      </button>
-                    )}
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      selectedStep === step.id 
+                        ? 'bg-neon shadow-lg' 
+                        : hoveredStep === step.id
+                        ? 'bg-neon/20 shadow-md'
+                        : 'bg-white border-2 border-gray-200 shadow-sm'
+                    }`}
+                  >
+                    <step.icon className={`w-8 h-8 transition-colors duration-300 ${
+                      selectedStep === step.id 
+                        ? 'text-midnight' 
+                        : hoveredStep === step.id
+                        ? step.theme.iconColor
+                        : 'text-gray-400'
+                    }`} />
+                  </motion.div>
+                  
+                  {/* Step Number */}
+                  <div className={`absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                    selectedStep === step.id
+                      ? 'bg-midnight text-white'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {step.id}
                   </div>
-
-                  {/* Expanded Content */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="px-6 pb-6"
-                      >
-                        <div className="grid lg:grid-cols-2 gap-6">
-                          {/* Left: Mockup */}
-                          <div>
-                            <StepMockup stepId={step.id} />
-                          </div>
-                          
-                          {/* Right: Description & Features */}
-                          <div className="space-y-4">
-                            <p className="text-gray-700 leading-relaxed">{step.description}</p>
-                            
-                            <div className="space-y-2">
-                              {step.features.map((feature, idx) => (
-                                <motion.div
-                                  key={idx}
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: 0.2 + idx * 0.1 }}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <Check className={`w-4 h-4 ${step.theme.iconColor}`} />
-                                  <span className="text-gray-700">{feature}</span>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
+                  
+                  {/* Step Title (appears on hover) */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ 
+                      opacity: hoveredStep === step.id || selectedStep === step.id ? 1 : 0,
+                      y: hoveredStep === step.id || selectedStep === step.id ? 0 : -10
+                    }}
+                    className="absolute top-20 left-1/2 -translate-x-1/2 whitespace-nowrap"
+                  >
+                    <span className={`text-sm font-semibold ${
+                      selectedStep === step.id ? 'text-midnight' : 'text-gray-600'
+                    }`}>
+                      {step.title}
+                    </span>
+                  </motion.div>
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Content Area */}
+          <AnimatePresence mode="wait">
+            {selectedStep ? (
+              <motion.div
+                key={selectedStep}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="grid lg:grid-cols-2 gap-8 items-start"
+              >
+                {/* Left: Description */}
+                <div className={`bg-gradient-to-br ${steps[selectedStep - 1].theme.bg} ${steps[selectedStep - 1].theme.border} border-2 rounded-2xl p-8`}>
+                  <div className="flex items-center space-x-4 mb-6">
+                    <div className={`w-14 h-14 ${steps[selectedStep - 1].theme.iconBg} rounded-xl flex items-center justify-center`}>
+                      {(() => {
+                        const Icon = steps[selectedStep - 1].icon;
+                        return <Icon className={`w-7 h-7 ${steps[selectedStep - 1].theme.iconColor}`} />;
+                      })()}
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-heading font-bold text-midnight">
+                        {steps[selectedStep - 1].title}
+                      </h3>
+                      <p className="text-slate">{steps[selectedStep - 1].subtitle}</p>
+                    </div>
+                  </div>
+                  
+                  <p className="text-gray-700 mb-6 text-lg leading-relaxed">
+                    {steps[selectedStep - 1].description}
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {steps[selectedStep - 1].features.map((feature, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="flex items-center space-x-3"
+                      >
+                        <Check className={`w-5 h-5 ${steps[selectedStep - 1].theme.iconColor}`} />
+                        <span className="text-gray-700 font-medium">{feature}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                  
+                  {/* Navigation Arrows */}
+                  <div className="flex items-center justify-between mt-8">
+                    <button
+                      onClick={() => setSelectedStep(Math.max(1, selectedStep - 1))}
+                      disabled={selectedStep === 1}
+                      className={`flex items-center space-x-2 text-sm font-medium transition-colors ${
+                        selectedStep === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:text-midnight'
+                      }`}
+                    >
+                      <ArrowRight className="w-4 h-4 rotate-180" />
+                      <span>Previous</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => setSelectedStep(Math.min(3, selectedStep + 1))}
+                      disabled={selectedStep === 3}
+                      className={`flex items-center space-x-2 text-sm font-medium transition-colors ${
+                        selectedStep === 3 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:text-midnight'
+                      }`}
+                    >
+                      <span>Next</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Right: Mockup */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <StepMockup stepId={selectedStep} />
+                </motion.div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-20"
+              >
+                <p className="text-xl text-slate mb-2">Click any step above to explore</p>
+                <p className="text-lg text-slate/70">See exactly how PostArc transforms your ideas into engaging LinkedIn posts</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Mobile: Simple Vertical Layout */}
         <div className="md:hidden space-y-6">
           {steps.map((step) => (
-            <div key={step.id} className={`bg-gradient-to-br ${step.theme.bg} ${step.theme.border} border-2 rounded-2xl p-6`}>
+            <motion.div 
+              key={step.id} 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: step.id * 0.1 }}
+              viewport={{ once: true }}
+              className={`bg-gradient-to-br ${step.theme.bg} ${step.theme.border} border-2 rounded-2xl p-6`}
+            >
               <div className="flex items-center space-x-4 mb-4">
                 <div className={`w-16 h-16 ${step.theme.iconBg} rounded-2xl flex items-center justify-center relative`}>
                   <step.icon className={`w-8 h-8 ${step.theme.iconColor}`} />
@@ -352,13 +397,20 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
-        <div className="mt-16">
+        {/* CTA Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          viewport={{ once: true }}
+          className="mt-16"
+        >
           <DemoCTA onClick={onTryNowClick} />
-        </div>
+        </motion.div>
       </div>
     </section>
   );
