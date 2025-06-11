@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Check, Crown, Sparkles, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -199,13 +198,13 @@ export const PricingModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
       <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up">
         {/* Header */}
         <div className="relative p-6 border-b border-slate/10">
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 p-2 hover:bg-slate/10 rounded-full transition-colors focus-enhanced"
+            className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors focus-enhanced"
             aria-label="Close modal"
           >
             <X className="w-5 h-5 text-slate" />
@@ -222,7 +221,7 @@ export const PricingModal = ({
 
         {/* Usage Alert */}
         {currentUsage > 0 && (
-          <div className="p-6 bg-gradient-to-r from-neon/5 to-mint/5 border-b border-slate/10">
+          <div className="p-6 bg-neon/10 border-b border-slate/10">
             <div className="text-center">
               {currentUsage === limit ? (
                 <p className="text-midnight font-medium">
@@ -254,8 +253,8 @@ export const PricingModal = ({
               return (
                 <div 
                   key={tier.id}
-                  className={`glass-card rounded-xl p-6 relative ${
-                    isPro ? 'border-2 border-neon shadow-xl bg-gradient-to-br from-neon/5 to-mint/5' : 'border border-slate/20'
+                  className={`bg-white rounded-xl p-6 relative ${
+                    isPro ? 'border-2 border-neon shadow-xl' : 'border border-slate/20'
                   }`}
                 >
                   {tier.popular && (
@@ -309,8 +308,8 @@ export const PricingModal = ({
                     disabled={isLoading}
                     className={`w-full py-3 px-4 rounded-lg font-semibold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed focus-enhanced ${
                       tier.id === 'free' 
-                        ? 'bg-slate/10 text-midnight hover:bg-slate/20' 
-                        : 'btn-neon'
+                        ? 'bg-slate-100 text-midnight hover:bg-slate-200' 
+                        : 'bg-neon text-midnight hover:bg-neon/90'
                     }`}
                   >
                     {isLoading ? (
