@@ -25,7 +25,7 @@ export const DemoCTA = ({
             : "px-8 py-4 text-lg"
         }`}
       >
-        Try It Now
+        Start Free Demo
         <ArrowRight className={`ml-2 inline-block group-hover:translate-x-1 transition-transform ${
           isPrimary ? "w-5 h-5" : "w-4 h-4"
         }`} />
@@ -33,8 +33,8 @@ export const DemoCTA = ({
       
       <p className={`text-slate mt-3 ${isPrimary ? "text-base" : "text-sm"}`}>
         {isPrimary 
-          ? "3 free posts • No signup required • Takes 30 seconds"
-          : "3 free posts • No signup required"
+          ? "No login required. 3 free posts. Instant results."
+          : "No login required. 3 free posts."
         }
       </p>
     </div>

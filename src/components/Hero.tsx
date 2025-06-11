@@ -52,27 +52,33 @@ export const Hero = () => {
             {/* Enhanced tagline */}
             <div className="mb-8">
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold text-midnight leading-tight">
-                <span className="block">Watch AI Turn</span>
-                <span className="block">Your Rough Ideas</span>
+                <span className="block">Struggling to Post</span>
+                <span className="block">on LinkedIn?</span>
                 <span className="block">
-                  Into{" "}
+                  Let AI turn your rough thoughts into{" "}
                   <span className="relative inline-block">
                     <span className="bg-gradient-to-r from-midnight via-purple-600 to-neon bg-clip-text text-transparent">
-                      LinkedIn Gold
+                      scroll-stopping content
                     </span>
                     <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 200 8">
                       <path d="M1 5.5Q50 2 100 5.5T200 5.5" stroke="#00FFC2" strokeWidth="3" fill="none" className="animate-draw-line" />
                     </svg>
                   </span>
+                  {" "}— in 30 seconds.
                 </span>
               </h1>
             </div>
 
             {/* Value proposition */}
-            <p className="text-xl md:text-2xl lg:text-3xl text-slate mb-12 font-body">
-              Our AI analyzed 50,000 viral LinkedIn posts to help you write content that gets{" "}
-              <span className="font-bold text-midnight">3x more engagement</span>.
-            </p>
+            <div className="text-xl md:text-2xl lg:text-3xl text-slate mb-12 font-body space-y-3">
+              <p>
+                Trained on 50,000 viral posts. Built for{" "}
+                <span className="font-bold text-midnight">consultants, founders, and sales pros</span>.
+              </p>
+              <p className="text-lg md:text-xl lg:text-2xl">
+                Try your first 3 posts free — no signup required.
+              </p>
+            </div>
 
             {/* Main CTA section */}
             <DemoCTA 
