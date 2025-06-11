@@ -78,10 +78,10 @@ export const EnhancedTemplateCards = ({ selectedTemplate, onTemplateSelect }: En
               onHoverEnd={() => setHoveredTemplate(null)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 ${
+              className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all bg-white ${
                 isSelected
                   ? 'border-neon bg-neon/10 shadow-lg shadow-neon/25'
-                  : 'border-gray-200 hover:border-neon/50 bg-white/50'
+                  : 'border-gray-200 hover:border-neon/50'
               }`}
             >
               {/* Popular Badge */}

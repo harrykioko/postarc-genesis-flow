@@ -21,7 +21,7 @@ export const DemoGenerateButton = ({
     <Button
       onClick={onGenerate}
       disabled={!input.trim() || isGenerating || !canGenerate}
-      className="w-full btn-neon py-3"
+      className="w-full bg-neon text-midnight hover:bg-neon/90 py-3 font-semibold"
     >
       {isGenerating ? (
         <div className="flex items-center space-x-2">

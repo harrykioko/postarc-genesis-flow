@@ -19,7 +19,7 @@ export const DemoCTA = ({
     <div className={`text-center ${className}`}>
       <Button 
         onClick={onClick}
-        className={`btn-neon font-semibold rounded-xl hover:shadow-2xl hover:scale-105 transform transition-all duration-300 group ${
+        className={`bg-neon text-midnight hover:bg-neon/90 font-semibold rounded-xl hover:shadow-2xl hover:scale-105 transform transition-all duration-300 group ${
           isPrimary 
             ? "px-12 py-6 text-xl" 
             : "px-8 py-4 text-lg"

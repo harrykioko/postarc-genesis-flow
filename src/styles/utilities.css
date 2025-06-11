@@ -13,7 +13,7 @@
   }
   
   .btn-neon {
-    @apply bg-neon text-midnight hover:bg-neon/90 font-semibold transition-all duration-200;
+    @apply bg-neon text-midnight hover:bg-neon/90 font-semibold transition-all duration-200 !important;
   }
   
   .btn-primary {

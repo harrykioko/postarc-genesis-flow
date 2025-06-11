@@ -73,7 +73,7 @@ export const DemoModal = ({ open, onOpenChange, onSignUpClick, onPricingClick }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto bg-white z-50">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-heading">Experience PostArc Magic ✨</DialogTitle>
