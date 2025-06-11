@@ -97,19 +97,18 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
 
         {/* Desktop Experience */}
         <div className="hidden lg:block max-w-7xl mx-auto">
-          {/* Progress Bar */}
-          <div className="relative mb-12">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full h-1 bg-gray-200 rounded-full"></div>
+          {/* Progress Bar and Steps Container */}
+          <div className="relative mb-16">
+            {/* Progress Line - positioned to align with step circles */}
+            <div className="absolute top-10 left-0 right-0 flex items-center">
+              <div className="w-full h-0.5 bg-gray-200"></div>
             </div>
             <motion.div
-              className="absolute inset-0 flex items-center"
+              className="absolute top-10 left-0 h-0.5 bg-gradient-to-r from-neon to-mint"
               initial={{ width: "0%" }}
               animate={{ width: `${(activeStep / 3) * 100}%` }}
               transition={{ duration: 0.5 }}
-            >
-              <div className="w-full h-1 bg-gradient-to-r from-neon to-mint rounded-full"></div>
-            </motion.div>
+            />
             
             {/* Step Indicators */}
             <div className="relative flex justify-between">
@@ -117,35 +116,32 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
                 <button
                   key={step.id}
                   onClick={() => handleStepClick(step.id)}
-                  className="group relative"
+                  className="group relative flex flex-col items-center"
                 >
                   <motion.div
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={`relative z-10 transition-all duration-300`}
+                    className={`relative transition-all duration-300`}
                   >
-                    {/* Outer ring animation */}
-                    <AnimatePresence>
-                      {activeStep === step.id && (
-                        <motion.div
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={{ scale: 1.2, opacity: 1 }}
-                          exit={{ scale: 1.4, opacity: 0 }}
-                          transition={{ duration: 0.5 }}
-                          className="absolute inset-0 bg-neon/20 rounded-full"
-                        />
-                      )}
-                    </AnimatePresence>
+                    {/* Outer ring animation for active step */}
+                    {activeStep === step.id && (
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1.3, opacity: 0.3 }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                        className="absolute inset-0 bg-neon rounded-full"
+                      />
+                    )}
                     
-                    {/* Main circle */}
-                    <div className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    {/* Main circle - properly sized and positioned */}
+                    <div className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 border-4 ${
                       activeStep === step.id 
-                        ? 'bg-neon shadow-xl shadow-neon/30' 
+                        ? 'bg-neon border-neon shadow-lg shadow-neon/30' 
                         : activeStep > step.id
-                        ? 'bg-neon/20 border-2 border-neon'
-                        : 'bg-white border-2 border-gray-200'
+                        ? 'bg-neon/90 border-neon'
+                        : 'bg-white border-gray-300'
                     }`}>
-                      <step.icon className={`w-10 h-10 transition-colors duration-300 ${
+                      <step.icon className={`w-9 h-9 transition-colors duration-300 ${
                         activeStep >= step.id ? 'text-midnight' : 'text-gray-400'
                       }`} />
                     </div>
@@ -153,21 +149,21 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
                     {/* Step number badge */}
                     <div className={`absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
                       activeStep >= step.id
-                        ? 'bg-midnight text-white'
-                        : 'bg-gray-200 text-gray-600'
+                        ? 'bg-midnight text-white shadow-md'
+                        : 'bg-white border-2 border-gray-300 text-gray-600'
                     }`}>
                       {activeStep > step.id ? <Check className="w-4 h-4" /> : step.id}
                     </div>
                   </motion.div>
                   
-                  {/* Always visible labels */}
-                  <div className="mt-3 text-center">
-                    <p className={`font-semibold transition-colors duration-300 ${
+                  {/* Step labels - positioned below the circles */}
+                  <div className="mt-4 text-center">
+                    <p className={`font-semibold text-sm transition-colors duration-300 ${
                       activeStep === step.id ? 'text-midnight' : 'text-gray-600'
                     }`}>
                       {step.title}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 mt-0.5">
                       {step.stats.time} {step.stats.action}
                     </p>
                   </div>
@@ -414,17 +410,18 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
                 )}
               </div>
 
-              {/* Navigation */}
-              <div className="flex items-center space-x-4">
+              {/* Step Navigation Dots */}
+              <div className="flex items-center space-x-3 pt-6">
                 {steps.map((step) => (
                   <button
                     key={step.id}
                     onClick={() => handleStepClick(step.id)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    className={`transition-all duration-300 ${
                       activeStep === step.id 
-                        ? 'w-8 bg-neon' 
-                        : 'bg-gray-300 hover:bg-gray-400'
+                        ? 'w-8 h-2 bg-neon rounded-full' 
+                        : 'w-2 h-2 bg-gray-300 rounded-full hover:bg-gray-400'
                     }`}
+                    aria-label={`Go to step ${step.id}`}
                   />
                 ))}
               </div>
