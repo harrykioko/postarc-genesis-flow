@@ -81,3 +81,36 @@
     stroke-dashoffset: 0;
   }
 }
+
+@keyframes template-highlight {
+  0% { 
+    border-color: #E5E7EB; 
+    background: transparent; 
+  }
+  50% { 
+    border-color: #00FFC2; 
+    background: rgba(0, 255, 194, 0.1); 
+  }
+  100% { 
+    border-color: #E5E7EB; 
+    background: transparent; 
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(0, 255, 194, 0.3); 
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(0, 255, 194, 0.6); 
+  }
+}
+
+@keyframes mini-typewriter {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}

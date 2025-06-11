@@ -5,6 +5,7 @@ import { DemoModal } from "./DemoModal";
 import { AuthModal } from "./AuthModal";
 import { PricingModal } from "./PricingModal";
 import { DemoCTA } from "./ui/DemoCTA";
+import { MiniDemoAnimation } from "./hero/MiniDemoAnimation";
 
 export const Hero = () => {
   const [showDemo, setShowDemo] = useState(false);
@@ -87,6 +88,9 @@ export const Hero = () => {
           </div>
         </div>
       </div>
+
+      {/* Mini Demo Animation */}
+      <MiniDemoAnimation />
 
       {/* Scroll indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
