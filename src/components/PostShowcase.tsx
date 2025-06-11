@@ -2,7 +2,7 @@
 import { PostsCreatedCounter } from './postShowcase/PostsCreatedCounter';
 import { PostsGrid } from './postShowcase/PostsGrid';
 import { ActivityTicker } from './postShowcase/ActivityTicker';
-import { PostShowcaseCTA } from './postShowcase/PostShowcaseCTA';
+import { DemoCTA } from './ui/DemoCTA';
 import { usePostShowcaseState } from './postShowcase/hooks/usePostShowcaseState';
 
 interface PostShowcaseProps {
@@ -30,7 +30,7 @@ export const PostShowcase = ({ onTryNowClick }: PostShowcaseProps) => {
 
         <ActivityTicker currentActivity={currentActivity} />
 
-        <PostShowcaseCTA onTryNowClick={onTryNowClick} />
+        <DemoCTA onClick={onTryNowClick} />
       </div>
     </section>
   );

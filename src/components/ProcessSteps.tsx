@@ -1,12 +1,16 @@
+
 import { Lightbulb, Sparkles, Share2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { DemoCTA } from "./ui/DemoCTA";
+
 interface ProcessStepsProps {
   onTryNowClick: () => void;
 }
+
 export const ProcessSteps = ({
   onTryNowClick
 }: ProcessStepsProps) => {
-  return <section className="py-20">
+  return (
+    <section className="py-20">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-midnight">How It Works</h2>
@@ -133,14 +137,10 @@ export const ProcessSteps = ({
           </div>
         </div>
 
-        <div className="text-center mt-16">
-          <Button onClick={onTryNowClick} className="btn-neon px-8 py-3 text-lg rounded-lg">
-            Try It Now
-          </Button>
-          <p className="text-sm text-slate mt-3">
-            3 free posts • No signup required
-          </p>
+        <div className="mt-16">
+          <DemoCTA onClick={onTryNowClick} />
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };

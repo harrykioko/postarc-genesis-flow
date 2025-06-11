@@ -1,10 +1,10 @@
 
-import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronDown, Star } from "lucide-react";
+import { ChevronDown, Star } from "lucide-react";
 import { useState } from "react";
 import { DemoModal } from "./DemoModal";
 import { AuthModal } from "./AuthModal";
 import { PricingModal } from "./PricingModal";
+import { DemoCTA } from "./ui/DemoCTA";
 
 export const Hero = () => {
   const [showDemo, setShowDemo] = useState(false);
@@ -73,19 +73,10 @@ export const Hero = () => {
           </p>
 
           {/* Main CTA section */}
-          <div className="space-y-6">
-            <Button 
-              onClick={() => setShowDemo(true)}
-              className="btn-neon px-12 py-6 text-xl rounded-xl shadow-2xl hover:scale-105 transform transition-all duration-300 font-semibold group"
-            >
-              Try It Now
-              <ArrowRight className="ml-2 w-5 h-5 inline-block group-hover:translate-x-1 transition-transform" />
-            </Button>
-            
-            <p className="text-slate">
-              3 free posts • No signup required • Takes 30 seconds
-            </p>
-          </div>
+          <DemoCTA 
+            variant="primary" 
+            onClick={() => setShowDemo(true)} 
+          />
 
           {/* Simple trust indicator */}
           <div className="mt-12 flex items-center justify-center gap-2">
