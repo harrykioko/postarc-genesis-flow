@@ -52,28 +52,26 @@ export const Hero = () => {
             {/* Enhanced tagline */}
             <div className="mb-8">
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold text-midnight leading-tight">
-                <span className="block">Shape ideas.</span>
+                <span className="block">Watch AI Turn</span>
+                <span className="block">Your Rough Ideas</span>
                 <span className="block">
-                  Share{" "}
+                  Into{" "}
                   <span className="relative inline-block">
                     <span className="bg-gradient-to-r from-midnight via-purple-600 to-neon bg-clip-text text-transparent">
-                      authority
+                      LinkedIn Gold
                     </span>
                     <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 200 8">
                       <path d="M1 5.5Q50 2 100 5.5T200 5.5" stroke="#00FFC2" strokeWidth="3" fill="none" className="animate-draw-line" />
                     </svg>
                   </span>
-                  .
                 </span>
               </h1>
             </div>
 
             {/* Value proposition */}
             <p className="text-xl md:text-2xl lg:text-3xl text-slate mb-12 font-body">
-              Generate expert-level LinkedIn posts in{" "}
-              <span className="font-semibold text-midnight">10 seconds</span>.
-              <br className="hidden md:block" />
-              AI trained on what actually gets engagement.
+              Our AI analyzed 50,000 viral LinkedIn posts to help you write content that gets{" "}
+              <span className="font-bold text-midnight">3x more engagement</span>.
             </p>
 
             {/* Main CTA section */}
