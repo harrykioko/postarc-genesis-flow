@@ -5,7 +5,7 @@ import { DemoModal } from "./DemoModal";
 import { AuthModal } from "./AuthModal";
 import { PricingModal } from "./PricingModal";
 import { DemoCTA } from "./ui/DemoCTA";
-import { MiniDemoAnimation } from "./hero/MiniDemoAnimation";
+import { HeroVisual } from "./hero/HeroVisual";
 
 export const Hero = () => {
   const [showDemo, setShowDemo] = useState(false);
@@ -55,7 +55,7 @@ export const Hero = () => {
                 <span className="block">Struggling to Post</span>
                 <span className="block">on LinkedIn?</span>
                 <span className="block">
-                  Let AI turn your rough thoughts into{" "}
+                  Let AI turn your thoughts into{" "}
                   <span className="relative inline-block">
                     <span className="bg-gradient-to-r from-midnight via-purple-600 to-neon bg-clip-text text-transparent">
                       scroll-stopping content
@@ -70,14 +70,16 @@ export const Hero = () => {
             </div>
 
             {/* Value proposition */}
-            <div className="text-xl md:text-2xl lg:text-3xl text-slate mb-12 font-body space-y-3">
+            <div className="text-xl md:text-2xl lg:text-3xl text-slate mb-8 font-body space-y-3">
               <p>
                 Trained on 50,000 viral posts. Built for{" "}
                 <span className="font-bold text-midnight">consultants, founders, and sales pros</span>.
               </p>
-              <p className="text-lg md:text-xl lg:text-2xl">
-                Try your first 3 posts free — no signup required.
-              </p>
+            </div>
+
+            {/* Supporting copy */}
+            <div className="text-lg md:text-xl lg:text-2xl text-slate mb-12 font-body">
+              <p>Try your first 3 posts free — no signup required.</p>
             </div>
 
             {/* Main CTA section */}
@@ -95,9 +97,9 @@ export const Hero = () => {
             </div>
           </div>
 
-          {/* Right column: Mini Demo Animation (hidden on mobile) */}
+          {/* Right column: Static Hero Visual (hidden on mobile) */}
           <div className="hidden lg:flex justify-center items-center">
-            <MiniDemoAnimation />
+            <HeroVisual />
           </div>
         </div>
       </div>
