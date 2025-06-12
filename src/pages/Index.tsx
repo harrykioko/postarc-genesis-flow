@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
@@ -10,7 +9,8 @@ import { Pricing } from "@/components/Pricing";
 import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
 import { DemoModal } from "@/components/DemoModal";
-import { WaveDivider } from "@/components/WaveDivider";
+import { SectionTransition } from "@/components/ui/SectionTransition";
+import { GlassDivider } from "@/components/ui/GlassDivider";
 
 const Index = () => {
   const [showDemo, setShowDemo] = useState(false);
@@ -23,65 +23,52 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       
-      {/* Hero Section - Pure white with dot pattern */}
-      <section className="section-white section-transition relative overflow-hidden">
-        <div className="absolute inset-0 pattern-dots z-0" />
-        <div className="absolute top-20 -left-40 w-80 h-80 bg-neon/5 rounded-full blur-3xl z-0" />
-        <div className="relative z-10">
-          <Hero />
-        </div>
-        <WaveDivider color="#F8FBFF" />
+      {/* Hero Section */}
+      <section className="relative min-h-screen">
+        <Hero />
       </section>
 
-      {/* How It Works - Soft blue gradient */}
-      <section className="section-soft section-transition relative">
-        <div className="relative z-10">
-          <ProcessSteps onTryNowClick={handleTryNowClick} />
-        </div>
-        <WaveDivider color="#FFFFFF" />
-      </section>
+      <GlassDivider position="bottom" className="-mt-12 z-20" />
 
-      {/* Before/After - White background */}
-      <section className="section-white section-transition relative">
-        <div className="relative z-10">
-          <BeforeAfter />
-        </div>
-        <WaveDivider color="#F5FFFD" />
-      </section>
+      {/* How It Works */}
+      <SectionTransition background="glassy-gradient">
+        <ProcessSteps onTryNowClick={handleTryNowClick} />
+      </SectionTransition>
 
-      {/* Trust Metrics - Feature gradient with dots */}
-      <section className="section-feature section-transition relative overflow-hidden">
-        <div className="absolute inset-0 pattern-dots z-0" />
-        <div className="relative z-10">
-          <TrustMetrics />
-        </div>
-        <WaveDivider color="#F8FBFF" />
-      </section>
+      <GlassDivider position="bottom" className="-mt-12 z-20" />
 
-      {/* PostShowcase - Soft blue */}
-      <section className="section-soft section-transition relative">
-        <div className="absolute bottom-20 -right-40 w-80 h-80 bg-midnight/5 rounded-full blur-3xl z-0" />
-        <div className="relative z-10">
-          <PostShowcase onTryNowClick={handleTryNowClick} />
-        </div>
-        <WaveDivider color="#FFFFFF" />
-      </section>
+      {/* Before/After */}
+      <SectionTransition background="glassy">
+        <BeforeAfter />
+      </SectionTransition>
 
-      {/* Pricing - White with grid pattern */}
-      <section className="section-white section-transition relative overflow-hidden">
-        <div className="absolute inset-0 pattern-grid z-0" />
-        <div className="relative z-10">
-          <Pricing />
-        </div>
-        <WaveDivider color="#F8FBFF" />
-      </section>
+      <GlassDivider position="bottom" className="-mt-12 z-20" />
 
-      {/* FAQ - Soft ending */}
-      <section className="section-soft section-transition relative">
-        <div className="relative z-10">
-          <FAQ />
-        </div>
-      </section>
+      {/* Trust Metrics */}
+      <SectionTransition background="glassy-gradient">
+        <TrustMetrics />
+      </SectionTransition>
+
+      <GlassDivider position="bottom" className="-mt-12 z-20" />
+
+      {/* Post Showcase */}
+      <SectionTransition background="glassy">
+        <PostShowcase onTryNowClick={handleTryNowClick} />
+      </SectionTransition>
+
+      <GlassDivider position="bottom" className="-mt-12 z-20" />
+
+      {/* Pricing */}
+      <SectionTransition background="glassy-gradient">
+        <Pricing />
+      </SectionTransition>
+
+      <GlassDivider position="bottom" className="-mt-12 z-20" />
+
+      {/* FAQ */}
+      <SectionTransition background="glassy" withDivider={false}>
+        <FAQ />
+      </SectionTransition>
 
       <Footer />
       

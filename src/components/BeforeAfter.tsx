@@ -1,40 +1,55 @@
-
 import { motion } from 'framer-motion';
-import { X, Check, AlertCircle, Sparkles } from 'lucide-react';
+import { X, Check, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
 
 export const BeforeAfter = () => {
   const beforeProblems = [
-    "Spending 45+ minutes crafting a single post",
-    "Struggling to find your authentic professional voice",
-    "Posts getting lost in the feed with minimal engagement",
-    "Inconsistent posting hurting your thought leadership",
-    "Content that doesn't showcase your true expertise",
-    "Fear of posting because it might not sound professional"
+    "45 minutes lost to every post",
+    "Voice feels off — or worse, ignored",
+    "Zero engagement after all that effort",
+    "Inconsistent posting weakens your credibility",
+    "Sounding smart ≠ sounding like you",
+    "You hesitate — and your ideas never get shared"
   ];
 
   const afterBenefits = [
-    "Generate polished posts in under 10 seconds",
-    "AI matches your professional tone perfectly every time",
-    "Optimized content that drives 3x higher engagement",
-    "Consistent, quality posting builds your personal brand",
-    "Content that positions you as an industry thought leader",
-    "Confidence to share ideas and grow your influence daily"
+    "10-second posts — polished and professional",
+    "AI nails your voice every time",
+    "3x engagement on average",
+    "Effortless consistency = trusted thought leadership",
+    "Content that attracts investors, clients, and hires",
+    "Confidence to post — daily"
   ];
 
   return (
     <section className="py-20">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6 text-midnight">
-            Transform Your LinkedIn Presence
+          <h2 className="text-5xl md:text-6xl font-heading font-bold mb-6 text-midnight">
+            Before PostArc.{" "}
+            <span className="relative">
+              After PostArc
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-neon to-mint rounded-full"></div>
+            </span>
           </h2>
-          <p className="text-xl text-slate max-w-3xl mx-auto mb-4">
-            See the dramatic difference PostArc makes for busy professionals
+          <p className="text-2xl text-slate max-w-3xl mx-auto mb-4">
+            Your influence, multiplied
           </p>
-          <div className="w-24 h-1 bg-gradient-to-r from-neon to-mint mx-auto rounded-full"></div>
         </div>
 
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 relative">
+          {/* Connecting Arrow - Desktop Only */}
+          <div className="hidden lg:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+              className="w-12 h-12 bg-neon/20 rounded-full flex items-center justify-center"
+            >
+              <ArrowRight className="w-6 h-6 text-neon" />
+            </motion.div>
+          </div>
+
           {/* Before - Problems */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -44,7 +59,6 @@ export const BeforeAfter = () => {
             className="relative"
           >
             <div className="card-float p-8 border-slate-200 relative overflow-hidden bg-gradient-to-br from-red-50/50 to-white">
-              {/* Enhanced visual effect */}
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-400 to-red-500"></div>
               
               <div className="relative z-10">
@@ -78,7 +92,7 @@ export const BeforeAfter = () => {
 
                 <div className="mt-8 p-5 bg-red-50 rounded-xl border border-red-100">
                   <p className="text-red-800 font-semibold text-center">
-                    Result: Missed opportunities, inconsistent presence, declining influence
+                    🔴 Result: Missed deals. Flat profile. Fading presence.
                   </p>
                 </div>
               </div>
@@ -93,8 +107,7 @@ export const BeforeAfter = () => {
             viewport={{ once: true }}
             className="relative"
           >
-            <div className="card-float p-8 border-neon/30 relative overflow-hidden bg-gradient-to-br from-green-50/50 to-white">
-              {/* Enhanced visual effect */}
+            <div className="card-float p-8 border-neon/30 relative overflow-hidden bg-gradient-to-br from-green-50/50 to-white shadow-[0_0_30px_rgba(0,255,194,0.1)]">
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-neon to-mint"></div>
               
               <div className="relative z-10">
@@ -128,7 +141,7 @@ export const BeforeAfter = () => {
 
                 <div className="mt-8 p-5 bg-green-50 rounded-xl border border-green-100">
                   <p className="text-green-800 font-semibold text-center">
-                    Result: Consistent thought leadership, exponential growth, industry recognition
+                    🟢 Result: Thought leadership. Growth. Authority.
                   </p>
                 </div>
               </div>
