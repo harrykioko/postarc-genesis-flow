@@ -118,88 +118,144 @@ Implementation details:
 
 ---
 
-## 4. Component/Code Snippet Examples
+## 4. Advanced Visual Cohesion & Rhythm Enhancements
 
-### 4.1 Example: GlassDivider Component (Implemented)
+### 4.1 Unifying Gradient Spine
 
-```tsx
-// src/components/ui/GlassDivider.tsx
+- [ ] Add a vertical gradient "spine" or ambient glow (Neon Mint → Slate Blue) behind the main content.
+  - Should be soft, blurred, and low opacity.
+  - Runs from top to bottom, visually connecting all sections.
+  - Responsive: thinner and less intense on mobile.
 
-import React from "react";
-import { cn } from "@/lib/utils";
+### 4.1.1 Implementation: GradientSpine Component
 
-interface GlassDividerProps {
-  position?: "top" | "bottom";
-  className?: string;
-}
-
-/**
- * GlassDivider
- * Curved, frosted glass SVG divider for section transitions.
- * @param position - "top" or "bottom" (default: "bottom")
- * @param className - Additional Tailwind classes
- */
-export const GlassDivider: React.FC<GlassDividerProps> = ({
-  position = "bottom",
-  className = "",
-}) => (
-  <div
-    className={cn(
-      "relative w-full overflow-hidden",
-      position === "top" ? "rotate-180" : "",
-      className
-    )}
-    aria-hidden="true"
-  >
-    <svg
-      viewBox="0 0 1440 120"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-full h-24"
-    >
-      <defs>
-        <filter id="shadow" x="0" y="0" width="200%" height="200%">
-          <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="#00FFC2" floodOpacity="0.15"/>
-        </filter>
-      </defs>
-      <path
-        d="M0,0 C480,120 960,0 1440,120 L1440,120 L0,120 Z"
-        fill="white"
-        fillOpacity="0.7"
-        filter="url(#shadow)"
-        style={{ filter: "blur(12px)" }}
-      />
-      <path
-        d="M0,0 C480,120 960,0 1440,120"
-        stroke="#00FFC2"
-        strokeOpacity="0.5"
-        strokeWidth="6"
-        filter="url(#shadow)"
-      />
-    </svg>
-    <div className="absolute inset-0 bg-white/30 backdrop-blur-lg pointer-events-none" />
-  </div>
-);
-```
-
-### 4.2 Example: Usage Between Sections (To Be Implemented)
+- **Component:** `src/components/ui/GradientSpine.tsx`
+- **Description:** Renders a vertical, blurred, low-opacity gradient spine (Neon Mint → Cyan → Slate Blue) behind the main content. Uses CSS linear-gradient, Tailwind blur, and responsive width.
+- **Accessibility:** `aria-hidden` and `pointer-events-none` ensure it does not interfere with navigation or screen readers.
+- **Performance:** Uses only CSS for effects; no images or heavy animation.
+- **Responsive:** Thinner and less intense on mobile, wider on desktop.
+- **Usage Example:**
 
 ```tsx
-// In your landing page file (e.g., src/pages/Index.tsx)
+import { GradientSpine } from '@/components/ui/GradientSpine'
 
-import { GlassDivider } from "@/components/ui/GlassDivider";
-
-export const Index = () => (
-  <main>
-    <SectionOne />
-    <GlassDivider position="bottom" className="-mt-12 z-20" />
-    <SectionTwo />
-    <GlassDivider position="bottom" />
-    <SectionThree />
-    {/* ... */}
-  </main>
-);
+// Place as the first child in the landing page layout wrapper
+<main className="relative">
+  <GradientSpine />
+  {/* ...rest of landing page... */}
+</main>
 ```
+
+- **Notes:**
+  - Sits behind all content (z-0), above background.
+  - Customizable via `className` prop if needed.
+  - No impact on keyboard navigation or screen readers.
+
+### 4.1.2 Integration: Landing Page Only
+
+- ✅ Integrated `<GradientSpine />` as the first child of the main wrapper in `src/pages/Index.tsx`.
+- The spine appears only on the landing page and does not impact any other pages or layouts.
+- Confirmed correct stacking context (z-0) and no interference with content or navigation.
+
+#### Checklist
+- [x] GradientSpine implemented as a reusable component
+- [x] Documented usage and rationale
+- [x] Integrated into landing page only (Index.tsx)
+- [ ] Test responsiveness and performance
+- [ ] Review accessibility
+
+### 4.2 Alternate Card Presentation Rhythm
+
+- [ ] Refactor "Before/After" to side-by-side cards, with "With PostArc" card having a subtle tilt/glow.
+- [ ] Present "Trusted by Professionals" KPIs in a single, centered wide row, breaking the grid for emphasis.
+- [ ] Refactor "Real Posts" to use a carousel/swipe deck, center the heading, and add a motion hint (e.g., animated arrow).
+
+### 4.2.1 Refactor: Before/After Cards
+
+- **Layout:** Two cards remain side-by-side on desktop (`lg:grid-cols-2`), stacked on mobile. No major grid changes needed.
+- **Enhancement:**
+  - The "With PostArc" card now features:
+    - A subtle tilt (`-rotate-3`, desktop only)
+    - A pronounced neon mint glow (`shadow-[0_0_40px_8px_#00FFC2]`, desktop only)
+  - Effects are removed on mobile for readability.
+- **Accessibility:** No impact on keyboard navigation or screen readers.
+- **Performance:** All effects are CSS-based, no images or heavy animation.
+
+**Code Snippet:**
+```tsx
+<div
+  className="card-float p-8 border-neon/30 relative overflow-hidden bg-gradient-to-br from-green-50/50 to-white
+    shadow-[0_0_30px_rgba(0,255,194,0.1)]
+    lg:-rotate-3 lg:shadow-[0_0_40px_8px_#00FFC2] transition-transform duration-300"
+>
+  {/* ...content... */}
+</div>
+```
+
+#### Checklist
+- [x] Subtle tilt and neon mint glow added to "With PostArc" card (desktop only)
+- [x] Layout remains robust and responsive
+- [x] Documented rationale and code
+- [ ] Test all breakpoints and accessibility
+
+#### 4.2.1.1 Before/After Section Redesign Plan
+
+- **Header Removal:**
+  - Remove the section header and subtitle ("Before PostArc. After PostArc." and "Your influence, multiplied.")
+
+- **Card Animation on Scroll:**
+  - Use Framer Motion for scroll-triggered animation.
+  - Left card ("Without PostArc") starts off-screen left (opacity 0, x: -50), slides in with fade and spring ease when in viewport.
+  - Right card ("With PostArc") starts off-screen right (opacity 0, x: 50), slides in 100ms after left card finishes.
+
+- **Card Styling:**
+  - Glassmorphic background: `bg-white/40`, `backdrop-blur-lg`, subtle border.
+  - Top border: Red (#FF5E5E) for "Without" card, Neon Mint (#00FFC2) for "With" card.
+  - Box shadow: `0 4px 12px rgba(0,0,0,0.05)`.
+  - Rounded corners: `rounded-2xl` (16px).
+  - Padding: `p-8` (32px) inside each card.
+  - Margin between cards: `gap-x-12` (48px) on desktop.
+
+- **Optional Connector:**
+  - Once both cards animate in, show a center chevron or animated arrow (→) between them, animated with Framer Motion. (Placeholder present, animation next)
+
+- **Section Spacing:**
+  - Increase top padding (e.g., `pt-28` or `pt-32`) for standalone presence.
+  - Reduce vertical gap to the next section for better flow.
+
+- **Accessibility & Responsiveness:**
+  - Respect prefers-reduced-motion for animations.
+  - Cards stack vertically on mobile with appropriate spacing.
+
+**Checklist:**
+- [x] Remove section header and subtitle
+- [x] Implement scroll-triggered card animations (left/right, staggered)
+- [x] Apply glassmorphic styling, colored top borders, box shadow, rounded corners, and padding
+- [x] Add margin between cards (desktop)
+- [x] Add connector arrow placeholder between cards (animation next)
+- [ ] Animate connector arrow between cards
+- [ ] Adjust section spacing (top and bottom)
+- [ ] Ensure accessibility and responsiveness
+- [ ] Document code and rationale
+
+### 4.3 Hero Section: Foreground-Background Interaction
+
+- [ ] Add gentle floating animation to hero card(s) (Framer Motion).
+- [ ] Add a faint motion trail or dotted-line SVG connector between "Drop your idea → AI writes → Copy & share".
+- [ ] Add a neon mint sparkle or pulse at each step for polish.
+
+### 4.4 Color + Contrast Balance
+
+- [ ] Add tinted overlays behind key sections for depth and separation:
+  - `#F5FAFF` for "Before/After"
+  - `#FAFDFE` for metrics
+  - Transparent dark glass for testimonials/real posts
+- [ ] Ensure CTAs/buttons use pure white or neon for maximum contrast.
+
+### 4.5 Typography Hierarchy Tweaks
+
+- [ ] Add a section subtitle style (Inter, Medium, #65758C) under each heading.
+- [ ] Enlarge "Real Posts, Real Results" heading and use italic for post quotes.
 
 ---
 
@@ -223,6 +279,7 @@ export const Index = () => (
 - [x] Section backgrounds enhanced with gradients.
 - [ ] Responsiveness and accessibility tested.
 - [ ] Code documented and examples provided.
+- [ ] **Advanced Visual Cohesion & Rhythm Enhancements** (see section 4).
 
 ---
 
@@ -232,5 +289,6 @@ export const Index = () => (
 - **v1.1** – Added GlassDivider component implementation (2024-06-09).
 - **v1.2** – Completed GlassDivider integration between sections (2024-06-09).
 - **v1.3** – Enhanced section backgrounds with glassy effects (2024-06-09).
+- **v2.0** – Added advanced visual cohesion & rhythm enhancements (2024-06-09).
 
 ---

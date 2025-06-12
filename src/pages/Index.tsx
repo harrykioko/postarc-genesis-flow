@@ -11,6 +11,7 @@ import { Footer } from "@/components/Footer";
 import { DemoModal } from "@/components/DemoModal";
 import { SectionTransition } from "@/components/ui/SectionTransition";
 import { GlassDivider } from "@/components/ui/GlassDivider";
+import { GradientSpine } from "@/components/ui/GradientSpine";
 
 const Index = () => {
   const [showDemo, setShowDemo] = useState(false);
@@ -20,7 +21,8 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      <GradientSpine />
       <Header />
       
       {/* Hero Section */}
