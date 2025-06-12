@@ -1,4 +1,5 @@
-import { Lightbulb, Sparkles, Share2, Check, ArrowRight, Clock, Award, Zap } from "lucide-react";
+
+import { Lightbulb, Sparkles, Share2, Check, ArrowRight, Award, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DemoCTA } from "./ui/DemoCTA";
@@ -76,17 +77,7 @@ export const ProcessSteps = ({ onTryNowClick }: ProcessStepsProps) => {
   return (
     <section className="py-20 overflow-hidden">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center space-x-2 bg-neon/10 px-4 py-2 rounded-full mb-4"
-          >
-            <Clock className="w-4 h-4 text-neon" />
-            <span className="text-sm font-medium text-midnight">Average time: 15 seconds</span>
-          </motion.div>
-          
+        <div className="text-center mb-12">          
           <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-midnight">
             How It Works
           </h2>
