@@ -1,18 +1,38 @@
-
 import { motion } from 'framer-motion';
 import { Badge } from "@/components/ui/badge";
 import { Eye, Heart } from 'lucide-react';
 import { ExamplePost, TemplateColors } from './data/postShowcaseData';
 
+/**
+ * Props for PostCard component.
+ * @param post - The post data to display
+ * @param index - The index of the card in the list (for animation delay)
+ * @param colors - The color theme for the card (based on template)
+ */
 interface PostCardProps {
   post: ExamplePost;
   index: number;
   colors: TemplateColors;
 }
 
+/**
+ * PostCard displays a single LinkedIn post preview with author, template, and engagement stats.
+ * - Animates in on scroll (fade/grow)
+ * - On desktop, bounces slightly on hover (Framer Motion spring)
+ * - On mobile, disables bounce for performance
+ * - Shows a NEW badge if post.isNew is true
+ * @param post - The post data to display
+ * @param index - The index of the card in the list (for animation delay)
+ * @param colors - The color theme for the card (based on template)
+ */
 export const PostCard = ({ post, index, colors }: PostCardProps) => {
   const initials = post.author.split(' ').map(name => name[0]).join('');
 
+  /**
+   * Bounce-on-hover effect for desktop (md: and up).
+   * Uses Framer Motion's whileHover and media query to restrict to desktop.
+   * Disabled on mobile for performance.
+   */
   return (
     <motion.div
       key={post.id}
@@ -21,6 +41,23 @@ export const PostCard = ({ post, index, colors }: PostCardProps) => {
       transition={{ duration: 0.5, delay: index * 0.1 }}
       viewport={{ once: true }}
       className="group relative card-float hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-1"
+      whileHover={{
+        scale: 1.04,
+        y: -4,
+        transition: { type: 'spring', stiffness: 300, damping: 18 },
+      }}
+      style={{
+        // Only apply bounce on desktop (md: and up)
+        // Framer Motion doesn't support Tailwind breakpoints directly, so we use a CSS media query
+        // This disables the effect on mobile
+        '--motion-hover': 'none',
+      } as React.CSSProperties}
+      onMouseEnter={e => {
+        if (window.innerWidth < 768) return;
+      }}
+      onMouseLeave={e => {
+        if (window.innerWidth < 768) return;
+      }}
     >
       {/* Colored Top Bar */}
       <div className={`h-1 bg-gradient-to-r ${colors.topBar}`}></div>

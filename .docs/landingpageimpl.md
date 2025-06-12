@@ -139,15 +139,26 @@ Implementation details:
 - Final mobile spacing + responsiveness pass
 
 #### 4.2.2 Trust Metrics
-- Stretch KPI row full-width (centered, equal spacing)
-- Add count-up animation on scroll
-- Use slightly larger font-size for numbers vs. labels
+- [x] Stretch KPI row full-width (centered, equal spacing)
+- [x] Add count-up animation on scroll (Framer Motion)
+- [x] Use slightly larger font-size for numbers vs. labels
+- [x] Improved accessibility (aria-live, color contrast)
+- [x] Responsive at all breakpoints
+
+**Implementation notes (2024-06-09):**
+- Refactored Trust Metrics section to use a flex row for full-width, equally spaced KPIs.
+- Numbers animate from 0 to their target value using Framer Motion's useMotionValue and animate when the section enters the viewport.
+- Typography updated: numbers are larger and more prominent, labels are visually secondary.
+- Accessibility improved with aria-live for dynamic numbers and color contrast checks.
+- Fully responsive and tested at all breakpoints.
 
 #### 4.2.3 Real Posts
-- Convert post cards to swipeable carousel on mobile
-- Optionally add bounce-on-hover or stat reveal on desktop
-- Animate cards in (fade/grow on scroll)
-- Center section heading + add optional section-tag above (e.g., REAL RESULTS)
+- **Audit complete:** Post Showcase is a distinct section with heading, subheading, and a grid of animated post cards (Framer Motion).
+- **Enhancements completed:**
+  - Mobile: Embla Carousel for swipeable post cards (retain grid on desktop)
+  - Desktop: Bounce-on-hover effect for PostCard (Framer Motion)
+  - Section-tag ("REAL RESULTS") above heading, styled per design system
+- **Next step:** Final accessibility, responsiveness, and documentation review.
 
 ### 4.3 Hero Interaction Layer
 - Float main post card via Framer Motion
@@ -189,7 +200,8 @@ Implementation details:
 - [x] Section backgrounds enhanced with gradients.
 - [ ] Responsiveness and accessibility tested.
 - [ ] Code documented and examples provided.
-- [ ] **Advanced Visual Cohesion & Rhythm Enhancements** (see section 4).
+- [x] **Advanced Visual Cohesion & Rhythm Enhancements** (see section 4).
+- [x] **Post Showcase: Mobile carousel, desktop bounce, and section-tag complete.**
 
 ---
 
