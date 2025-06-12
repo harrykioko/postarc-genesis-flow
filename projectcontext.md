@@ -1,0 +1,317 @@
+# Cursor Rules for PostArc.ai
+
+## Project Overview
+PostArc.ai is a LinkedIn content generation platform built with React/Vite frontend and Supabase backend. Users can generate AI-powered LinkedIn posts using built-in or custom templates, with freemium subscription model.
+
+## Tech Stack & Architecture
+
+### Frontend
+- **Framework**: Vite + React 18 + TypeScript
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **State Management**: React Context API + React Query for server state
+- **Routing**: React Router 6
+- **Build Tool**: Vite with TypeScript
+
+### Backend
+- **Database**: Supabase PostgreSQL with Row Level Security (RLS)
+- **Functions**: Supabase Edge Functions (Deno runtime)
+- **Authentication**: Supabase Auth (magic link, Google, LinkedIn OAuth)
+- **Payments**: Stripe with webhooks
+- **AI**: OpenAI GPT-4o-mini for content generation
+- **APIs**: LinkedIn API for posting, custom URL scraper
+
+### Key Integrations
+- **OpenAI API**: GPT-4o-mini for post generation
+- **Stripe**: Subscription management (free/pro/legend tiers)
+- **LinkedIn API**: OAuth connection and posting
+- **Supabase**: Database, auth, edge functions, real-time
+
+## Code Style & Standards
+
+### TypeScript
+- Use strict TypeScript configuration
+- Prefer interfaces over types for object shapes
+- Use proper typing for all props, state, and API responses
+- No `any` types - use proper typing or `unknown`
+
+### React Patterns
+- Functional components with hooks only
+- Custom hooks for reusable logic (prefix with `use`)
+- Context providers for global state
+- React Query for server state management
+- Error boundaries for component error handling
+
+### Component Structure
+```typescript
+// Component file structure
+interface ComponentProps {
+  // Props with proper typing
+}
+
+export const ComponentName: React.FC<ComponentProps> = ({ prop1, prop2 }) => {
+  // Hooks first
+  const [state, setState] = useState()
+  const { data } = useQuery()
+  
+  // Event handlers
+  const handleAction = useCallback(() => {
+    // Implementation
+  }, [dependencies])
+  
+  // Early returns for loading/error states
+  if (loading) return <LoadingSpinner />
+  if (error) return <ErrorMessage />
+  
+  // Main render
+  return (
+    <div className="proper-tailwind-classes">
+      {/* Component JSX */}
+    </div>
+  )
+}
+```
+
+### File Naming
+- Components: PascalCase (e.g., `PostGenerator.tsx`)
+- Hooks: camelCase with `use` prefix (e.g., `useQuota.ts`)
+- Utils: camelCase (e.g., `postUtils.ts`)
+- Types: PascalCase (e.g., `UserProfile.ts`)
+- Constants: UPPER_SNAKE_CASE
+
+### Import Organization
+```typescript
+// 1. External libraries
+import React from 'react'
+import { useQuery } from '@tanstack/react-query'
+
+// 2. Internal utilities
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
+
+// 3. Components
+import { Button } from '@/components/ui/button'
+import { PostCard } from '@/components/PostCard'
+
+// 4. Types
+import type { UserProfile } from '@/types'
+```
+
+## Folder Structure
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui base components
+│   ├── dashboard/      # Dashboard-specific components
+│   ├── settings/       # Settings page components
+│   └── shared/         # Shared utility components
+├── contexts/           # React Context providers
+├── hooks/              # Custom React hooks
+├── pages/              # Route components
+├── utils/              # Utility functions
+├── styles/             # CSS files (base, utilities, animations)
+├── integrations/       # External service integrations
+└── types/              # TypeScript type definitions
+```
+
+## Database Patterns
+
+### Supabase RLS Policies
+- Always use RLS policies for data security
+- User-scoped policies: `auth.uid() = user_id`
+- Role-based access for admin features
+- Test policies thoroughly
+
+### Database Queries
+```typescript
+// Use proper error handling
+const { data, error } = await supabase
+  .from('table_name')
+  .select('columns')
+  .eq('user_id', user.id)
+
+if (error) {
+  console.error('Database error:', error)
+  throw new Error('User-friendly error message')
+}
+```
+
+### Edge Functions
+- Use proper CORS headers
+- Authenticate users properly
+- Handle errors gracefully with user-friendly messages
+- Log important events for debugging
+- Use TypeScript for type safety
+
+## Authentication Patterns
+
+### User Authentication
+- Always check auth state before protected actions
+- Use the AuthContext provider throughout the app
+- Handle auth loading states properly
+- Redirect unauthenticated users appropriately
+
+### API Calls
+```typescript
+// Always include auth headers for protected endpoints
+const { data } = await supabase.functions.invoke('function-name', {
+  body: payload,
+  headers: {
+    Authorization: `Bearer ${session.access_token}`,
+  }
+})
+```
+
+## Error Handling
+
+### Frontend Error Handling
+- Use React Error Boundaries for component errors
+- Show user-friendly error messages
+- Log errors for debugging but don't expose sensitive info
+- Provide retry mechanisms where appropriate
+
+### API Error Handling
+```typescript
+try {
+  const result = await apiCall()
+  return result
+} catch (error) {
+  console.error('Operation failed:', error)
+  toast({
+    title: "Operation Failed",
+    description: "Please try again or contact support",
+    variant: "destructive"
+  })
+  throw error
+}
+```
+
+## Performance Guidelines
+
+### React Performance
+- Use `useCallback` and `useMemo` judiciously
+- Implement proper key props for lists
+- Lazy load heavy components
+- Optimize re-renders with proper dependency arrays
+
+### Bundle Optimization
+- Code split by routes using React.lazy
+- Optimize images and assets
+- Tree-shake unused dependencies
+- Use Vite's built-in optimizations
+
+## Security Considerations
+
+### Data Protection
+- Never expose sensitive data in client-side code
+- Use environment variables for API keys
+- Validate all user inputs
+- Sanitize data before database operations
+
+### API Security
+- Always validate user permissions
+- Use CSRF protection for state-changing operations
+- Rate limit API endpoints
+- Log security-relevant events
+
+## Testing Patterns
+
+### Unit Testing
+```typescript
+// Use React Testing Library
+import { render, screen, fireEvent } from '@testing-library/react'
+import { ComponentName } from './ComponentName'
+
+test('should handle user interaction correctly', () => {
+  render(<ComponentName />)
+  fireEvent.click(screen.getByRole('button'))
+  expect(screen.getByText('Expected result')).toBeInTheDocument()
+})
+```
+
+### Integration Testing
+- Test complete user flows
+- Mock external APIs appropriately
+- Test error states and edge cases
+
+## Deployment & Environment
+
+### Environment Variables
+```bash
+# Required for frontend
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+
+# Required for Supabase functions
+OPENAI_API_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+LINKEDIN_CLIENT_ID=
+LINKEDIN_CLIENT_SECRET=
+```
+
+### Build Process
+- Ensure all TypeScript errors are resolved
+- Run tests before deployment
+- Check bundle size and performance
+- Verify environment variables are set
+
+## Common Patterns
+
+### Loading States
+```typescript
+if (loading) return <div className="animate-pulse">Loading...</div>
+if (error) return <ErrorBoundary error={error} />
+```
+
+### Form Handling
+```typescript
+const [formData, setFormData] = useState(initialState)
+const [isSubmitting, setIsSubmitting] = useState(false)
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setIsSubmitting(true)
+  try {
+    await submitData(formData)
+    toast({ title: "Success!" })
+  } catch (error) {
+    toast({ title: "Error", variant: "destructive" })
+  } finally {
+    setIsSubmitting(false)
+  }
+}
+```
+
+### API Integration
+```typescript
+const { data, loading, error } = useQuery({
+  queryKey: ['key', dependency],
+  queryFn: () => fetchData(dependency),
+  enabled: !!dependency,
+  staleTime: 5 * 60 * 1000, // 5 minutes
+})
+```
+
+## AI Assistant Guidelines
+
+When working on this codebase:
+
+1. **Always follow existing patterns** - Look at similar components before creating new ones
+2. **Maintain type safety** - Add proper TypeScript types for all new code
+3. **Test edge cases** - Consider error states, loading states, and empty states
+4. **Follow accessibility guidelines** - Ensure components are keyboard navigable and screen reader friendly
+5. **Optimize for performance** - Consider bundle size and runtime performance
+6. **Maintain security** - Never expose sensitive data or create security vulnerabilities
+7. **Document complex logic** - Add comments for business logic and complex algorithms
+8. **Use existing utilities** - Leverage existing hooks, utils, and components before creating new ones
+
+## Priority Areas for Improvement
+
+1. **Error Recovery** - Add more robust error recovery mechanisms
+2. **Performance Monitoring** - Implement performance tracking
+3. **Testing Coverage** - Increase test coverage for critical paths
+4. **Accessibility** - Audit and improve accessibility compliance
+5. **SEO** - Optimize for search engines
+6. **Monitoring** - Add better logging and monitoring
+
+Remember: This is a production application with real users and payments. Always prioritize stability, security, and user experience over quick implementations.

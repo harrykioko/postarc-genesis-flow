@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { DemoCTA } from "../ui/DemoCTA";
 
@@ -14,6 +13,12 @@ export const ProcessStepsCTA = ({ onTryNowClick }: ProcessStepsCTAProps) => (
     viewport={{ once: true }}
     className="mt-16"
   >
-    <DemoCTA onClick={onTryNowClick} />
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+    >
+      <DemoCTA onClick={onTryNowClick} />
+    </motion.div>
   </motion.div>
 );
